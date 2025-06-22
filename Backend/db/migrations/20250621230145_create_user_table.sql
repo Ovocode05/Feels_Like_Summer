@@ -15,12 +15,6 @@ create table users (
     updated_at timestamp with time zone default now(),
     skills JSONB
 );
--- +goose StatementBegin
-SELECT 'up SQL query';
--- +goose StatementEnd
 
 -- +goose Down
-drop table if exists user;
--- +goose StatementBegin
-SELECT 'down SQL query';
--- +goose StatementEnd
+drop table if exists users;
