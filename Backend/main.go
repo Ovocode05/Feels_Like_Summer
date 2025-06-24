@@ -7,9 +7,8 @@ import (
 	"os"
 
 	"github.com/OvoCode05/Feels-Like-Summer/config"
-	// Initialize the config package to load environment variables
 	"github.com/OvoCode05/Feels-Like-Summer/db"
-	// Initialize the db package to connect to the database
+	"github.com/go-chi/chi/v5"
 )
 
 func main(){
@@ -22,9 +21,16 @@ func main(){
 	port := os.Getenv("PORT")
 	fmt.Printf("🚀 Server is running on port %s\n", port)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
-		w.Write([]byte("Welcome to Feels Like Summer!"))
-	})
 
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	router := chi.NewRouter()
+	srv := &http.Server{
+		Handler : router,
+		Addr: ":" + port,
+	}
+
+	err := srv.ListenAndServe() //nothing will ever be returned from this function
+	if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
+
 }

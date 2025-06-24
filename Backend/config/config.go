@@ -8,7 +8,7 @@ import (
 )
 
 func LoadEnv(){
-	err := godotenv.Load() //main and .env files at the same level
+	err := godotenv.Load() //returns an error
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
