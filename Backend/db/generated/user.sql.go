@@ -13,23 +13,16 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-insert into users (name, email, password, department, year, major, research_interest, role, isAvailable, links, skills)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+insert into users (name, email, password, role)
+values ($1, $2, $3, $4)
 returning id, name, email, password, department, year, major, research_interest, role, isavailable, links, created_at, updated_at, skills
 `
 
 type CreateUserParams struct {
-	Name             string                `json:"name"`
-	Email            string                `json:"email"`
-	Password         string                `json:"password"`
-	Department       sql.NullString        `json:"department"`
-	Year             sql.NullInt32         `json:"year"`
-	Major            sql.NullString        `json:"major"`
-	ResearchInterest string                `json:"research_interest"`
-	Role             string                `json:"role"`
-	Isavailable      sql.NullBool          `json:"isavailable"`
-	Links            pqtype.NullRawMessage `json:"links"`
-	Skills           pqtype.NullRawMessage `json:"skills"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -37,14 +30,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Name,
 		arg.Email,
 		arg.Password,
-		arg.Department,
-		arg.Year,
-		arg.Major,
-		arg.ResearchInterest,
 		arg.Role,
-		arg.Isavailable,
-		arg.Links,
-		arg.Skills,
 	)
 	var i User
 	err := row.Scan(
@@ -66,12 +52,42 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const getUserByEmail = `-- name: GetUserByEmail :one
-select id, name, email, password, department, year, major, research_interest, role, isavailable, links, created_at, updated_at, skills from users where email = $1
+const updateUserProfile = `-- name: UpdateUserProfile :one
+Update users
+set department = $1,
+    year = $2,
+    major = $3,
+    research_interest = $4,
+    isAvailable = $5,
+    links = $6,
+    skills = $7,
+    updated_at = now()
+where id = $8
+returning id, name, email, password, department, year, major, research_interest, role, isavailable, links, created_at, updated_at, skills
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+type UpdateUserProfileParams struct {
+	Department       sql.NullString        `json:"department"`
+	Year             sql.NullInt32         `json:"year"`
+	Major            sql.NullString        `json:"major"`
+	ResearchInterest string                `json:"research_interest"`
+	Isavailable      sql.NullBool          `json:"isavailable"`
+	Links            pqtype.NullRawMessage `json:"links"`
+	Skills           pqtype.NullRawMessage `json:"skills"`
+	ID               int32                 `json:"id"`
+}
+
+func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserProfile,
+		arg.Department,
+		arg.Year,
+		arg.Major,
+		arg.ResearchInterest,
+		arg.Isavailable,
+		arg.Links,
+		arg.Skills,
+		arg.ID,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,

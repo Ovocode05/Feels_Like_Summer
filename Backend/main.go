@@ -9,6 +9,7 @@ import (
 	"github.com/OvoCode05/Feels-Like-Summer/config"
 	"github.com/OvoCode05/Feels-Like-Summer/db"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 )
 
 func main(){
@@ -23,6 +24,21 @@ func main(){
 
 
 	router := chi.NewRouter()
+	//cors configuration - people can make requests to the server from any origin
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"}, 
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, 
+		AllowedHeaders:   []string{"*"}, 
+		ExposedHeaders:   []string{"Link"},	
+		AllowCredentials: true,
+		MaxAge:           300, // Cache preflight response for 5 minutes
+	}))
+
+	v1Router := chi.NewRouter()
+	// Define your API routes here
+	v1Router.HandleFunc("/healthz", handlerReadiness) // Readiness check endpoint
+	router.Mount("/v1", v1Router)
+
 	srv := &http.Server{
 		Handler : router,
 		Addr: ":" + port,
