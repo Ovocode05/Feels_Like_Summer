@@ -73,7 +73,7 @@ type UpdateUserProfileParams struct {
 	Department       sql.NullString        `json:"department"`
 	Year             sql.NullInt32         `json:"year"`
 	Major            sql.NullString        `json:"major"`
-	ResearchInterest string                `json:"research_interest"`
+	ResearchInterest sql.NullString        `json:"research_interest"`
 	IsAvailable      sql.NullBool          `json:"is_available"`
 	Links            pqtype.NullRawMessage `json:"links"`
 	Skills           pqtype.NullRawMessage `json:"skills"`

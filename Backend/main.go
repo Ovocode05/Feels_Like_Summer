@@ -55,8 +55,8 @@ func main(){
 	// Define your API routes here
 	v1Router.Get("/healthz", handler_readiness) // Readiness check endpoint
 	v1Router.Get("/err", handleErr)
-	v1Router.Post("/user", apiCfg.handlerCreateUser)
-	router.Mount("/v1", v1Router)
+	v1Router.Post("/register_user", apiCfg.handlerCreateUser)
+	router.Mount("/", v1Router)
 
 	srv := &http.Server{
 		Handler : router,
