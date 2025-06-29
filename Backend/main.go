@@ -36,7 +36,8 @@ func main(){
 
 	v1Router := chi.NewRouter()
 	// Define your API routes here
-	v1Router.HandleFunc("/healthz", handlerReadiness) // Readiness check endpoint
+	v1Router.Get("/healthz", handler_readiness) // Readiness check endpoint
+	v1Router.Get("/err", handleErr)
 	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{
