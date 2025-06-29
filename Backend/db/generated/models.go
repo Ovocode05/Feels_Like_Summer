@@ -7,11 +7,12 @@ package db
 import (
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
 )
 
 type User struct {
-	ID               int32                 `json:"id"`
+	ID               uuid.UUID             `json:"id"`
 	Name             string                `json:"name"`
 	Email            string                `json:"email"`
 	Password         string                `json:"password"`
@@ -20,9 +21,9 @@ type User struct {
 	Major            sql.NullString        `json:"major"`
 	ResearchInterest string                `json:"research_interest"`
 	Role             string                `json:"role"`
-	Isavailable      sql.NullBool          `json:"isavailable"`
+	IsAvailable      sql.NullBool          `json:"is_available"`
 	Links            pqtype.NullRawMessage `json:"links"`
+	Skills           pqtype.NullRawMessage `json:"skills"`
 	CreatedAt        sql.NullTime          `json:"created_at"`
 	UpdatedAt        sql.NullTime          `json:"updated_at"`
-	Skills           pqtype.NullRawMessage `json:"skills"`
 }

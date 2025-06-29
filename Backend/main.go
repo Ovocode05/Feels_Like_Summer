@@ -1,27 +1,44 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/OvoCode05/Feels-Like-Summer/config"
-	"github.com/OvoCode05/Feels-Like-Summer/db"
+	db "github.com/OvoCode05/Feels-Like-Summer/db/generated"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+
+	_ "github.com/lib/pq" // PostgreSQL driver
 )
+
+type apiConfig struct{
+	DB *db.Queries
+}
 
 func main(){
 	config.LoadEnv()
 
-	if err := db.ConnectDB(); err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
-	}
-
+	
 	port := os.Getenv("PORT")
 	fmt.Printf("🚀 Server is running on port %s\n", port)
 
+	dbUrl := os.Getenv("DB_SOURCE")
+	if dbUrl == "" {
+		log.Fatal("DB_SOURCE environment variable is not set")
+	}
+	conn, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatalf("Failed to connect to the database: %v", err)
+	}
+
+
+	apiCfg := apiConfig{
+		DB: db.New(conn),
+	}
 
 	router := chi.NewRouter()
 	//cors configuration - people can make requests to the server from any origin
@@ -30,7 +47,7 @@ func main(){
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, 
 		AllowedHeaders:   []string{"*"}, 
 		ExposedHeaders:   []string{"Link"},	
-		AllowCredentials: true,
+		AllowCredentials: false,
 		MaxAge:           300, // Cache preflight response for 5 minutes
 	}))
 
@@ -38,6 +55,7 @@ func main(){
 	// Define your API routes here
 	v1Router.Get("/healthz", handler_readiness) // Readiness check endpoint
 	v1Router.Get("/err", handleErr)
+	v1Router.Post("/user", apiCfg.handlerCreateUser)
 	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{
@@ -45,7 +63,7 @@ func main(){
 		Addr: ":" + port,
 	}
 
-	err := srv.ListenAndServe() //nothing will ever be returned from this function
+	err = srv.ListenAndServe() //nothing will ever be returned from this function
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
