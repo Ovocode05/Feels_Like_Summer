@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { useState } from "react";
+import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -13,11 +13,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
   BookOpen,
   Calendar,
@@ -32,14 +38,15 @@ import {
   MessageSquare,
   Search,
   ThumbsDown,
-} from "lucide-react"
+} from "lucide-react";
+import useAuth from "@/hooks/useAuth";
 
 export default function ProfessorApplicationsPage() {
-  const [activeTab, setActiveTab] = useState("all")
-  const [selectedApplication, setSelectedApplication] = useState<any>(null)
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
-  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false)
-  const [feedbackText, setFeedbackText] = useState("")
+  const [activeTab, setActiveTab] = useState("all");
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
   const [applications, setApplications] = useState([
     {
       id: 1,
@@ -225,45 +232,63 @@ export default function ProfessorApplicationsPage() {
         "I am interested in the Machine Learning for Climate Data research project. I have a background in computer science with a focus on machine learning and have completed relevant coursework. I am eager to apply my skills to climate data analysis and contribute to this important research area.",
       cv: "/path/to/cv.pdf",
     },
-  ])
+  ]);
 
   const updateApplicationStatus = (id: number, status: string) => {
     setApplications(
       applications.map((app) => {
         if (app.id === id) {
-          return { ...app, status }
+          return { ...app, status };
         }
-        return app
-      }),
-    )
-    setIsViewDialogOpen(false)
-  }
+        return app;
+      })
+    );
+    setIsViewDialogOpen(false);
+  };
 
   const sendFeedback = () => {
     // In a real application, you would send the feedback to the student
-    console.log(`Sending feedback to ${selectedApplication.student.name}: ${feedbackText}`)
-    setIsFeedbackDialogOpen(false)
-    setFeedbackText("")
-  }
+    console.log(
+      `Sending feedback to ${selectedApplication.student.name}: ${feedbackText}`
+    );
+    setIsFeedbackDialogOpen(false);
+    setFeedbackText("");
+  };
 
   const filteredApplications = applications.filter((app) => {
-    if (activeTab === "all") return true
-    return app.status === activeTab
-  })
+    if (activeTab === "all") return true;
+    return app.status === activeTab;
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline">Pending Review</Badge>
+        return <Badge variant="outline">Pending Review</Badge>;
       case "interview":
-        return <Badge variant="secondary">Interview Scheduled</Badge>
+        return <Badge variant="secondary">Interview Scheduled</Badge>;
       case "accepted":
-        return <Badge variant="default">Accepted</Badge>
+        return <Badge variant="default">Accepted</Badge>;
       case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>
+        return <Badge variant="destructive">Rejected</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const { loading, authorized } = useAuth("prof");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Unauthorized
+      </div>
+    );
   }
 
   return (
@@ -275,10 +300,16 @@ export default function ProfessorApplicationsPage() {
         </Link>
         <nav className="hidden flex-1 items-center justify-center lg:flex">
           <div className="flex gap-6">
-            <Link href="/professor/dashboard" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/dashboard"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Dashboard
             </Link>
-            <Link href="/professor/projects" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/projects"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               My Projects
             </Link>
             <Link
@@ -287,10 +318,16 @@ export default function ProfessorApplicationsPage() {
             >
               Applications
             </Link>
-            <Link href="/professor/resources" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/resources"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Resources
             </Link>
-            <Link href="/professor/availability" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/availability"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Availability
             </Link>
           </div>
@@ -309,7 +346,10 @@ export default function ProfessorApplicationsPage() {
           </Button>
           <Link href="/professor/profile">
             <Avatar>
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Professor" />
+              <AvatarImage
+                src="/placeholder.svg?height=32&width=32"
+                alt="Professor"
+              />
               <AvatarFallback>PD</AvatarFallback>
             </Avatar>
           </Link>
@@ -319,7 +359,9 @@ export default function ProfessorApplicationsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Applications</h1>
-            <p className="text-muted-foreground">Review and manage student applications for your research projects.</p>
+            <p className="text-muted-foreground">
+              Review and manage student applications for your research projects.
+            </p>
           </div>
         </div>
 
@@ -327,13 +369,21 @@ export default function ProfessorApplicationsPage() {
           <div className="flex flex-1 items-center gap-2">
             <div className="relative flex-1 md:max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search applications..." className="pl-8" />
+              <Input
+                type="search"
+                placeholder="Search applications..."
+                className="pl-8"
+              />
             </div>
             <Button variant="outline" size="icon">
               <Filter className="h-4 w-4" />
             </Button>
           </div>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full md:w-auto"
+          >
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="pending">Pending</TabsTrigger>
@@ -358,41 +408,59 @@ export default function ProfessorApplicationsPage() {
                       <AvatarFallback>
                         {application.student.name
                           .split(" ")
-                          .map((n) => n[0])
+                          .map((n: string) => n[0])
                           .join("")}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-medium">{application.student.name}</h3>
+                      <h3 className="font-medium">
+                        {application.student.name}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
-                        {application.student.university} • {application.student.major}
+                        {application.student.university} •{" "}
+                        {application.student.major}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Applied {application.date}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Applied {application.date}
+                        </span>
                       </div>
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 md:items-end">
-                    <div className="text-sm font-medium">{application.project.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {application.project.field} • {application.project.specialization}
+                    <div className="text-sm font-medium">
+                      {application.project.title}
                     </div>
-                    <div className="mt-1">{getStatusBadge(application.status)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {application.project.field} •{" "}
+                      {application.project.specialization}
+                    </div>
+                    <div className="mt-1">
+                      {getStatusBadge(application.status)}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="space-y-1">
-                    <div className="text-xs font-medium text-muted-foreground">Year</div>
+                    <div className="text-xs font-medium text-muted-foreground">
+                      Year
+                    </div>
                     <div className="text-sm">{application.student.year}</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-xs font-medium text-muted-foreground">GPA</div>
+                    <div className="text-xs font-medium text-muted-foreground">
+                      GPA
+                    </div>
                     <div className="text-sm">{application.student.gpa}</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-xs font-medium text-muted-foreground">Application ID</div>
-                    <div className="text-sm">#{application.id.toString().padStart(4, "0")}</div>
+                    <div className="text-xs font-medium text-muted-foreground">
+                      Application ID
+                    </div>
+                    <div className="text-sm">
+                      #{application.id.toString().padStart(4, "0")}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -401,8 +469,8 @@ export default function ProfessorApplicationsPage() {
                     size="sm"
                     className="flex items-center gap-1"
                     onClick={() => {
-                      setSelectedApplication(application)
-                      setIsViewDialogOpen(true)
+                      setSelectedApplication(application);
+                      setIsViewDialogOpen(true);
                     }}
                   >
                     <Eye className="h-4 w-4" />
@@ -413,21 +481,29 @@ export default function ProfessorApplicationsPage() {
                     size="sm"
                     className="flex items-center gap-1"
                     onClick={() => {
-                      setSelectedApplication(application)
-                      setIsFeedbackDialogOpen(true)
+                      setSelectedApplication(application);
+                      setIsFeedbackDialogOpen(true);
                     }}
                   >
                     <MessageSquare className="h-4 w-4" />
                     Send Feedback
                   </Button>
                   <Link href={`/student/profile/${application.student.id}`}>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
                       <GraduationCap className="h-4 w-4" />
                       View Profile
                     </Button>
                   </Link>
                   <Link href={application.cv}>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
                       <Download className="h-4 w-4" />
                       Download CV
                     </Button>
@@ -442,7 +518,9 @@ export default function ProfessorApplicationsPage() {
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted">
                 <FileText className="h-10 w-10 text-muted-foreground" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold">No applications found</h3>
+              <h3 className="mt-4 text-lg font-semibold">
+                No applications found
+              </h3>
               <p className="mb-4 mt-2 text-sm text-muted-foreground">
                 {activeTab === "all"
                   ? "You don't have any applications yet."
@@ -462,28 +540,33 @@ export default function ProfessorApplicationsPage() {
               <DialogHeader>
                 <DialogTitle>Application Details</DialogTitle>
                 <DialogDescription>
-                  Review the application from {selectedApplication.student.name} for the{" "}
-                  {selectedApplication.project.title} project.
+                  Review the application from {selectedApplication.student.name}{" "}
+                  for the {selectedApplication.project.title} project.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
                     <AvatarImage
-                      src={selectedApplication.student.avatar || "/placeholder.svg"}
+                      src={
+                        selectedApplication.student.avatar || "/placeholder.svg"
+                      }
                       alt={selectedApplication.student.name}
                     />
                     <AvatarFallback>
                       {selectedApplication.student.name
                         .split(" ")
-                        .map((n) => n[0])
+                        .map((n: string) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-medium">{selectedApplication.student.name}</h3>
+                    <h3 className="font-medium">
+                      {selectedApplication.student.name}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      {selectedApplication.student.university} • {selectedApplication.student.major} •{" "}
+                      {selectedApplication.student.university} •{" "}
+                      {selectedApplication.student.major} •{" "}
                       {selectedApplication.student.year}
                     </p>
                   </div>
@@ -497,7 +580,9 @@ export default function ProfessorApplicationsPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-1">
                     <div className="text-sm font-medium">GPA</div>
-                    <div className="text-sm">{selectedApplication.student.gpa}</div>
+                    <div className="text-sm">
+                      {selectedApplication.student.gpa}
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-sm font-medium">Application Date</div>
@@ -505,7 +590,9 @@ export default function ProfessorApplicationsPage() {
                   </div>
                   <div className="space-y-1">
                     <div className="text-sm font-medium">Project</div>
-                    <div className="text-sm">{selectedApplication.project.title}</div>
+                    <div className="text-sm">
+                      {selectedApplication.project.title}
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-sm font-medium">Status</div>
@@ -515,13 +602,23 @@ export default function ProfessorApplicationsPage() {
 
                 <div className="flex flex-wrap gap-2">
                   <Link href={selectedApplication.cv}>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
                       <Download className="h-4 w-4" />
                       Download CV
                     </Button>
                   </Link>
-                  <Link href={`/student/profile/${selectedApplication.student.id}`}>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <Link
+                    href={`/student/profile/${selectedApplication.student.id}`}
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
                       <ExternalLink className="h-4 w-4" />
                       View Full Profile
                     </Button>
@@ -533,7 +630,12 @@ export default function ProfessorApplicationsPage() {
                   {selectedApplication.status !== "rejected" && (
                     <Button
                       variant="destructive"
-                      onClick={() => updateApplicationStatus(selectedApplication.id, "rejected")}
+                      onClick={() =>
+                        updateApplicationStatus(
+                          selectedApplication.id,
+                          "rejected"
+                        )
+                      }
                     >
                       <ThumbsDown className="mr-2 h-4 w-4" />
                       Reject
@@ -542,20 +644,36 @@ export default function ProfessorApplicationsPage() {
                   {selectedApplication.status === "pending" && (
                     <Button
                       variant="outline"
-                      onClick={() => updateApplicationStatus(selectedApplication.id, "interview")}
+                      onClick={() =>
+                        updateApplicationStatus(
+                          selectedApplication.id,
+                          "interview"
+                        )
+                      }
                     >
                       <Calendar className="mr-2 h-4 w-4" />
                       Schedule Interview
                     </Button>
                   )}
-                  {(selectedApplication.status === "pending" || selectedApplication.status === "interview") && (
-                    <Button onClick={() => updateApplicationStatus(selectedApplication.id, "accepted")}>
+                  {(selectedApplication.status === "pending" ||
+                    selectedApplication.status === "interview") && (
+                    <Button
+                      onClick={() =>
+                        updateApplicationStatus(
+                          selectedApplication.id,
+                          "accepted"
+                        )
+                      }
+                    >
                       <Check className="mr-2 h-4 w-4" />
                       Accept
                     </Button>
                   )}
                 </div>
-                <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsViewDialogOpen(false)}
+                >
                   Close
                 </Button>
               </DialogFooter>
@@ -565,30 +683,38 @@ export default function ProfessorApplicationsPage() {
 
         {/* Feedback Dialog */}
         {selectedApplication && (
-          <Dialog open={isFeedbackDialogOpen} onOpenChange={setIsFeedbackDialogOpen}>
+          <Dialog
+            open={isFeedbackDialogOpen}
+            onOpenChange={setIsFeedbackDialogOpen}
+          >
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Send Feedback</DialogTitle>
                 <DialogDescription>
-                  Send feedback to {selectedApplication.student.name} regarding their application.
+                  Send feedback to {selectedApplication.student.name} regarding
+                  their application.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={selectedApplication.student.avatar || "/placeholder.svg"}
+                      src={
+                        selectedApplication.student.avatar || "/placeholder.svg"
+                      }
                       alt={selectedApplication.student.name}
                     />
                     <AvatarFallback>
                       {selectedApplication.student.name
                         .split(" ")
-                        .map((n) => n[0])
+                        .map((n: string) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium">{selectedApplication.student.name}</div>
+                    <div className="font-medium">
+                      {selectedApplication.student.name}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       Application for {selectedApplication.project.title}
                     </div>
@@ -609,25 +735,27 @@ export default function ProfessorApplicationsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Message Template</label>
+                  <label className="text-sm font-medium">
+                    Message Template
+                  </label>
                   <Select
                     onValueChange={(value) => {
                       if (value === "accepted") {
                         setFeedbackText(
-                          `Dear ${selectedApplication.student.name},\n\nI am pleased to inform you that your application for the "${selectedApplication.project.title}" project has been accepted. Your qualifications and experience make you an excellent fit for this research opportunity.\n\nPlease let me know your availability for an onboarding meeting next week.\n\nBest regards,\nProfessor Davis`,
-                        )
+                          `Dear ${selectedApplication.student.name},\n\nI am pleased to inform you that your application for the "${selectedApplication.project.title}" project has been accepted. Your qualifications and experience make you an excellent fit for this research opportunity.\n\nPlease let me know your availability for an onboarding meeting next week.\n\nBest regards,\nProfessor Davis`
+                        );
                       } else if (value === "interview") {
                         setFeedbackText(
-                          `Dear ${selectedApplication.student.name},\n\nThank you for your application to the "${selectedApplication.project.title}" project. I would like to schedule an interview to discuss your application further.\n\nAre you available for a 30-minute meeting on Monday or Tuesday next week?\n\nBest regards,\nProfessor Davis`,
-                        )
+                          `Dear ${selectedApplication.student.name},\n\nThank you for your application to the "${selectedApplication.project.title}" project. I would like to schedule an interview to discuss your application further.\n\nAre you available for a 30-minute meeting on Monday or Tuesday next week?\n\nBest regards,\nProfessor Davis`
+                        );
                       } else if (value === "rejected") {
                         setFeedbackText(
-                          `Dear ${selectedApplication.student.name},\n\nThank you for your interest in the "${selectedApplication.project.title}" project. After careful consideration, I regret to inform you that we are unable to offer you a position at this time.\n\nI encourage you to apply for future research opportunities that match your interests and qualifications.\n\nBest regards,\nProfessor Davis`,
-                        )
+                          `Dear ${selectedApplication.student.name},\n\nThank you for your interest in the "${selectedApplication.project.title}" project. After careful consideration, I regret to inform you that we are unable to offer you a position at this time.\n\nI encourage you to apply for future research opportunities that match your interests and qualifications.\n\nBest regards,\nProfessor Davis`
+                        );
                       } else if (value === "more-info") {
                         setFeedbackText(
-                          `Dear ${selectedApplication.student.name},\n\nThank you for your application to the "${selectedApplication.project.title}" project. I would like to request some additional information about your experience with [specific skill/technology].\n\nCould you please provide more details about your previous work in this area?\n\nBest regards,\nProfessor Davis`,
-                        )
+                          `Dear ${selectedApplication.student.name},\n\nThank you for your application to the "${selectedApplication.project.title}" project. I would like to request some additional information about your experience with [specific skill/technology].\n\nCould you please provide more details about your previous work in this area?\n\nBest regards,\nProfessor Davis`
+                        );
                       }
                     }}
                   >
@@ -635,16 +763,27 @@ export default function ProfessorApplicationsPage() {
                       <SelectValue placeholder="Select a template" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="accepted">Acceptance Message</SelectItem>
-                      <SelectItem value="interview">Interview Request</SelectItem>
-                      <SelectItem value="rejected">Rejection Message</SelectItem>
-                      <SelectItem value="more-info">Request More Information</SelectItem>
+                      <SelectItem value="accepted">
+                        Acceptance Message
+                      </SelectItem>
+                      <SelectItem value="interview">
+                        Interview Request
+                      </SelectItem>
+                      <SelectItem value="rejected">
+                        Rejection Message
+                      </SelectItem>
+                      <SelectItem value="more-info">
+                        Request More Information
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsFeedbackDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsFeedbackDialogOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={sendFeedback}>Send Feedback</Button>
@@ -654,10 +793,10 @@ export default function ProfessorApplicationsPage() {
         )}
       </main>
     </div>
-  )
+  );
 }
 
-function Bell(props) {
+function Bell(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -674,5 +813,5 @@ function Bell(props) {
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </svg>
-  )
+  );
 }

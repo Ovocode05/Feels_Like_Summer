@@ -1,11 +1,25 @@
-import Link from "next/link"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+"use client";
+
+import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   BookOpen,
   BookText,
@@ -21,9 +35,25 @@ import {
   Star,
   Trophy,
   Video,
-} from "lucide-react"
+} from "lucide-react";
+import useAuth from "@/hooks/useAuth";
 
 export default function ResourcesPage() {
+  const { loading, authorized } = useAuth("prof");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Unauthorized
+      </div>
+    );
+  }
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -33,13 +63,22 @@ export default function ResourcesPage() {
         </Link>
         <nav className="hidden flex-1 items-center justify-center lg:flex">
           <div className="flex gap-6">
-            <Link href="/student/dashboard" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/student/dashboard"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Dashboard
             </Link>
-            <Link href="/student/explore" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/student/explore"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Explore
             </Link>
-            <Link href="/student/applications" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/student/applications"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               My Applications
             </Link>
             <Link
@@ -48,7 +87,10 @@ export default function ResourcesPage() {
             >
               Resources
             </Link>
-            <Link href="/student/cv" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/student/cv"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               My CV
             </Link>
           </div>
@@ -67,7 +109,10 @@ export default function ResourcesPage() {
           </Button>
           <Link href="/student/profile">
             <Avatar>
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Student" />
+              <AvatarImage
+                src="/placeholder.svg?height=32&width=32"
+                alt="Student"
+              />
               <AvatarFallback>JS</AvatarFallback>
             </Avatar>
           </Link>
@@ -76,14 +121,21 @@ export default function ResourcesPage() {
       <main className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Research Resources</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Research Resources
+            </h1>
             <p className="text-muted-foreground">
-              Learning materials, roadmaps, and tools to help you succeed in your research journey.
+              Learning materials, roadmaps, and tools to help you succeed in
+              your research journey.
             </p>
           </div>
           <div className="relative w-full md:w-auto">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Search resources..." className="pl-8 w-full md:w-[260px]" />
+            <Input
+              type="search"
+              placeholder="Search resources..."
+              className="pl-8 w-full md:w-[260px]"
+            />
           </div>
         </div>
 
@@ -115,7 +167,8 @@ export default function ResourcesPage() {
               {[
                 {
                   title: "Quantum Computing Research Path",
-                  description: "A comprehensive guide to becoming a quantum computing researcher.",
+                  description:
+                    "A comprehensive guide to becoming a quantum computing researcher.",
                   author: "Dr. Richard Williams",
                   university: "MIT",
                   level: "Intermediate",
@@ -125,7 +178,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Machine Learning in Research",
-                  description: "Step-by-step guide to applying machine learning techniques in scientific research.",
+                  description:
+                    "Step-by-step guide to applying machine learning techniques in scientific research.",
                   author: "Dr. Sarah Lee",
                   university: "Stanford University",
                   level: "Beginner to Advanced",
@@ -135,7 +189,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Number Theory Research Roadmap",
-                  description: "A structured path to becoming proficient in number theory research.",
+                  description:
+                    "A structured path to becoming proficient in number theory research.",
                   author: "Dr. James Chen",
                   university: "Harvard University",
                   level: "Advanced",
@@ -145,7 +200,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Computational Biology Research Path",
-                  description: "Guide to developing skills for computational biology and bioinformatics research.",
+                  description:
+                    "Guide to developing skills for computational biology and bioinformatics research.",
                   author: "Dr. Emily Rodriguez",
                   university: "UC Berkeley",
                   level: "Intermediate",
@@ -155,7 +211,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Organic Chemistry Research Fundamentals",
-                  description: "Essential knowledge and techniques for organic chemistry research.",
+                  description:
+                    "Essential knowledge and techniques for organic chemistry research.",
                   author: "Dr. Michael Johnson",
                   university: "Caltech",
                   level: "Beginner to Intermediate",
@@ -165,7 +222,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Neural Networks Research Progression",
-                  description: "From basics to cutting-edge research in neural networks and deep learning.",
+                  description:
+                    "From basics to cutting-edge research in neural networks and deep learning.",
                   author: "Dr. Lisa Park",
                   university: "University of Washington",
                   level: "Beginner to Advanced",
@@ -189,7 +247,9 @@ export default function ResourcesPage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">Created by {roadmap.author}</span>
+                        <span className="text-sm">
+                          Created by {roadmap.author}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -330,7 +390,8 @@ export default function ResourcesPage() {
               {[
                 {
                   title: "Climate Data Hackathon",
-                  description: "Develop innovative solutions to climate challenges using real-world data sets.",
+                  description:
+                    "Develop innovative solutions to climate challenges using real-world data sets.",
                   organizer: "Stanford University",
                   date: "June 10-12, 2023",
                   participants: 120,
@@ -340,7 +401,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "AI for Healthcare Hackathon",
-                  description: "Create AI solutions to improve healthcare delivery and patient outcomes.",
+                  description:
+                    "Create AI solutions to improve healthcare delivery and patient outcomes.",
                   organizer: "MIT",
                   date: "May 15-17, 2023",
                   participants: 150,
@@ -350,7 +412,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Quantum Computing Challenge",
-                  description: "Solve complex optimization problems using quantum algorithms.",
+                  description:
+                    "Solve complex optimization problems using quantum algorithms.",
                   organizer: "IBM & Caltech",
                   date: "April 22-24, 2023",
                   participants: 80,
@@ -360,7 +423,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Sustainable Energy Hackathon",
-                  description: "Develop solutions for renewable energy storage and distribution.",
+                  description:
+                    "Develop solutions for renewable energy storage and distribution.",
                   organizer: "UC Berkeley",
                   date: "March 18-20, 2023",
                   participants: 100,
@@ -370,7 +434,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Genomics Data Challenge",
-                  description: "Analyze genomic data to identify patterns related to disease risk.",
+                  description:
+                    "Analyze genomic data to identify patterns related to disease risk.",
                   organizer: "Harvard University",
                   date: "February 25-27, 2023",
                   participants: 90,
@@ -380,7 +445,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Smart Cities Hackathon",
-                  description: "Create innovative solutions for urban challenges using IoT and data analytics.",
+                  description:
+                    "Create innovative solutions for urban challenges using IoT and data analytics.",
                   organizer: "University of Washington",
                   date: "January 20-22, 2023",
                   participants: 110,
@@ -395,7 +461,9 @@ export default function ResourcesPage() {
                       <div className="space-y-1">
                         <Badge variant="outline">{hackathon.field}</Badge>
                         <CardTitle>{hackathon.title}</CardTitle>
-                        <CardDescription>{hackathon.description}</CardDescription>
+                        <CardDescription>
+                          {hackathon.description}
+                        </CardDescription>
                       </div>
                       <div>{hackathon.icon}</div>
                     </div>
@@ -404,7 +472,9 @@ export default function ResourcesPage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">Organized by {hackathon.organizer}</span>
+                        <span className="text-sm">
+                          Organized by {hackathon.organizer}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <History className="h-4 w-4 text-muted-foreground" />
@@ -413,11 +483,15 @@ export default function ResourcesPage() {
                       <div className="grid grid-cols-2 gap-2">
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{hackathon.problemStatements} Problem Statements</span>
+                          <span className="text-sm">
+                            {hackathon.problemStatements} Problem Statements
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{hackathon.participants} Participants</span>
+                          <span className="text-sm">
+                            {hackathon.participants} Participants
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -434,7 +508,8 @@ export default function ResourcesPage() {
               {[
                 {
                   title: "Research Paper Finder",
-                  description: "Advanced search tool for finding relevant research papers across multiple databases.",
+                  description:
+                    "Advanced search tool for finding relevant research papers across multiple databases.",
                   category: "Literature Review",
                   pricing: "Free",
                   rating: 4.8,
@@ -443,7 +518,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Citation Manager",
-                  description: "Organize and format citations for your research papers and publications.",
+                  description:
+                    "Organize and format citations for your research papers and publications.",
                   category: "Writing",
                   pricing: "Free / Premium",
                   rating: 4.7,
@@ -452,7 +528,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Data Visualization Suite",
-                  description: "Create professional charts, graphs, and visualizations for your research data.",
+                  description:
+                    "Create professional charts, graphs, and visualizations for your research data.",
                   category: "Data Analysis",
                   pricing: "Free Trial",
                   rating: 4.6,
@@ -461,7 +538,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Statistical Analysis Tool",
-                  description: "Comprehensive statistical analysis package for research data.",
+                  description:
+                    "Comprehensive statistical analysis package for research data.",
                   category: "Data Analysis",
                   pricing: "Free / Premium",
                   rating: 4.9,
@@ -470,7 +548,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Research Project Manager",
-                  description: "Organize your research workflow, tasks, and collaborations.",
+                  description:
+                    "Organize your research workflow, tasks, and collaborations.",
                   category: "Project Management",
                   pricing: "Free",
                   rating: 4.5,
@@ -479,7 +558,8 @@ export default function ResourcesPage() {
                 },
                 {
                   title: "Lab Notebook",
-                  description: "Digital lab notebook for documenting experiments and research findings.",
+                  description:
+                    "Digital lab notebook for documenting experiments and research findings.",
                   category: "Documentation",
                   pricing: "Free / Premium",
                   rating: 4.7,
@@ -526,15 +606,21 @@ export default function ResourcesPage() {
         </Tabs>
 
         <div className="mt-8">
-          <h2 className="text-2xl font-bold tracking-tight mb-4">Featured Research Guides</h2>
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
+            Featured Research Guides
+          </h2>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
-              <AccordionTrigger>How to Write a Research Proposal</AccordionTrigger>
+              <AccordionTrigger>
+                How to Write a Research Proposal
+              </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 p-2">
                   <p>
-                    A well-crafted research proposal is essential for securing funding, approval, and support for your
-                    research project. This guide walks you through the key components of an effective research proposal.
+                    A well-crafted research proposal is essential for securing
+                    funding, approval, and support for your research project.
+                    This guide walks you through the key components of an
+                    effective research proposal.
                   </p>
                   <div className="space-y-2">
                     <h4 className="font-medium">Key Components:</h4>
@@ -557,12 +643,15 @@ export default function ResourcesPage() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">
-              <AccordionTrigger>Effective Literature Review Techniques</AccordionTrigger>
+              <AccordionTrigger>
+                Effective Literature Review Techniques
+              </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 p-2">
                   <p>
-                    A comprehensive literature review is the foundation of good research. This guide provides strategies
-                    for conducting efficient and thorough literature reviews.
+                    A comprehensive literature review is the foundation of good
+                    research. This guide provides strategies for conducting
+                    efficient and thorough literature reviews.
                   </p>
                   <div className="space-y-2">
                     <h4 className="font-medium">What You'll Learn:</h4>
@@ -583,12 +672,15 @@ export default function ResourcesPage() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-3">
-              <AccordionTrigger>Research Data Management Best Practices</AccordionTrigger>
+              <AccordionTrigger>
+                Research Data Management Best Practices
+              </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 p-2">
                   <p>
-                    Proper data management is crucial for research integrity and reproducibility. Learn how to
-                    effectively collect, store, and manage research data.
+                    Proper data management is crucial for research integrity and
+                    reproducibility. Learn how to effectively collect, store,
+                    and manage research data.
                   </p>
                   <div className="space-y-2">
                     <h4 className="font-medium">Topics Covered:</h4>
@@ -609,12 +701,15 @@ export default function ResourcesPage() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-4">
-              <AccordionTrigger>Publishing Your First Research Paper</AccordionTrigger>
+              <AccordionTrigger>
+                Publishing Your First Research Paper
+              </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 p-2">
                   <p>
-                    Navigate the process of publishing your research in academic journals with this comprehensive guide
-                    for first-time authors.
+                    Navigate the process of publishing your research in academic
+                    journals with this comprehensive guide for first-time
+                    authors.
                   </p>
                   <div className="space-y-2">
                     <h4 className="font-medium">Guide Contents:</h4>
@@ -639,12 +734,15 @@ export default function ResourcesPage() {
         </div>
 
         <div className="mt-8">
-          <h2 className="text-2xl font-bold tracking-tight mb-4">Recommended by Professors</h2>
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
+            Recommended by Professors
+          </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 title: "Essential Papers in Quantum Computing",
-                description: "A curated collection of foundational and recent papers in quantum computing.",
+                description:
+                  "A curated collection of foundational and recent papers in quantum computing.",
                 professor: "Dr. Richard Williams",
                 university: "MIT",
                 type: "Reading List",
@@ -653,7 +751,8 @@ export default function ResourcesPage() {
               },
               {
                 title: "Machine Learning Research Methodology",
-                description: "Comprehensive guide to research methods in machine learning and AI.",
+                description:
+                  "Comprehensive guide to research methods in machine learning and AI.",
                 professor: "Dr. Sarah Lee",
                 university: "Stanford University",
                 type: "Course Materials",
@@ -662,7 +761,8 @@ export default function ResourcesPage() {
               },
               {
                 title: "Mathematical Proofs: Techniques and Examples",
-                description: "Learn essential proof techniques used in mathematical research.",
+                description:
+                  "Learn essential proof techniques used in mathematical research.",
                 professor: "Dr. James Chen",
                 university: "Harvard University",
                 type: "Tutorial Series",
@@ -679,8 +779,13 @@ export default function ResourcesPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src="/placeholder.svg?height=24&width=24" alt={resource.professor} />
-                        <AvatarFallback>{resource.professor.split(" ").pop()[0]}</AvatarFallback>
+                        <AvatarImage
+                          src="/placeholder.svg?height=24&width=24"
+                          alt={resource.professor}
+                        />
+                        <AvatarFallback>
+                          {(resource.professor.split(" ").pop() ?? "")[0]}
+                        </AvatarFallback>
                       </Avatar>
                       <span className="text-sm">{resource.professor}</span>
                     </div>
@@ -703,10 +808,10 @@ export default function ResourcesPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
 
-function Bell(props) {
+function Bell(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -723,10 +828,10 @@ function Bell(props) {
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </svg>
-  )
+  );
 }
 
-function Users(props) {
+function Users(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -745,10 +850,10 @@ function Users(props) {
       <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
-  )
+  );
 }
 
-function BarChart(props) {
+function BarChart(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -766,10 +871,10 @@ function BarChart(props) {
       <line x1="18" x2="18" y1="20" y2="4" />
       <line x1="6" x2="6" y1="20" y2="16" />
     </svg>
-  )
+  );
 }
 
-function PieChart(props) {
+function PieChart(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -786,10 +891,10 @@ function PieChart(props) {
       <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
       <path d="M22 12A10 10 0 0 0 12 2v10z" />
     </svg>
-  )
+  );
 }
 
-function ClipboardList(props) {
+function ClipboardList(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -810,10 +915,10 @@ function ClipboardList(props) {
       <path d="M8 11h.01" />
       <path d="M8 16h.01" />
     </svg>
-  )
+  );
 }
 
-function Tag(props) {
+function Tag(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -830,5 +935,5 @@ function Tag(props) {
       <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
       <path d="M7 7h.01" />
     </svg>
-  )
+  );
 }

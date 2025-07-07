@@ -1,11 +1,18 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react";
+import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,15 +29,29 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
+} from "@/components/ui/dropdown-menu";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import {
   BookOpen,
   Calendar,
@@ -46,30 +67,51 @@ import {
   Search,
   Trash2,
   Users,
-} from "lucide-react"
+} from "lucide-react";
+import useAuth from "@/hooks/useAuth";
 
 const projectFormSchema = z.object({
   title: z.string().min(1, { message: "Project title is required" }),
-  description: z.string().min(1, { message: "Project description is required" }),
+  description: z
+    .string()
+    .min(1, { message: "Project description is required" }),
   field: z.string().min(1, { message: "Field is required" }),
   specialization: z.string().min(1, { message: "Specialization is required" }),
-  positions: z.coerce.number().min(1, { message: "At least one position is required" }),
+  positions: z.coerce
+    .number()
+    .min(1, { message: "At least one position is required" }),
   startDate: z.string().min(1, { message: "Start date is required" }),
   endDate: z.string().optional(),
   deadline: z.string().min(1, { message: "Application deadline is required" }),
   requirements: z.string().min(1, { message: "Requirements are required" }),
   positionType: z.string().min(1, { message: "Position type is required" }),
   status: z.string().min(1, { message: "Status is required" }),
-})
+});
 
 export default function ProfessorProjectsPage() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("active")
+  const { loading, authorized } = useAuth("prof");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Unauthorized
+      </div>
+    );
+  }
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("active");
   const [projects, setProjects] = useState([
     {
       id: 1,
       title: "Quantum Computing Algorithms",
-      description: "Developing novel quantum algorithms for optimization problems.",
+      description:
+        "Developing novel quantum algorithms for optimization problems.",
       field: "Physics",
       specialization: "Quantum Computing",
       positions: 3,
@@ -79,15 +121,28 @@ export default function ProfessorProjectsPage() {
       deadline: "Dec 1, 2022",
       status: "active",
       students: [
-        { id: 1, name: "Alex Johnson", avatar: "/placeholder.svg?height=32&width=32" },
-        { id: 2, name: "Sarah Williams", avatar: "/placeholder.svg?height=32&width=32" },
-        { id: 3, name: "Michael Chen", avatar: "/placeholder.svg?height=32&width=32" },
+        {
+          id: 1,
+          name: "Alex Johnson",
+          avatar: "/placeholder.svg?height=32&width=32",
+        },
+        {
+          id: 2,
+          name: "Sarah Williams",
+          avatar: "/placeholder.svg?height=32&width=32",
+        },
+        {
+          id: 3,
+          name: "Michael Chen",
+          avatar: "/placeholder.svg?height=32&width=32",
+        },
       ],
     },
     {
       id: 2,
       title: "Machine Learning for Climate Data",
-      description: "Using machine learning to analyze and predict climate patterns.",
+      description:
+        "Using machine learning to analyze and predict climate patterns.",
       field: "Computer Science",
       specialization: "Machine Learning",
       positions: 2,
@@ -97,14 +152,23 @@ export default function ProfessorProjectsPage() {
       deadline: "Feb 15, 2023",
       status: "active",
       students: [
-        { id: 4, name: "Emily Davis", avatar: "/placeholder.svg?height=32&width=32" },
-        { id: 5, name: "David Lee", avatar: "/placeholder.svg?height=32&width=32" },
+        {
+          id: 4,
+          name: "Emily Davis",
+          avatar: "/placeholder.svg?height=32&width=32",
+        },
+        {
+          id: 5,
+          name: "David Lee",
+          avatar: "/placeholder.svg?height=32&width=32",
+        },
       ],
     },
     {
       id: 3,
       title: "Algebraic Topology Applications",
-      description: "Exploring applications of algebraic topology in data analysis.",
+      description:
+        "Exploring applications of algebraic topology in data analysis.",
       field: "Mathematics",
       specialization: "Algebraic Topology",
       positions: 2,
@@ -114,8 +178,16 @@ export default function ProfessorProjectsPage() {
       deadline: "Jan 15, 2023",
       status: "active",
       students: [
-        { id: 6, name: "Jessica Brown", avatar: "/placeholder.svg?height=32&width=32" },
-        { id: 7, name: "Ryan Taylor", avatar: "/placeholder.svg?height=32&width=32" },
+        {
+          id: 6,
+          name: "Jessica Brown",
+          avatar: "/placeholder.svg?height=32&width=32",
+        },
+        {
+          id: 7,
+          name: "Ryan Taylor",
+          avatar: "/placeholder.svg?height=32&width=32",
+        },
       ],
     },
     {
@@ -135,7 +207,8 @@ export default function ProfessorProjectsPage() {
     {
       id: 5,
       title: "Statistical Mechanics Models",
-      description: "Developed new statistical mechanics models for complex systems.",
+      description:
+        "Developed new statistical mechanics models for complex systems.",
       field: "Physics",
       specialization: "Statistical Mechanics",
       positions: 4,
@@ -146,7 +219,7 @@ export default function ProfessorProjectsPage() {
       status: "completed",
       students: [],
     },
-  ])
+  ]);
 
   const form = useForm<z.infer<typeof projectFormSchema>>({
     resolver: zodResolver(projectFormSchema),
@@ -163,23 +236,24 @@ export default function ProfessorProjectsPage() {
       positionType: "",
       status: "pending",
     },
-  })
+  });
 
   function onSubmit(values: z.infer<typeof projectFormSchema>) {
     const newProject = {
       id: projects.length + 1,
       ...values,
+      endDate: values.endDate ?? "",
       applications: 0,
       students: [],
-    }
-    setProjects([...projects, newProject])
-    setIsCreateDialogOpen(false)
-    form.reset()
+    };
+    setProjects([...projects, newProject]);
+    setIsCreateDialogOpen(false);
+    form.reset();
   }
 
   const deleteProject = (id: number) => {
-    setProjects(projects.filter((project) => project.id !== id))
-  }
+    setProjects(projects.filter((project) => project.id !== id));
+  };
 
   const duplicateProject = (project: any) => {
     const newProject = {
@@ -189,14 +263,14 @@ export default function ProfessorProjectsPage() {
       status: "pending",
       applications: 0,
       students: [],
-    }
-    setProjects([...projects, newProject])
-  }
+    };
+    setProjects([...projects, newProject]);
+  };
 
   const filteredProjects = projects.filter((project) => {
-    if (activeTab === "all") return true
-    return project.status === activeTab
-  })
+    if (activeTab === "all") return true;
+    return project.status === activeTab;
+  });
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -207,7 +281,10 @@ export default function ProfessorProjectsPage() {
         </Link>
         <nav className="hidden flex-1 items-center justify-center lg:flex">
           <div className="flex gap-6">
-            <Link href="/professor/dashboard" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/dashboard"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Dashboard
             </Link>
             <Link
@@ -216,13 +293,22 @@ export default function ProfessorProjectsPage() {
             >
               My Projects
             </Link>
-            <Link href="/professor/applications" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/applications"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Applications
             </Link>
-            <Link href="/professor/resources" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/resources"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Resources
             </Link>
-            <Link href="/professor/availability" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/availability"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Availability
             </Link>
           </div>
@@ -241,7 +327,10 @@ export default function ProfessorProjectsPage() {
           </Button>
           <Link href="/professor/profile">
             <Avatar>
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Professor" />
+              <AvatarImage
+                src="/placeholder.svg?height=32&width=32"
+                alt="Professor"
+              />
               <AvatarFallback>PD</AvatarFallback>
             </Avatar>
           </Link>
@@ -252,10 +341,14 @@ export default function ProfessorProjectsPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">My Projects</h1>
             <p className="text-muted-foreground">
-              Manage your research projects, track applications, and collaborate with students.
+              Manage your research projects, track applications, and collaborate
+              with students.
             </p>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button className="flex items-center gap-1">
                 <Plus className="h-4 w-4" /> Create Project
@@ -265,12 +358,15 @@ export default function ProfessorProjectsPage() {
               <DialogHeader>
                 <DialogTitle>Create New Research Project</DialogTitle>
                 <DialogDescription>
-                  Fill in the details below to create a new research project. Students will be able to view and apply to
-                  this project.
+                  Fill in the details below to create a new research project.
+                  Students will be able to view and apply to this project.
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="title"
@@ -308,7 +404,10 @@ export default function ProfessorProjectsPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Field</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select field" />
@@ -316,11 +415,19 @@ export default function ProfessorProjectsPage() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="Physics">Physics</SelectItem>
-                              <SelectItem value="Computer Science">Computer Science</SelectItem>
-                              <SelectItem value="Mathematics">Mathematics</SelectItem>
+                              <SelectItem value="Computer Science">
+                                Computer Science
+                              </SelectItem>
+                              <SelectItem value="Mathematics">
+                                Mathematics
+                              </SelectItem>
                               <SelectItem value="Biology">Biology</SelectItem>
-                              <SelectItem value="Chemistry">Chemistry</SelectItem>
-                              <SelectItem value="Engineering">Engineering</SelectItem>
+                              <SelectItem value="Chemistry">
+                                Chemistry
+                              </SelectItem>
+                              <SelectItem value="Engineering">
+                                Engineering
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -334,7 +441,10 @@ export default function ProfessorProjectsPage() {
                         <FormItem>
                           <FormLabel>Specialization</FormLabel>
                           <FormControl>
-                            <Input placeholder="E.g., Quantum Computing, Machine Learning" {...field} />
+                            <Input
+                              placeholder="E.g., Quantum Computing, Machine Learning"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -351,7 +461,9 @@ export default function ProfessorProjectsPage() {
                           <FormControl>
                             <Input type="number" min="1" {...field} />
                           </FormControl>
-                          <FormDescription>Number of available positions</FormDescription>
+                          <FormDescription>
+                            Number of available positions
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -375,7 +487,10 @@ export default function ProfessorProjectsPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Position Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select type" />
@@ -383,9 +498,15 @@ export default function ProfessorProjectsPage() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="Paid">Paid</SelectItem>
-                              <SelectItem value="Volunteer">Volunteer</SelectItem>
-                              <SelectItem value="For Credit">For Credit</SelectItem>
-                              <SelectItem value="Thesis/Dissertation">Thesis/Dissertation</SelectItem>
+                              <SelectItem value="Volunteer">
+                                Volunteer
+                              </SelectItem>
+                              <SelectItem value="For Credit">
+                                For Credit
+                              </SelectItem>
+                              <SelectItem value="Thesis/Dissertation">
+                                Thesis/Dissertation
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -444,7 +565,10 @@ export default function ProfessorProjectsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
@@ -457,14 +581,19 @@ export default function ProfessorProjectsPage() {
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          Pending projects are not visible to students until you activate them
+                          Pending projects are not visible to students until you
+                          activate them
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsCreateDialogOpen(false)}
+                    >
                       Cancel
                     </Button>
                     <Button type="submit">Create Project</Button>
@@ -479,13 +608,21 @@ export default function ProfessorProjectsPage() {
           <div className="flex flex-1 items-center gap-2">
             <div className="relative flex-1 md:max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search projects..." className="pl-8" />
+              <Input
+                type="search"
+                placeholder="Search projects..."
+                className="pl-8"
+              />
             </div>
             <Button variant="outline" size="icon">
               <Filter className="h-4 w-4" />
             </Button>
           </div>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full md:w-auto"
+          >
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
@@ -503,13 +640,20 @@ export default function ProfessorProjectsPage() {
                   <div>
                     <Badge
                       variant={
-                        project.status === "active" ? "default" : project.status === "pending" ? "secondary" : "outline"
+                        project.status === "active"
+                          ? "default"
+                          : project.status === "pending"
+                          ? "secondary"
+                          : "outline"
                       }
                       className="mb-2"
                     >
-                      {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                      {project.status.charAt(0).toUpperCase() +
+                        project.status.slice(1)}
                     </Badge>
-                    <CardTitle className="line-clamp-1">{project.title}</CardTitle>
+                    <CardTitle className="line-clamp-1">
+                      {project.title}
+                    </CardTitle>
                     <CardDescription className="line-clamp-1">
                       {project.field} • {project.specialization}
                     </CardDescription>
@@ -525,11 +669,16 @@ export default function ProfessorProjectsPage() {
                       <DropdownMenuItem>
                         <Edit className="mr-2 h-4 w-4" /> Edit Project
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => duplicateProject(project)}>
+                      <DropdownMenuItem
+                        onClick={() => duplicateProject(project)}
+                      >
                         <Copy className="mr-2 h-4 w-4" /> Duplicate
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive" onClick={() => deleteProject(project.id)}>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => deleteProject(project.id)}
+                      >
                         <Trash2 className="mr-2 h-4 w-4" /> Delete Project
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -537,7 +686,9 @@ export default function ProfessorProjectsPage() {
                 </div>
               </CardHeader>
               <CardContent className="flex-1">
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{project.description}</p>
+                <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                  {project.description}
+                </p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
@@ -560,11 +711,19 @@ export default function ProfessorProjectsPage() {
                 </div>
                 {project.students.length > 0 && (
                   <div className="mt-4">
-                    <div className="text-sm font-medium mb-2">Current Students:</div>
+                    <div className="text-sm font-medium mb-2">
+                      Current Students:
+                    </div>
                     <div className="flex -space-x-2">
                       {project.students.map((student) => (
-                        <Avatar key={student.id} className="border-2 border-background h-8 w-8">
-                          <AvatarImage src={student.avatar || "/placeholder.svg"} alt={student.name} />
+                        <Avatar
+                          key={student.id}
+                          className="border-2 border-background h-8 w-8"
+                        >
+                          <AvatarImage
+                            src={student.avatar || "/placeholder.svg"}
+                            alt={student.name}
+                          />
                           <AvatarFallback>
                             {student.name
                               .split(" ")
@@ -584,7 +743,11 @@ export default function ProfessorProjectsPage() {
                   </Button>
                 </Link>
                 <Link href={`/professor/projects/${project.id}/applications`}>
-                  <Button size="sm">{project.applications > 0 ? "Review Applications" : "Manage Project"}</Button>
+                  <Button size="sm">
+                    {project.applications > 0
+                      ? "Review Applications"
+                      : "Manage Project"}
+                  </Button>
                 </Link>
               </CardFooter>
             </Card>
@@ -609,10 +772,10 @@ export default function ProfessorProjectsPage() {
         )}
       </main>
     </div>
-  )
+  );
 }
 
-function Bell(props) {
+function Bell(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -629,5 +792,5 @@ function Bell(props) {
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </svg>
-  )
+  );
 }

@@ -313,6 +313,14 @@ export default function Home() {
                 <ul className="space-y-2">
                   <li>
                     <Link
+                      href="/student/dashboard"
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
                       href="/student/explore"
                       className="text-sm text-muted-foreground hover:text-foreground"
                     >
@@ -340,6 +348,14 @@ export default function Home() {
               <div className="space-y-3">
                 <h4 className="text-sm font-medium">For Professors</h4>
                 <ul className="space-y-2">
+                  <li>
+                    <Link
+                      href="professor/dashboard"
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      Dashboard
+                    </Link>
+                  </li>
                   <li>
                     <Link
                       href="professor/projects"

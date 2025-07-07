@@ -1,20 +1,46 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertCircle, BookOpen, Download, Edit, FileText, MessageSquare, Plus, Trash2, Upload } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
+import { useState } from "react";
+import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertCircle,
+  BookOpen,
+  Download,
+  Edit,
+  FileText,
+  MessageSquare,
+  Plus,
+  Trash2,
+  Upload,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import useAuth from "@/hooks/useAuth";
 
 const cvFormSchema = z.object({
   personalInfo: z.object({
@@ -29,14 +55,16 @@ const cvFormSchema = z.object({
   }),
   education: z.array(
     z.object({
-      institution: z.string().min(1, { message: "Institution name is required" }),
+      institution: z
+        .string()
+        .min(1, { message: "Institution name is required" }),
       degree: z.string().min(1, { message: "Degree is required" }),
       field: z.string().min(1, { message: "Field of study is required" }),
       startDate: z.string().min(1, { message: "Start date is required" }),
       endDate: z.string().optional(),
       current: z.boolean().optional(),
       description: z.string().optional(),
-    }),
+    })
   ),
   experience: z.array(
     z.object({
@@ -47,16 +75,20 @@ const cvFormSchema = z.object({
       endDate: z.string().optional(),
       current: z.boolean().optional(),
       description: z.string().optional(),
-    }),
+    })
   ),
-  skills: z.array(z.string()).min(1, { message: "At least one skill is required" }),
+  skills: z
+    .array(z.string())
+    .min(1, { message: "At least one skill is required" }),
   projects: z.array(
     z.object({
       title: z.string().min(1, { message: "Project title is required" }),
-      description: z.string().min(1, { message: "Project description is required" }),
+      description: z
+        .string()
+        .min(1, { message: "Project description is required" }),
       technologies: z.array(z.string()).optional(),
       link: z.string().optional(),
-    }),
+    })
   ),
   publications: z.array(
     z.object({
@@ -65,18 +97,41 @@ const cvFormSchema = z.object({
       journal: z.string().optional(),
       date: z.string().optional(),
       link: z.string().optional(),
-    }),
+    })
   ),
   summary: z.string().optional(),
-})
+});
 
 export default function CVBuilderPage() {
-  const [activeTab, setActiveTab] = useState("edit")
-  const [educationEntries, setEducationEntries] = useState([{ id: 1 }])
-  const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }])
-  const [projectEntries, setProjectEntries] = useState([{ id: 1 }])
-  const [publicationEntries, setPublicationEntries] = useState([])
-  const [skills, setSkills] = useState(["Python", "Machine Learning", "Data Analysis", "Research Methodology"])
+  const [activeTab, setActiveTab] = useState("edit");
+  const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
+  const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
+  const [projectEntries, setProjectEntries] = useState([{ id: 1 }]);
+  const [publicationEntries, setPublicationEntries] = useState<
+    { id: number }[]
+  >([]);
+  const [skills, setSkills] = useState([
+    "Python",
+    "Machine Learning",
+    "Data Analysis",
+    "Research Methodology",
+  ]);
+
+  const { loading, authorized } = useAuth("prof");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Unauthorized
+      </div>
+    );
+  }
 
   const form = useForm<z.infer<typeof cvFormSchema>>({
     resolver: zodResolver(cvFormSchema),
@@ -115,7 +170,12 @@ export default function CVBuilderPage() {
             "Assisting with research on machine learning algorithms for natural language processing. Implementing and testing models, analyzing results, and contributing to publications.",
         },
       ],
-      skills: ["Python", "Machine Learning", "Data Analysis", "Research Methodology"],
+      skills: [
+        "Python",
+        "Machine Learning",
+        "Data Analysis",
+        "Research Methodology",
+      ],
       projects: [
         {
           title: "Sentiment Analysis Tool",
@@ -129,68 +189,84 @@ export default function CVBuilderPage() {
       summary:
         "Computer Science student at MIT with a focus on machine learning and artificial intelligence. Experienced in research methodology and data analysis. Seeking research opportunities in AI and computational methods.",
     },
-  })
+  });
 
   function onSubmit(values: z.infer<typeof cvFormSchema>) {
-    console.log(values)
+    console.log(values);
     // In a real application, you would save the CV data here
-    setActiveTab("preview")
+    setActiveTab("preview");
   }
 
   const addEducationEntry = () => {
-    const newId = educationEntries.length > 0 ? Math.max(...educationEntries.map((entry) => entry.id)) + 1 : 1
-    setEducationEntries([...educationEntries, { id: newId }])
-  }
+    const newId =
+      educationEntries.length > 0
+        ? Math.max(...educationEntries.map((entry) => entry.id)) + 1
+        : 1;
+    setEducationEntries([...educationEntries, { id: newId }]);
+  };
 
   const removeEducationEntry = (id: number) => {
     if (educationEntries.length > 1) {
-      setEducationEntries(educationEntries.filter((entry) => entry.id !== id))
+      setEducationEntries(educationEntries.filter((entry) => entry.id !== id));
     }
-  }
+  };
 
   const addExperienceEntry = () => {
-    const newId = experienceEntries.length > 0 ? Math.max(...experienceEntries.map((entry) => entry.id)) + 1 : 1
-    setExperienceEntries([...experienceEntries, { id: newId }])
-  }
+    const newId =
+      experienceEntries.length > 0
+        ? Math.max(...experienceEntries.map((entry) => entry.id)) + 1
+        : 1;
+    setExperienceEntries([...experienceEntries, { id: newId }]);
+  };
 
   const removeExperienceEntry = (id: number) => {
     if (experienceEntries.length > 1) {
-      setExperienceEntries(experienceEntries.filter((entry) => entry.id !== id))
+      setExperienceEntries(
+        experienceEntries.filter((entry) => entry.id !== id)
+      );
     }
-  }
+  };
 
   const addProjectEntry = () => {
-    const newId = projectEntries.length > 0 ? Math.max(...projectEntries.map((entry) => entry.id)) + 1 : 1
-    setProjectEntries([...projectEntries, { id: newId }])
-  }
+    const newId =
+      projectEntries.length > 0
+        ? Math.max(...projectEntries.map((entry) => entry.id)) + 1
+        : 1;
+    setProjectEntries([...projectEntries, { id: newId }]);
+  };
 
   const removeProjectEntry = (id: number) => {
     if (projectEntries.length > 1) {
-      setProjectEntries(projectEntries.filter((entry) => entry.id !== id))
+      setProjectEntries(projectEntries.filter((entry) => entry.id !== id));
     }
-  }
+  };
 
   const addPublicationEntry = () => {
-    const newId = publicationEntries.length > 0 ? Math.max(...publicationEntries.map((entry) => entry.id)) + 1 : 1
-    setPublicationEntries([...publicationEntries, { id: newId }])
-  }
+    const newId =
+      publicationEntries.length > 0
+        ? Math.max(...publicationEntries.map((entry) => entry.id)) + 1
+        : 1;
+    setPublicationEntries([...publicationEntries, { id: newId }]);
+  };
 
   const removePublicationEntry = (id: number) => {
-    setPublicationEntries(publicationEntries.filter((entry) => entry.id !== id))
-  }
+    setPublicationEntries(
+      publicationEntries.filter((entry) => entry.id !== id)
+    );
+  };
 
   const addSkill = (skill: string) => {
     if (skill && !skills.includes(skill)) {
-      setSkills([...skills, skill])
-      form.setValue("skills", [...skills, skill])
+      setSkills([...skills, skill]);
+      form.setValue("skills", [...skills, skill]);
     }
-  }
+  };
 
   const removeSkill = (skill: string) => {
-    const updatedSkills = skills.filter((s) => s !== skill)
-    setSkills(updatedSkills)
-    form.setValue("skills", updatedSkills)
-  }
+    const updatedSkills = skills.filter((s) => s !== skill);
+    setSkills(updatedSkills);
+    form.setValue("skills", updatedSkills);
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -201,19 +277,34 @@ export default function CVBuilderPage() {
         </Link>
         <nav className="hidden flex-1 items-center justify-center lg:flex">
           <div className="flex gap-6">
-            <Link href="/student/dashboard" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/student/dashboard"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Dashboard
             </Link>
-            <Link href="/student/explore" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/student/explore"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Explore
             </Link>
-            <Link href="/student/applications" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/student/applications"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               My Applications
             </Link>
-            <Link href="/student/resources" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/student/resources"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Resources
             </Link>
-            <Link href="/student/cv" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+            <Link
+              href="/student/cv"
+              className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
               My CV
             </Link>
           </div>
@@ -232,7 +323,10 @@ export default function CVBuilderPage() {
           </Button>
           <Link href="/student/profile">
             <Avatar>
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Student" />
+              <AvatarImage
+                src="/placeholder.svg?height=32&width=32"
+                alt="Student"
+              />
               <AvatarFallback>JS</AvatarFallback>
             </Avatar>
           </Link>
@@ -242,7 +336,9 @@ export default function CVBuilderPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">CV Builder</h1>
-            <p className="text-muted-foreground">Create and manage your CV for research applications.</p>
+            <p className="text-muted-foreground">
+              Create and manage your CV for research applications.
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" className="flex items-center gap-2">
@@ -259,7 +355,10 @@ export default function CVBuilderPage() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>CV Completion</AlertTitle>
-          <AlertDescription>Your CV is 85% complete. Add publications or more projects to improve it.</AlertDescription>
+          <AlertDescription>
+            Your CV is 85% complete. Add publications or more projects to
+            improve it.
+          </AlertDescription>
         </Alert>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -275,11 +374,16 @@ export default function CVBuilderPage() {
           </TabsList>
           <TabsContent value="edit" className="space-y-4 mt-4">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-8"
+              >
                 <Card>
                   <CardHeader>
                     <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Basic information that will appear at the top of your CV.</CardDescription>
+                    <CardDescription>
+                      Basic information that will appear at the top of your CV.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -318,7 +422,11 @@ export default function CVBuilderPage() {
                           <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input placeholder="Email address" type="email" {...field} />
+                              <Input
+                                placeholder="Email address"
+                                type="email"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -345,7 +453,10 @@ export default function CVBuilderPage() {
                         <FormItem>
                           <FormLabel>Location</FormLabel>
                           <FormControl>
-                            <Input placeholder="City, State/Province, Country" {...field} />
+                            <Input
+                              placeholder="City, State/Province, Country"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -359,7 +470,10 @@ export default function CVBuilderPage() {
                           <FormItem>
                             <FormLabel>LinkedIn</FormLabel>
                             <FormControl>
-                              <Input placeholder="LinkedIn profile URL" {...field} />
+                              <Input
+                                placeholder="LinkedIn profile URL"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -372,7 +486,10 @@ export default function CVBuilderPage() {
                           <FormItem>
                             <FormLabel>GitHub</FormLabel>
                             <FormControl>
-                              <Input placeholder="GitHub profile URL" {...field} />
+                              <Input
+                                placeholder="GitHub profile URL"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -393,7 +510,8 @@ export default function CVBuilderPage() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Keep your summary concise and focused on your research interests and goals.
+                            Keep your summary concise and focused on your
+                            research interests and goals.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -405,13 +523,21 @@ export default function CVBuilderPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Education</CardTitle>
-                    <CardDescription>Add your educational background, starting with the most recent.</CardDescription>
+                    <CardDescription>
+                      Add your educational background, starting with the most
+                      recent.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {educationEntries.map((entry, index) => (
-                      <div key={entry.id} className="space-y-4 pb-4 border-b last:border-0">
+                      <div
+                        key={entry.id}
+                        className="space-y-4 pb-4 border-b last:border-0"
+                      >
                         <div className="flex justify-between items-center">
-                          <h4 className="text-sm font-medium">Education #{index + 1}</h4>
+                          <h4 className="text-sm font-medium">
+                            Education #{index + 1}
+                          </h4>
                           {educationEntries.length > 1 && (
                             <Button
                               type="button"
@@ -431,7 +557,10 @@ export default function CVBuilderPage() {
                               <FormItem>
                                 <FormLabel>Institution</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="University or school name" {...field} />
+                                  <Input
+                                    placeholder="University or school name"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -458,7 +587,10 @@ export default function CVBuilderPage() {
                             <FormItem>
                               <FormLabel>Field of Study</FormLabel>
                               <FormControl>
-                                <Input placeholder="Major or field of study" {...field} />
+                                <Input
+                                  placeholder="Major or field of study"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -511,7 +643,13 @@ export default function CVBuilderPage() {
                         />
                       </div>
                     ))}
-                    <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addEducationEntry}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={addEducationEntry}
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Add Education
                     </Button>
@@ -522,14 +660,20 @@ export default function CVBuilderPage() {
                   <CardHeader>
                     <CardTitle>Experience</CardTitle>
                     <CardDescription>
-                      Add your work and research experience, starting with the most recent.
+                      Add your work and research experience, starting with the
+                      most recent.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {experienceEntries.map((entry, index) => (
-                      <div key={entry.id} className="space-y-4 pb-4 border-b last:border-0">
+                      <div
+                        key={entry.id}
+                        className="space-y-4 pb-4 border-b last:border-0"
+                      >
                         <div className="flex justify-between items-center">
-                          <h4 className="text-sm font-medium">Experience #{index + 1}</h4>
+                          <h4 className="text-sm font-medium">
+                            Experience #{index + 1}
+                          </h4>
                           {experienceEntries.length > 1 && (
                             <Button
                               type="button"
@@ -549,7 +693,10 @@ export default function CVBuilderPage() {
                               <FormItem>
                                 <FormLabel>Job Title</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Your position or role" {...field} />
+                                  <Input
+                                    placeholder="Your position or role"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -562,7 +709,10 @@ export default function CVBuilderPage() {
                               <FormItem>
                                 <FormLabel>Company/Organization</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Company or organization name" {...field} />
+                                  <Input
+                                    placeholder="Company or organization name"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -576,7 +726,10 @@ export default function CVBuilderPage() {
                             <FormItem>
                               <FormLabel>Location</FormLabel>
                               <FormControl>
-                                <Input placeholder="City, State/Province, Country" {...field} />
+                                <Input
+                                  placeholder="City, State/Province, Country"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -629,7 +782,13 @@ export default function CVBuilderPage() {
                         />
                       </div>
                     ))}
-                    <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addExperienceEntry}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={addExperienceEntry}
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Add Experience
                     </Button>
@@ -639,12 +798,19 @@ export default function CVBuilderPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Skills</CardTitle>
-                    <CardDescription>Add technical, research, and soft skills relevant to your field.</CardDescription>
+                    <CardDescription>
+                      Add technical, research, and soft skills relevant to your
+                      field.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex flex-wrap gap-2 mb-4">
                       {skills.map((skill) => (
-                        <Badge key={skill} variant="secondary" className="flex items-center gap-1">
+                        <Badge
+                          key={skill}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
                           {skill}
                           <Button
                             type="button"
@@ -659,14 +825,20 @@ export default function CVBuilderPage() {
                       ))}
                     </div>
                     <div className="flex gap-2">
-                      <Input placeholder="Add a skill..." id="new-skill" className="flex-1" />
+                      <Input
+                        placeholder="Add a skill..."
+                        id="new-skill"
+                        className="flex-1"
+                      />
                       <Button
                         type="button"
                         onClick={() => {
-                          const input = document.getElementById("new-skill") as HTMLInputElement
+                          const input = document.getElementById(
+                            "new-skill"
+                          ) as HTMLInputElement;
                           if (input && input.value) {
-                            addSkill(input.value)
-                            input.value = ""
+                            addSkill(input.value);
+                            input.value = "";
                           }
                         }}
                       >
@@ -674,7 +846,8 @@ export default function CVBuilderPage() {
                       </Button>
                     </div>
                     <FormDescription>
-                      Add skills that are relevant to the research positions you're applying for.
+                      Add skills that are relevant to the research positions
+                      you're applying for.
                     </FormDescription>
                   </CardContent>
                 </Card>
@@ -683,14 +856,20 @@ export default function CVBuilderPage() {
                   <CardHeader>
                     <CardTitle>Projects</CardTitle>
                     <CardDescription>
-                      Add research or personal projects that showcase your skills and interests.
+                      Add research or personal projects that showcase your
+                      skills and interests.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {projectEntries.map((entry, index) => (
-                      <div key={entry.id} className="space-y-4 pb-4 border-b last:border-0">
+                      <div
+                        key={entry.id}
+                        className="space-y-4 pb-4 border-b last:border-0"
+                      >
                         <div className="flex justify-between items-center">
-                          <h4 className="text-sm font-medium">Project #{index + 1}</h4>
+                          <h4 className="text-sm font-medium">
+                            Project #{index + 1}
+                          </h4>
                           {projectEntries.length > 1 && (
                             <Button
                               type="button"
@@ -709,7 +888,10 @@ export default function CVBuilderPage() {
                             <FormItem>
                               <FormLabel>Project Title</FormLabel>
                               <FormControl>
-                                <Input placeholder="Name of your project" {...field} />
+                                <Input
+                                  placeholder="Name of your project"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -739,7 +921,10 @@ export default function CVBuilderPage() {
                             <FormItem>
                               <FormLabel>Project Link</FormLabel>
                               <FormControl>
-                                <Input placeholder="URL to project repository or website" {...field} />
+                                <Input
+                                  placeholder="URL to project repository or website"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -747,7 +932,13 @@ export default function CVBuilderPage() {
                         />
                       </div>
                     ))}
-                    <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addProjectEntry}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={addProjectEntry}
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Add Project
                     </Button>
@@ -758,7 +949,8 @@ export default function CVBuilderPage() {
                   <CardHeader>
                     <CardTitle>Publications</CardTitle>
                     <CardDescription>
-                      Add any research papers, articles, or publications you've contributed to.
+                      Add any research papers, articles, or publications you've
+                      contributed to.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -766,13 +958,21 @@ export default function CVBuilderPage() {
                       <div className="text-center py-4 text-muted-foreground">
                         <FileText className="mx-auto h-8 w-8 mb-2" />
                         <p>No publications added yet.</p>
-                        <p className="text-sm">Add your research papers, articles, or other publications.</p>
+                        <p className="text-sm">
+                          Add your research papers, articles, or other
+                          publications.
+                        </p>
                       </div>
                     ) : (
                       publicationEntries.map((entry, index) => (
-                        <div key={entry.id} className="space-y-4 pb-4 border-b last:border-0">
+                        <div
+                          key={entry.id}
+                          className="space-y-4 pb-4 border-b last:border-0"
+                        >
                           <div className="flex justify-between items-center">
-                            <h4 className="text-sm font-medium">Publication #{index + 1}</h4>
+                            <h4 className="text-sm font-medium">
+                              Publication #{index + 1}
+                            </h4>
                             <Button
                               type="button"
                               variant="ghost"
@@ -789,7 +989,10 @@ export default function CVBuilderPage() {
                               <FormItem>
                                 <FormLabel>Publication Title</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Title of the paper or article" {...field} />
+                                  <Input
+                                    placeholder="Title of the paper or article"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -819,7 +1022,10 @@ export default function CVBuilderPage() {
                                 <FormItem>
                                   <FormLabel>Journal/Conference</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Name of journal or conference" {...field} />
+                                    <Input
+                                      placeholder="Name of journal or conference"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -846,7 +1052,10 @@ export default function CVBuilderPage() {
                               <FormItem>
                                 <FormLabel>DOI or Link</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="DOI or URL to the publication" {...field} />
+                                  <Input
+                                    placeholder="DOI or URL to the publication"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -855,7 +1064,13 @@ export default function CVBuilderPage() {
                         </div>
                       ))
                     )}
-                    <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addPublicationEntry}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={addPublicationEntry}
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Add Publication
                     </Button>
@@ -863,7 +1078,11 @@ export default function CVBuilderPage() {
                 </Card>
 
                 <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setActiveTab("preview")}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setActiveTab("preview")}
+                  >
                     Preview
                   </Button>
                   <Button type="submit">Save CV</Button>
@@ -877,26 +1096,44 @@ export default function CVBuilderPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <CardTitle className="text-2xl">
-                      {form.getValues().personalInfo.firstName} {form.getValues().personalInfo.lastName}
+                      {form.getValues().personalInfo.firstName}{" "}
+                      {form.getValues().personalInfo.lastName}
                     </CardTitle>
                     <CardDescription className="text-base mt-1">
-                      {form.getValues().personalInfo.email} • {form.getValues().personalInfo.phone}
+                      {form.getValues().personalInfo.email} •{" "}
+                      {form.getValues().personalInfo.phone}
                     </CardDescription>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
-                      {form.getValues().personalInfo.location && <span>{form.getValues().personalInfo.location}</span>}
+                      {form.getValues().personalInfo.location && (
+                        <span>{form.getValues().personalInfo.location}</span>
+                      )}
                       {form.getValues().personalInfo.linkedin && (
-                        <Link href={`https://${form.getValues().personalInfo.linkedin}`} className="hover:underline">
+                        <Link
+                          href={`https://${
+                            form.getValues().personalInfo.linkedin
+                          }`}
+                          className="hover:underline"
+                        >
                           LinkedIn
                         </Link>
                       )}
                       {form.getValues().personalInfo.github && (
-                        <Link href={`https://${form.getValues().personalInfo.github}`} className="hover:underline">
+                        <Link
+                          href={`https://${
+                            form.getValues().personalInfo.github
+                          }`}
+                          className="hover:underline"
+                        >
                           GitHub
                         </Link>
                       )}
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setActiveTab("edit")}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setActiveTab("edit")}
+                  >
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
                   </Button>
@@ -919,20 +1156,30 @@ export default function CVBuilderPage() {
                           <h4 className="font-medium">{edu.institution}</h4>
                           <div className="text-sm text-muted-foreground">
                             {edu.startDate &&
-                              new Date(edu.startDate).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                              })}{" "}
+                              new Date(edu.startDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                }
+                              )}{" "}
                             -
                             {edu.endDate
-                              ? new Date(edu.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })
+                              ? new Date(edu.endDate).toLocaleDateString(
+                                  "en-US",
+                                  { year: "numeric", month: "short" }
+                                )
                               : " Present"}
                           </div>
                         </div>
                         <div className="text-sm">
                           {edu.degree} in {edu.field}
                         </div>
-                        {edu.description && <p className="text-sm text-muted-foreground">{edu.description}</p>}
+                        {edu.description && (
+                          <p className="text-sm text-muted-foreground">
+                            {edu.description}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -947,13 +1194,19 @@ export default function CVBuilderPage() {
                           <h4 className="font-medium">{exp.title}</h4>
                           <div className="text-sm text-muted-foreground">
                             {exp.startDate &&
-                              new Date(exp.startDate).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                              })}{" "}
+                              new Date(exp.startDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                }
+                              )}{" "}
                             -
                             {exp.endDate
-                              ? new Date(exp.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })
+                              ? new Date(exp.endDate).toLocaleDateString(
+                                  "en-US",
+                                  { year: "numeric", month: "short" }
+                                )
                               : " Present"}
                           </div>
                         </div>
@@ -961,7 +1214,11 @@ export default function CVBuilderPage() {
                           {exp.company}
                           {exp.location ? `, ${exp.location}` : ""}
                         </div>
-                        {exp.description && <p className="text-sm text-muted-foreground">{exp.description}</p>}
+                        {exp.description && (
+                          <p className="text-sm text-muted-foreground">
+                            {exp.description}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -984,9 +1241,14 @@ export default function CVBuilderPage() {
                     {form.getValues().projects.map((project, index) => (
                       <div key={index} className="space-y-1">
                         <h4 className="font-medium">{project.title}</h4>
-                        <p className="text-sm text-muted-foreground">{project.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {project.description}
+                        </p>
                         {project.link && (
-                          <Link href={`https://${project.link}`} className="text-sm text-primary hover:underline">
+                          <Link
+                            href={`https://${project.link}`}
+                            className="text-sm text-primary hover:underline"
+                          >
                             {project.link}
                           </Link>
                         )}
@@ -995,29 +1257,38 @@ export default function CVBuilderPage() {
                   </div>
                 </div>
 
-                {form.getValues().publications && form.getValues().publications.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">Publications</h3>
-                    <div className="space-y-4">
-                      {form.getValues().publications.map((pub, index) => (
-                        <div key={index} className="space-y-1">
-                          <h4 className="font-medium">{pub.title}</h4>
-                          <p className="text-sm">{pub.authors}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {pub.journal}
-                            {pub.date &&
-                              `, ${new Date(pub.date).toLocaleDateString("en-US", { year: "numeric", month: "long" })}`}
-                          </p>
-                          {pub.link && (
-                            <Link href={`https://${pub.link}`} className="text-sm text-primary hover:underline">
-                              {pub.link}
-                            </Link>
-                          )}
-                        </div>
-                      ))}
+                {form.getValues().publications &&
+                  form.getValues().publications.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">
+                        Publications
+                      </h3>
+                      <div className="space-y-4">
+                        {form.getValues().publications.map((pub, index) => (
+                          <div key={index} className="space-y-1">
+                            <h4 className="font-medium">{pub.title}</h4>
+                            <p className="text-sm">{pub.authors}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {pub.journal}
+                              {pub.date &&
+                                `, ${new Date(pub.date).toLocaleDateString(
+                                  "en-US",
+                                  { year: "numeric", month: "long" }
+                                )}`}
+                            </p>
+                            {pub.link && (
+                              <Link
+                                href={`https://${pub.link}`}
+                                className="text-sm text-primary hover:underline"
+                              >
+                                {pub.link}
+                              </Link>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </CardContent>
               <CardFooter className="flex justify-between">
                 <Button variant="outline" onClick={() => setActiveTab("edit")}>
@@ -1037,10 +1308,10 @@ export default function CVBuilderPage() {
         </Tabs>
       </main>
     </div>
-  )
+  );
 }
 
-function Bell(props) {
+function Bell(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -1057,5 +1328,5 @@ function Bell(props) {
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </svg>
-  )
+  );
 }

@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import useAuth from "@/hooks/useAuth";
 
 export default function ExplorePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -55,6 +56,22 @@ export default function ExplorePage() {
       setSavedProjects([...savedProjects, id]);
     }
   };
+
+  const { loading, authorized } = useAuth("prof");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Unauthorized
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

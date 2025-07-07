@@ -1,9 +1,16 @@
-import Link from "next/link"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BookOpen,
   Calendar,
@@ -15,9 +22,25 @@ import {
   MapPin,
   Share2,
   Users,
-} from "lucide-react"
+} from "lucide-react";
+import useAuth from "@/hooks/useAuth";
 
 export default function ProjectDetails() {
+  const { loading, authorized } = useAuth("prof");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Unauthorized
+      </div>
+    );
+  }
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -71,12 +94,17 @@ export default function ProjectDetails() {
               <div className="mt-4 flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Avatar>
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Dr. Richard Williams" />
+                    <AvatarImage
+                      src="/placeholder.svg?height=32&width=32"
+                      alt="Dr. Richard Williams"
+                    />
                     <AvatarFallback>RW</AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-medium">Dr. Richard Williams</div>
-                    <div className="text-sm text-muted-foreground">Professor of Physics</div>
+                    <div className="text-sm text-muted-foreground">
+                      Professor of Physics
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-muted-foreground">
@@ -115,52 +143,98 @@ export default function ProjectDetails() {
               </TabsList>
               <TabsContent value="description" className="pt-4 space-y-4">
                 <p className="leading-7">
-                  This research project focuses on developing novel quantum algorithms for optimization problems. We aim
-                  to explore new approaches to quantum computing that can solve complex optimization challenges more
-                  efficiently than classical computers.
+                  This research project focuses on developing novel quantum
+                  algorithms for optimization problems. We aim to explore new
+                  approaches to quantum computing that can solve complex
+                  optimization challenges more efficiently than classical
+                  computers.
                 </p>
                 <p className="leading-7">
-                  Our team is working on implementing these algorithms on the latest quantum hardware platforms, and
-                  testing their performance on real-world problems. The research has potential applications in fields
-                  such as logistics, finance, drug discovery, and artificial intelligence.
+                  Our team is working on implementing these algorithms on the
+                  latest quantum hardware platforms, and testing their
+                  performance on real-world problems. The research has potential
+                  applications in fields such as logistics, finance, drug
+                  discovery, and artificial intelligence.
                 </p>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">Research Objectives</h3>
+                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
+                  Research Objectives
+                </h3>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Develop new quantum algorithms for combinatorial optimization problems</li>
-                  <li>Implement and test these algorithms on current quantum computing platforms</li>
-                  <li>Compare performance against classical algorithms and other quantum approaches</li>
+                  <li>
+                    Develop new quantum algorithms for combinatorial
+                    optimization problems
+                  </li>
+                  <li>
+                    Implement and test these algorithms on current quantum
+                    computing platforms
+                  </li>
+                  <li>
+                    Compare performance against classical algorithms and other
+                    quantum approaches
+                  </li>
                   <li>Investigate potential applications in various domains</li>
-                  <li>Contribute to the theoretical understanding of quantum computing complexity</li>
+                  <li>
+                    Contribute to the theoretical understanding of quantum
+                    computing complexity
+                  </li>
                 </ul>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">What You'll Learn</h3>
+                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
+                  What You'll Learn
+                </h3>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Quantum computing principles and quantum information theory</li>
+                  <li>
+                    Quantum computing principles and quantum information theory
+                  </li>
                   <li>Quantum algorithm design and analysis</li>
-                  <li>Programming quantum computers using frameworks like Qiskit or Cirq</li>
-                  <li>Optimization problem formulation and solution methodologies</li>
-                  <li>Research methodology and scientific publication writing</li>
+                  <li>
+                    Programming quantum computers using frameworks like Qiskit
+                    or Cirq
+                  </li>
+                  <li>
+                    Optimization problem formulation and solution methodologies
+                  </li>
+                  <li>
+                    Research methodology and scientific publication writing
+                  </li>
                 </ul>
               </TabsContent>
               <TabsContent value="requirements" className="pt-4 space-y-4">
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">Required Qualifications</h3>
+                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                  Required Qualifications
+                </h3>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Strong background in linear algebra and probability theory</li>
+                  <li>
+                    Strong background in linear algebra and probability theory
+                  </li>
                   <li>Programming experience in Python</li>
                   <li>Basic understanding of quantum mechanics</li>
                   <li>Strong analytical and problem-solving skills</li>
                   <li>Ability to work collaboratively in a research team</li>
                 </ul>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">Preferred Qualifications</h3>
+                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
+                  Preferred Qualifications
+                </h3>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Previous experience with quantum computing frameworks (Qiskit, Cirq, etc.)</li>
-                  <li>Coursework in quantum information science or quantum computing</li>
+                  <li>
+                    Previous experience with quantum computing frameworks
+                    (Qiskit, Cirq, etc.)
+                  </li>
+                  <li>
+                    Coursework in quantum information science or quantum
+                    computing
+                  </li>
                   <li>Experience with optimization algorithms</li>
-                  <li>Background in computer science or computational physics</li>
+                  <li>
+                    Background in computer science or computational physics
+                  </li>
                 </ul>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">Time Commitment</h3>
+                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
+                  Time Commitment
+                </h3>
                 <p className="leading-7">
-                  This project requires a commitment of 10-15 hours per week for a minimum of 6 months. Weekly team
-                  meetings are held on Tuesdays at 2:00 PM.
+                  This project requires a commitment of 10-15 hours per week for
+                  a minimum of 6 months. Weekly team meetings are held on
+                  Tuesdays at 2:00 PM.
                 </p>
               </TabsContent>
               <TabsContent value="timeline" className="pt-4 space-y-4">
@@ -173,10 +247,13 @@ export default function ProjectDetails() {
                       <div className="w-px h-full bg-border"></div>
                     </div>
                     <div className="pb-6">
-                      <h3 className="text-lg font-semibold">Phase 1: Literature Review and Problem Formulation</h3>
+                      <h3 className="text-lg font-semibold">
+                        Phase 1: Literature Review and Problem Formulation
+                      </h3>
                       <p className="text-muted-foreground">June - July 2023</p>
                       <p className="mt-2">
-                        Review existing quantum algorithms and identify specific optimization problems to target.
+                        Review existing quantum algorithms and identify specific
+                        optimization problems to target.
                       </p>
                     </div>
                   </div>
@@ -188,10 +265,15 @@ export default function ProjectDetails() {
                       <div className="w-px h-full bg-border"></div>
                     </div>
                     <div className="pb-6">
-                      <h3 className="text-lg font-semibold">Phase 2: Algorithm Design and Theoretical Analysis</h3>
-                      <p className="text-muted-foreground">August - September 2023</p>
+                      <h3 className="text-lg font-semibold">
+                        Phase 2: Algorithm Design and Theoretical Analysis
+                      </h3>
+                      <p className="text-muted-foreground">
+                        August - September 2023
+                      </p>
                       <p className="mt-2">
-                        Develop new quantum algorithms and analyze their theoretical performance and complexity.
+                        Develop new quantum algorithms and analyze their
+                        theoretical performance and complexity.
                       </p>
                     </div>
                   </div>
@@ -203,10 +285,15 @@ export default function ProjectDetails() {
                       <div className="w-px h-full bg-border"></div>
                     </div>
                     <div className="pb-6">
-                      <h3 className="text-lg font-semibold">Phase 3: Implementation and Preliminary Testing</h3>
-                      <p className="text-muted-foreground">October - November 2023</p>
+                      <h3 className="text-lg font-semibold">
+                        Phase 3: Implementation and Preliminary Testing
+                      </h3>
+                      <p className="text-muted-foreground">
+                        October - November 2023
+                      </p>
                       <p className="mt-2">
-                        Implement algorithms on quantum simulators and small-scale quantum hardware.
+                        Implement algorithms on quantum simulators and
+                        small-scale quantum hardware.
                       </p>
                     </div>
                   </div>
@@ -217,24 +304,38 @@ export default function ProjectDetails() {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold">Phase 4: Performance Evaluation and Publication</h3>
-                      <p className="text-muted-foreground">December 2023 - January 2024</p>
+                      <h3 className="text-lg font-semibold">
+                        Phase 4: Performance Evaluation and Publication
+                      </h3>
+                      <p className="text-muted-foreground">
+                        December 2023 - January 2024
+                      </p>
                       <p className="mt-2">
-                        Comprehensive testing, analysis of results, and preparation of research papers.
+                        Comprehensive testing, analysis of results, and
+                        preparation of research papers.
                       </p>
                     </div>
                   </div>
                 </div>
               </TabsContent>
               <TabsContent value="resources" className="pt-4 space-y-4">
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">Recommended Reading</h3>
+                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                  Recommended Reading
+                </h3>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>"Quantum Computation and Quantum Information" by Michael A. Nielsen and Isaac L. Chuang</li>
                   <li>
-                    "Programming Quantum Computers: Essential Algorithms and Code Samples" by Eric R. Johnston, Nic
-                    Harrigan, and Mercedes Gimeno-Segovia
+                    "Quantum Computation and Quantum Information" by Michael A.
+                    Nielsen and Isaac L. Chuang
                   </li>
-                  <li>"Quantum Computing: A Gentle Introduction" by Eleanor G. Rieffel and Wolfgang H. Polak</li>
+                  <li>
+                    "Programming Quantum Computers: Essential Algorithms and
+                    Code Samples" by Eric R. Johnston, Nic Harrigan, and
+                    Mercedes Gimeno-Segovia
+                  </li>
+                  <li>
+                    "Quantum Computing: A Gentle Introduction" by Eleanor G.
+                    Rieffel and Wolfgang H. Polak
+                  </li>
                 </ul>
                 <div className="flex items-center gap-4 mt-4">
                   <Button variant="outline" className="gap-2">
@@ -246,7 +347,9 @@ export default function ProjectDetails() {
                     Reading List
                   </Button>
                 </div>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">Online Resources</h3>
+                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
+                  Online Resources
+                </h3>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>
                     <Link href="#" className="text-primary hover:underline">
@@ -275,12 +378,16 @@ export default function ProjectDetails() {
             <Card>
               <CardHeader>
                 <CardTitle>Project Details</CardTitle>
-                <CardDescription>Key information about this research opportunity</CardDescription>
+                <CardDescription>
+                  Key information about this research opportunity
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <div className="text-sm font-medium">Application Deadline</div>
+                    <div className="text-sm font-medium">
+                      Application Deadline
+                    </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <span>June 15, 2023</span>
@@ -332,7 +439,9 @@ export default function ProjectDetails() {
                   </div>
                 </div>
                 <div className="space-y-1 pt-2">
-                  <div className="text-sm font-medium">Current Applications</div>
+                  <div className="text-sm font-medium">
+                    Current Applications
+                  </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span>18 applicants</span>
@@ -352,18 +461,26 @@ export default function ProjectDetails() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
-                    <AvatarImage src="/placeholder.svg?height=64&width=64" alt="Dr. Richard Williams" />
+                    <AvatarImage
+                      src="/placeholder.svg?height=64&width=64"
+                      alt="Dr. Richard Williams"
+                    />
                     <AvatarFallback>RW</AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-medium">Dr. Richard Williams</div>
-                    <div className="text-sm text-muted-foreground">Professor of Physics</div>
-                    <div className="text-sm text-muted-foreground">Department of Physics, MIT</div>
+                    <div className="text-sm text-muted-foreground">
+                      Professor of Physics
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Department of Physics, MIT
+                    </div>
                   </div>
                 </div>
                 <p className="text-sm">
-                  Dr. Williams specializes in quantum information theory and quantum algorithms. His research focuses on
-                  developing new quantum computing methods for solving complex problems.
+                  Dr. Williams specializes in quantum information theory and
+                  quantum algorithms. His research focuses on developing new
+                  quantum computing methods for solving complex problems.
                 </p>
                 <div className="space-y-1">
                   <div className="text-sm font-medium">Research Interests</div>
@@ -392,7 +509,9 @@ export default function ProjectDetails() {
             <Card>
               <CardHeader>
                 <CardTitle>Similar Projects</CardTitle>
-                <CardDescription>You might also be interested in these</CardDescription>
+                <CardDescription>
+                  You might also be interested in these
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {[
@@ -412,12 +531,19 @@ export default function ProjectDetails() {
                     university: "Princeton University",
                   },
                 ].map((project, i) => (
-                  <div key={i} className={`space-y-1 ${i < 2 ? "border-b pb-3" : ""}`}>
+                  <div
+                    key={i}
+                    className={`space-y-1 ${i < 2 ? "border-b pb-3" : ""}`}
+                  >
                     <Link href="#" className="font-medium hover:underline">
                       {project.title}
                     </Link>
-                    <div className="text-sm text-muted-foreground">{project.professor}</div>
-                    <div className="text-xs text-muted-foreground">{project.university}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {project.professor}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {project.university}
+                    </div>
                   </div>
                 ))}
               </CardContent>
@@ -432,10 +558,11 @@ export default function ProjectDetails() {
             <span className="text-lg font-semibold">ResearchConnect</span>
           </div>
           <p className="text-center text-sm text-muted-foreground md:text-left">
-            &copy; {new Date().getFullYear()} ResearchConnect. All rights reserved.
+            &copy; {new Date().getFullYear()} ResearchConnect. All rights
+            reserved.
           </p>
         </div>
       </footer>
     </div>
-  )
+  );
 }

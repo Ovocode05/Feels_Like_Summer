@@ -1,9 +1,18 @@
-import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+"use client";
+
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BookOpen,
   CalendarClock,
@@ -15,9 +24,26 @@ import {
   Plus,
   User,
   Users,
-} from "lucide-react"
+} from "lucide-react";
+import useAuth from "@/hooks/useAuth";
 
 export default function ProfessorDashboard() {
+  const { loading, authorized } = useAuth("prof");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Unauthorized
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -33,16 +59,28 @@ export default function ProfessorDashboard() {
             >
               Dashboard
             </Link>
-            <Link href="/professor/projects" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/projects"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               My Projects
             </Link>
-            <Link href="/professor/applications" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/applications"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Applications
             </Link>
-            <Link href="/professor/resources" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/resources"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Resources
             </Link>
-            <Link href="/professor/calendar" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link
+              href="/professor/calendar"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
               Availability
             </Link>
           </div>
@@ -61,7 +99,10 @@ export default function ProfessorDashboard() {
           </Button>
           <Link href="/professor/profile">
             <Avatar>
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Professor" />
+              <AvatarImage
+                src="/placeholder.svg?height=32&width=32"
+                alt="Professor"
+              />
               <AvatarFallback>PD</AvatarFallback>
             </Avatar>
           </Link>
@@ -72,7 +113,8 @@ export default function ProfessorDashboard() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back, Professor Davis. Here's an overview of your research activity.
+              Welcome back, Professor Davis. Here's an overview of your research
+              activity.
             </p>
           </div>
           <Link href="/professor/projects/new">
@@ -85,17 +127,23 @@ export default function ProfessorDashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Active Projects
+              </CardTitle>
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">4</div>
-              <p className="text-xs text-muted-foreground">+1 from last month</p>
+              <p className="text-xs text-muted-foreground">
+                +1 from last month
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Applications</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Applications
+              </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -110,17 +158,23 @@ export default function ProfessorDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">8</div>
-              <p className="text-xs text-muted-foreground">Active research collaborations</p>
+              <p className="text-xs text-muted-foreground">
+                Active research collaborations
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Upcoming Meetings</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Upcoming Meetings
+              </CardTitle>
               <CalendarClock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">3</div>
-              <p className="text-xs text-muted-foreground">Next: Tomorrow at 2:00 PM</p>
+              <p className="text-xs text-muted-foreground">
+                Next: Tomorrow at 2:00 PM
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -129,7 +183,9 @@ export default function ProfessorDashboard() {
           <Card className="lg:col-span-4">
             <CardHeader>
               <CardTitle>Recent Applications</CardTitle>
-              <CardDescription>Students who recently applied to your research projects.</CardDescription>
+              <CardDescription>
+                Students who recently applied to your research projects.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -153,10 +209,16 @@ export default function ProfessorDashboard() {
                     status: "New",
                   },
                 ].map((application, i) => (
-                  <div key={i} className="flex items-center justify-between space-x-4">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between space-x-4"
+                  >
                     <div className="flex items-center space-x-4">
                       <Avatar>
-                        <AvatarImage src="/placeholder.svg?height=40&width=40" alt={application.name} />
+                        <AvatarImage
+                          src="/placeholder.svg?height=40&width=40"
+                          alt={application.name}
+                        />
                         <AvatarFallback>
                           {application.name
                             .split(" ")
@@ -165,11 +227,17 @@ export default function ProfessorDashboard() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-medium leading-none">{application.name}</p>
-                        <p className="text-sm text-muted-foreground">{application.project}</p>
+                        <p className="text-sm font-medium leading-none">
+                          {application.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {application.project}
+                        </p>
                         <div className="flex items-center gap-2 pt-1">
                           <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">{application.date}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {application.date}
+                          </span>
                           {application.status === "New" && (
                             <Badge variant="default" className="text-xs">
                               New
@@ -198,12 +266,17 @@ export default function ProfessorDashboard() {
           <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle>Your Availability</CardTitle>
-              <CardDescription>Current office hours and meeting slots.</CardDescription>
+              <CardDescription>
+                Current office hours and meeting slots.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {[
-                  { day: "Monday", slots: ["10:00 AM - 12:00 PM", "2:00 PM - 3:00 PM"] },
+                  {
+                    day: "Monday",
+                    slots: ["10:00 AM - 12:00 PM", "2:00 PM - 3:00 PM"],
+                  },
                   { day: "Wednesday", slots: ["1:00 PM - 4:00 PM"] },
                   { day: "Friday", slots: ["9:00 AM - 11:00 AM"] },
                 ].map((schedule, i) => (
@@ -211,7 +284,10 @@ export default function ProfessorDashboard() {
                     <div className="font-medium">{schedule.day}</div>
                     <div className="space-y-1">
                       {schedule.slots.map((slot, j) => (
-                        <div key={j} className="flex items-center gap-2 rounded-md border p-2 text-sm">
+                        <div
+                          key={j}
+                          className="flex items-center gap-2 rounded-md border p-2 text-sm"
+                        >
                           <CalendarClock className="h-4 w-4 text-muted-foreground" />
                           {slot}
                         </div>
@@ -242,21 +318,24 @@ export default function ProfessorDashboard() {
               {[
                 {
                   title: "Quantum Computing Algorithms",
-                  description: "Developing novel quantum algorithms for optimization problems.",
+                  description:
+                    "Developing novel quantum algorithms for optimization problems.",
                   students: 3,
                   applications: 5,
                   startDate: "Jan 15, 2023",
                 },
                 {
                   title: "Machine Learning for Climate Data",
-                  description: "Using machine learning to analyze and predict climate patterns.",
+                  description:
+                    "Using machine learning to analyze and predict climate patterns.",
                   students: 2,
                   applications: 4,
                   startDate: "Mar 10, 2023",
                 },
                 {
                   title: "Algebraic Topology Applications",
-                  description: "Exploring applications of algebraic topology in data analysis.",
+                  description:
+                    "Exploring applications of algebraic topology in data analysis.",
                   students: 2,
                   applications: 3,
                   startDate: "Feb 5, 2023",
@@ -272,16 +351,22 @@ export default function ProfessorDashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{project.students} Students</span>
+                          <span className="text-sm">
+                            {project.students} Students
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{project.applications} Applications</span>
+                          <span className="text-sm">
+                            {project.applications} Applications
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">Started {project.startDate}</span>
+                        <span className="text-sm">
+                          Started {project.startDate}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -304,7 +389,9 @@ export default function ProfessorDashboard() {
               <Card>
                 <CardHeader>
                   <CardTitle>Neural Networks in Robotics</CardTitle>
-                  <CardDescription>Implementing neural networks for robotic control systems.</CardDescription>
+                  <CardDescription>
+                    Implementing neural networks for robotic control systems.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -332,7 +419,10 @@ export default function ProfessorDashboard() {
               <Card>
                 <CardHeader>
                   <CardTitle>Statistical Mechanics Models</CardTitle>
-                  <CardDescription>Developed new statistical mechanics models for complex systems.</CardDescription>
+                  <CardDescription>
+                    Developed new statistical mechanics models for complex
+                    systems.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -364,10 +454,10 @@ export default function ProfessorDashboard() {
         </Tabs>
       </main>
     </div>
-  )
+  );
 }
 
-function Bell(props) {
+function Bell(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -384,5 +474,5 @@ function Bell(props) {
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </svg>
-  )
+  );
 }

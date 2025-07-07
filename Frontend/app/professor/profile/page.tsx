@@ -1,9 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import useAuth from "@/hooks/useAuth";
 
 const profileFormSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -15,11 +16,11 @@ const profileFormSchema = z.object({
   office: z.string().optional(),
   website: z.string().optional(),
   bio: z.string().min(1, { message: "Bio is required" }),
-})
+});
 
 const researchInterestFormSchema = z.object({
   interest: z.string().min(1, { message: "Research interest is required" }),
-})
+});
 
 const publicationFormSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -27,14 +28,29 @@ const publicationFormSchema = z.object({
   journal: z.string().min(1, { message: "Journal/Conference is required" }),
   year: z.string().min(1, { message: "Year is required" }),
   link: z.string().optional(),
-})
+});
 
 export default function ProfessorProfilePage() {
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
-  const [isAddInterestOpen, setIsAddInterestOpen] = useState(false)
-  const [isAddPublicationOpen, setIsAddPublicationOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("overview")
-  
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isAddInterestOpen, setIsAddInterestOpen] = useState(false);
+  const [isAddPublicationOpen, setIsAddPublicationOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const { loading, authorized } = useAuth("prof");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Unauthorized
+      </div>
+    );
+  }
+
   const [profile, setProfile] = useState({
     name: "Professor Richard Davis",
     title: "Professor of Physics",
@@ -130,23 +146,26 @@ export default function ProfessorProfilePage() {
       {
         id: 1,
         title: "Quantum Computing Algorithms",
-        description: "Developing novel quantum algorithms for optimization problems.",
+        description:
+          "Developing novel quantum algorithms for optimization problems.",
         students: 3,
       },
       {
         id: 2,
         title: "Quantum Error Correction Methods",
-        description: "Researching new methods for quantum error correction and fault tolerance.",
+        description:
+          "Researching new methods for quantum error correction and fault tolerance.",
         students: 2,
       },
       {
         id: 3,
         title: "Quantum Machine Learning Applications",
-        description: "Exploring applications of quantum computing in machine learning and AI.",
+        description:
+          "Exploring applications of quantum computing in machine learning and AI.",
         students: 2,
       },
     ],
-  })
+  });
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -161,7 +180,8 @@ export default function ProfessorProfilePage() {
       website: profile.website,
       bio: profile.bio,
     },
-  })
+  });
+}
 
-  const interestForm = useForm<z.infer<typeof researchInterestFormSchema>>({
-    resolver: zodResolver(\
+// const interestForm = useForm<z.infer<typeof researchInterestFormSchema>>({
+//   resolver: zodResolver(\
