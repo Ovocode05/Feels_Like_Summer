@@ -57,7 +57,7 @@ export default function ExplorePage() {
     }
   };
 
-  const { loading, authorized } = useAuth("prof");
+  const { loading, authorized } = useAuth("student");
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">

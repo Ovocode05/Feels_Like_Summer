@@ -23,7 +23,7 @@ import { BookOpen, Bookmark, Filter, Search, Star, Users } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 
 export default function ProjectListing() {
-  const { loading, authorized } = useAuth("prof");
+  const { loading, authorized } = useAuth("student");
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
