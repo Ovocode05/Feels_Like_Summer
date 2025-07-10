@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -24,32 +23,44 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { loginUser } from "@/api/api";
+import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(1, { message: "Password is required." }),
-  role: z.enum(["student", "professor"], {
-    required_error: "You need to select a role.",
-  }),
 });
 
+type JWT = {
+  role: string;
+};
+
 export default function LoginPage() {
-  const defaultRole = searchParams.get("role") || "student";
-  const [activeTab, setActiveTab] = useState(defaultRole);
+  const router = useRouter();
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: "",
       password: "",
-      role: "student",
     },
   });
 
-  function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    // In a real application, you would handle the form submission here
+  const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
     console.log(values);
-  }
+    const token = await loginUser(values);
+    console.log("Login attempt:", token);
+    localStorage.setItem("token", token);
+
+    const decoded = jwtDecode<JWT>(token);
+    console.log(decoded);
+
+    if (decoded.role === "student") {
+      router.push("/student/dashboard");
+    } else if (decoded.role === "prof") {
+      router.push("/professor/dashboard");
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -66,18 +77,16 @@ export default function LoginPage() {
             <CardDescription>Welcome back to ResearchConnect.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs
+            {/* <Tabs
               value={activeTab}
-              onValueChange={(value) =>
-                setActiveTab(value as "student" | "prof")
-              }
+              onValueChange={setActiveTab}
               className="mb-6"
             >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="student">Student</TabsTrigger>
                 <TabsTrigger value="prof">Professor</TabsTrigger>
               </TabsList>
-            </Tabs>
+            </Tabs> */}
 
             <Form {...form}>
               <form
@@ -118,23 +127,7 @@ export default function LoginPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem className="hidden">
-                      <FormControl>
-                        <Input
-                          type="hidden"
-                          {...field}
-                          value={activeTab}
-                          onChange={() => {}}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
                 <div className="text-right">
                   <Link
                     href="/forgot-password"

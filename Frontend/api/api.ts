@@ -10,7 +10,12 @@ interface RegisterUserData {
   role: "student" | "prof";
 }
 
-const registerUser = async (data: RegisterUserData) => {
+interface LoginUserData {
+  email: string;
+  password: string;
+}
+
+export const registerUser = async (data: RegisterUserData) => {
   try {
     const response = await axios.post(`${url}/register_user`, data, {
       headers: {
@@ -25,4 +30,17 @@ const registerUser = async (data: RegisterUserData) => {
   }
 };
 
-export default registerUser;
+export const loginUser = async (data: LoginUserData) => {
+  try {
+    const response = await axios.post(`${url}/login`, data, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+    return response.data.token; // Assuming the response contains a token
+  } catch (error) {
+    console.error("Error logging in user:", error);
+    throw error;
+  }
+};

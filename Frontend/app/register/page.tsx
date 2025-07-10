@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import registerUser from "@/api/api";
 
 const registerFormSchema = z
@@ -66,6 +65,8 @@ export default function RegisterPage() {
   });
 
   function onSubmit(values: FormData) {
+    console.log("Form submitted with values:", values);
+
     const res = registerUser(values);
     console.log(res);
   }
@@ -82,35 +83,12 @@ export default function RegisterPage() {
         <Card className="mx-auto max-w-md w-full">
           <CardHeader>
             <CardTitle>Create an account</CardTitle>
-            <CardDescription>
+            <CardDescription className="pt-2">
               Join ResearchConnect to find research opportunities and
               collaborators.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="mb-6"
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="student">Student</TabsTrigger>
-                <TabsTrigger value="prof">Professor</TabsTrigger>
-              </TabsList>
-              <TabsContent value="student">
-                <p className="text-sm text-muted-foreground mt-2">
-                  Register as a student to find research projects and connect
-                  with professors.
-                </p>
-              </TabsContent>
-              <TabsContent value="prof">
-                <p className="text-sm text-muted-foreground mt-2">
-                  Register as a professor to post research opportunities and
-                  find student collaborators.
-                </p>
-              </TabsContent>
-            </Tabs>
-
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}

@@ -56,6 +56,7 @@ func main(){
 	v1Router.Get("/healthz", handler_readiness) // Readiness check endpoint
 	v1Router.Get("/err", handleErr)
 	v1Router.Post("/register_user", apiCfg.handlerCreateUser)
+	v1Router.Post("/login", apiCfg.handlerLogin) // Login endpoint
 	router.Mount("/", v1Router)
 
 	srv := &http.Server{
