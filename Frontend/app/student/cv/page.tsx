@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -103,6 +102,8 @@ const cvFormSchema = z.object({
 });
 
 export default function CVBuilderPage() {
+  const [isHydrated, setIsHydrated] = useState(false);
+  const { loading, authorized } = useAuth("student");
   const [activeTab, setActiveTab] = useState("edit");
   const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
   const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
@@ -117,7 +118,18 @@ export default function CVBuilderPage() {
     "Research Methodology",
   ]);
 
-  const { loading, authorized } = useAuth("student");
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  if (!isHydrated) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -196,6 +208,19 @@ export default function CVBuilderPage() {
     // In a real application, you would save the CV data here
     setActiveTab("preview");
   }
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "Present";
+    try {
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        timeZone: "UTC", // Ensures consistent timezone
+      }).format(new Date(dateString + "T00:00:00.000Z"));
+    } catch {
+      return dateString;
+    }
+  };
 
   const addEducationEntry = () => {
     const newId =

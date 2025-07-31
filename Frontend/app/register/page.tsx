@@ -27,7 +27,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import registerUser from "@/api/api";
+import { registerUser } from "@/api/api";
+import { useRouter } from "next/navigation";
 
 const registerFormSchema = z
   .object({
@@ -47,6 +48,7 @@ const registerFormSchema = z
   });
 
 export default function RegisterPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const defaultRole = searchParams.get("role") || "student";
   const [activeTab, setActiveTab] = useState(defaultRole);
@@ -69,6 +71,7 @@ export default function RegisterPage() {
 
     const res = registerUser(values);
     console.log(res);
+    router.push("/student/dashboard");
   }
 
   return (

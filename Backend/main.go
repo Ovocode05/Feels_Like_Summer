@@ -57,6 +57,7 @@ func main(){
 	v1Router.Get("/err", handleErr)
 	v1Router.Post("/register_user", apiCfg.handlerCreateUser)
 	v1Router.Post("/login", apiCfg.handlerLogin) // Login endpoint
+	v1Router.Post("/update", apiCfg.UpdateUserProfile) // Update user profile endpoint
 	router.Mount("/", v1Router)
 
 	srv := &http.Server{

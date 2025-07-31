@@ -13,10 +13,19 @@ type DecodedJwt = {
 export default function useAuth(requiredRole?: string) {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
     if (!token) {
       setLoading(false);
       router.push("/login");
@@ -37,7 +46,7 @@ export default function useAuth(requiredRole?: string) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mounted, requiredRole, router]);
 
   return { loading, authorized };
 }
