@@ -41,7 +41,6 @@ import {
 } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import Header from "@/components/ui/manual_navbar_prof";
-// import { Header } from "@radix-ui/react-accordion";
 
 export default function ProfessorApplicationsPage() {
   const [activeTab, setActiveTab] = useState("all");
@@ -277,21 +276,21 @@ export default function ProfessorApplicationsPage() {
     }
   };
 
-  const { loading, authorized } = useAuth("prof");
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-  if (!authorized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Unauthorized
-      </div>
-    );
-  }
+  // const { loading, authorized } = useAuth("prof");
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Loading...
+  //     </div>
+  //   );
+  // }
+  // if (!authorized) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Unauthorized
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex min-h-screen flex-col">

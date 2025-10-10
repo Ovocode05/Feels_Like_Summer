@@ -7,13 +7,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { useRouter } from "next/router";
 
 function Header() {
-  const router = useRouter();
+  // const router = useRouter();
 
   // Log out handler: remove token and redirect to login
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
-      router.push("/login");
+      // router.push("/login");
     }
   };
 

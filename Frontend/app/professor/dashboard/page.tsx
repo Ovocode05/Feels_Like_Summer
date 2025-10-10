@@ -29,21 +29,21 @@ import useAuth from "@/hooks/useAuth";
 import Header from "@/components/ui/manual_navbar_prof";
 
 export default function ProfessorDashboard() {
-  const { loading, authorized } = useAuth("prof");
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-  if (!authorized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Unauthorized
-      </div>
-    );
-  }
+  // const { loading, authorized } = useAuth("prof");
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Loading...
+  //     </div>
+  //   );
+  // }
+  // if (!authorized) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Unauthorized
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -57,11 +57,6 @@ export default function ProfessorDashboard() {
               activity.
             </p>
           </div>
-          <Link href="/professor/projects/new">
-            <Button className="flex items-center gap-1">
-              <Plus className="h-4 w-4" /> New Project
-            </Button>
-          </Link>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

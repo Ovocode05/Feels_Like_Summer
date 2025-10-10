@@ -68,10 +68,13 @@ export default function RegisterPage() {
 
   function onSubmit(values: FormData) {
     console.log("Form submitted with values:", values);
+    const { confirmPassword, ...rest } = values;
 
-    const res = registerUser(values);
-    console.log(res);
-    router.push("/onboarding/profile");
+    if (confirmPassword == rest.password) {
+      const res = registerUser(rest);
+      console.log(res);
+      router.push("/profile");
+    }
   }
 
   return (

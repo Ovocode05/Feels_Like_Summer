@@ -48,16 +48,13 @@ export default function LoginPage() {
 
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
     console.log(values);
-    const token = await loginUser(values);
-    console.log("Login attempt:", token);
-    localStorage.setItem("token", token);
+    const res = await loginUser(values);
+    console.log(res);
+    localStorage.setItem("token", res.token);
 
-    const decoded = jwtDecode<JWT>(token);
-    console.log(decoded);
-
-    if (decoded.role === "student") {
+    if (res.user.type === "stu") {
       router.push("/student/dashboard");
-    } else if (decoded.role === "prof") {
+    } else if (res.user.type === "prof") {
       router.push("/professor/dashboard");
     }
   };
