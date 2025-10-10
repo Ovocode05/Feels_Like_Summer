@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -9,16 +12,34 @@ import (
 	"backend/config"
 	"backend/interfaces"
 	"backend/models"
+	"backend/utils"
 )
 
+// SignupRequest represents the data needed for user registration
+type SignupRequest struct {
+	Name     string          `json:"name"`
+	Email    string          `json:"email"`
+	Password string          `json:"password"`
+	Type     models.UserType `json:"type"`
+}
+
+// generateUserID creates a unique 12-character userId
+func generateUserID() (string, error) {
+	bytes := make([]byte, 6) // 6 bytes = 12 hex characters
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
 func Signup(c echo.Context) error {
-	var user models.User
-	if err := c.Bind(&user); err != nil {
+	var signupReq SignupRequest
+	if err := c.Bind(&signupReq); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid input"})
 	}
 
 	// Validate user type
-	if !user.Type.IsValid() {
+	if !signupReq.Type.IsValid() {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid user type. Must be 'fac' or 'stu'"})
 	}
 
@@ -30,21 +51,51 @@ func Signup(c echo.Context) error {
 		}
 	}()
 
+	// Generate unique userId with retry logic
+	var userId string
+	for attempts := 0; attempts < 5; attempts++ {
+		generatedId, err := generateUserID()
+		if err != nil {
+			tx.Rollback()
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate user ID"})
+		}
+
+		// Check if userId already exists
+		var existingByUserId models.User
+		if tx.Where("user_id = ?", generatedId).First(&existingByUserId).Error != nil {
+			userId = generatedId
+			break
+		}
+	}
+
+	if userId == "" {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate unique user ID"})
+	}
+
 	// Check if email already exists within transaction
 	var existing models.User
-	result := tx.Where("email = ?", user.Email).First(&existing)
+	result := tx.Where("email = ?", signupReq.Email).First(&existing)
 	if result.Error == nil {
 		tx.Rollback()
 		return c.JSON(http.StatusConflict, echo.Map{"error": "User already exists"})
 	}
 
 	// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signupReq.Password), bcrypt.DefaultCost)
 	if err != nil {
 		tx.Rollback()
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to hash password"})
 	}
-	user.Password = string(hashedPassword)
+
+	// Create user model from signup request
+	user := models.User{
+		UserID:   userId,
+		Name:     signupReq.Name,
+		Email:    signupReq.Email,
+		Password: string(hashedPassword),
+		Type:     signupReq.Type,
+	}
 
 	// Save user within transaction
 	if err := tx.Create(&user).Error; err != nil {
@@ -95,10 +146,43 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Database error"})
 	}
 
+	// Generate JWT token
+	token, err := utils.GenerateJWT(&user)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate token"})
+	}
+
 	// Login successful - hide password in response
 	user.Password = ""
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Login successful",
-		"user":    user,
+		"token":   token,
+	})
+}
+
+// RefreshToken generates a new JWT token from an existing valid token
+func RefreshToken(c echo.Context) error {
+	// Get Authorization header
+	authHeader := c.Request().Header.Get("Authorization")
+	if authHeader == "" {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Authorization header required"})
+	}
+
+	// Extract token
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid authorization header format"})
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+	// Generate new token
+	newToken, err := utils.RefreshJWT(tokenString)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid or expired token"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "Token refreshed successfully",
+		"token":   newToken,
 	})
 }

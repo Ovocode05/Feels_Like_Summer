@@ -17,6 +17,7 @@ func (ut UserType) IsValid() bool {
 
 type User struct {
 	gorm.Model
+	UserID   string   `json:"userId" gorm:"uniqueIndex;not null"`
 	Name     string   `json:"name"`
 	Email    string   `json:"email" gorm:"uniqueIndex;not null"`
 	Password string   `json:"password"`

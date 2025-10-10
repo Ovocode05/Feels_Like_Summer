@@ -2,6 +2,7 @@ package routers
 
 import (
 	"backend/handlers"
+	"backend/middleware"
 
 	"github.com/labstack/echo/v4"
 )
@@ -9,8 +10,10 @@ import (
 func RegisterAuthRoutes(g *echo.Group) {
 	authGroup := g.Group("/auth")
 
+	// Public routes (no authentication required)
 	authGroup.POST("/signup", handlers.Signup)
-	// later you can add:
-	// authGroup.POST("/login", handlers.Login)
-	// authGroup.GET("/profile", handlers.GetProfile)
+	authGroup.POST("/login", handlers.Login)
+
+	// Protected routes (require JWT token)
+	authGroup.POST("/refresh", handlers.RefreshToken, middleware.JWTMiddleware())
 }
