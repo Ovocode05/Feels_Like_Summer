@@ -71,7 +71,7 @@ export default function RegisterPage() {
 
     const res = registerUser(values);
     console.log(res);
-    router.push("/student/dashboard");
+    router.push("/onboarding/profile");
   }
 
   return (
