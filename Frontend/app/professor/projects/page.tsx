@@ -69,6 +69,8 @@ import {
   Users,
 } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
+import Navbar from "@/components/ui/manual_navbar_prof";
+import Header from "@/components/ui/manual_navbar_prof";
 
 const projectFormSchema = z.object({
   title: z.string().min(1, { message: "Project title is required" }),
@@ -89,22 +91,6 @@ const projectFormSchema = z.object({
 });
 
 export default function ProfessorProjectsPage() {
-  const { loading, authorized } = useAuth("prof");
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-  if (!authorized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Unauthorized
-      </div>
-    );
-  }
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
   const [projects, setProjects] = useState([
     {
@@ -220,6 +206,8 @@ export default function ProfessorProjectsPage() {
       students: [],
     },
   ]);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { loading, authorized } = useAuth("prof");
 
   const form = useForm<z.infer<typeof projectFormSchema>>({
     resolver: zodResolver(projectFormSchema),
@@ -237,6 +225,21 @@ export default function ProfessorProjectsPage() {
       status: "pending",
     },
   });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (!authorized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Unauthorized
+      </div>
+    );
+  }
 
   function onSubmit(values: z.infer<typeof projectFormSchema>) {
     const newProject = {
@@ -274,68 +277,7 @@ export default function ProfessorProjectsPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2 lg:flex">
-          <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">ResearchConnect</span>
-        </Link>
-        <nav className="hidden flex-1 items-center justify-center lg:flex">
-          <div className="flex gap-6">
-            <Link
-              href="/professor/dashboard"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/professor/projects"
-              className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-            >
-              My Projects
-            </Link>
-            <Link
-              href="/professor/applications"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Applications
-            </Link>
-            <Link
-              href="/professor/resources"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Resources
-            </Link>
-            <Link
-              href="/professor/availability"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Availability
-            </Link>
-          </div>
-        </nav>
-        <div className="ml-auto flex items-center gap-4">
-          <Link href="/messages">
-            <Button variant="ghost" size="icon" className="relative">
-              <MessageSquare className="h-5 w-5" />
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                3
-              </span>
-            </Button>
-          </Link>
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
-          <Link href="/professor/profile">
-            <Avatar>
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Professor"
-              />
-              <AvatarFallback>PD</AvatarFallback>
-            </Avatar>
-          </Link>
-        </div>
-      </header>
+      <Header />
       <main className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex items-center justify-between">
           <div>

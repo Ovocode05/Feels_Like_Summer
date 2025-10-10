@@ -11,26 +11,6 @@ export default function Home() {
             <BookOpen className="h-6 w-6" />
             <span className="text-xl font-bold pl-1">Feels-Like-Summer</span>
           </div>
-          {/* <nav className="hidden md:flex gap-6">
-            <Link
-              href="#features"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              Features
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              How It Works
-            </Link> */}
-          {/* <Link
-              href="#testimonials"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              Testimonials
-            </Link> */}
-          {/* </nav> */}
           <div className="flex items-center gap-4 pr-5">
             <Link href="/login">
               <Button variant="ghost" className="text-[14pxs]">

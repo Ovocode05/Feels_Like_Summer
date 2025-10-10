@@ -26,6 +26,7 @@ import {
   Users,
 } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
+import Header from "@/components/ui/manual_navbar_prof";
 
 export default function ProfessorDashboard() {
   const { loading, authorized } = useAuth("prof");
@@ -46,68 +47,7 @@ export default function ProfessorDashboard() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2 lg:flex">
-          <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">ResearchConnect</span>
-        </Link>
-        <nav className="hidden flex-1 items-center justify-center lg:flex">
-          <div className="flex gap-6">
-            <Link
-              href="/professor/dashboard"
-              className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/professor/projects"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              My Projects
-            </Link>
-            <Link
-              href="/professor/applications"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Applications
-            </Link>
-            <Link
-              href="/professor/resources"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Resources
-            </Link>
-            <Link
-              href="/professor/calendar"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Availability
-            </Link>
-          </div>
-        </nav>
-        <div className="ml-auto flex items-center gap-4">
-          <Link href="/messages">
-            <Button variant="ghost" size="icon" className="relative">
-              <MessageSquare className="h-5 w-5" />
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                3
-              </span>
-            </Button>
-          </Link>
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
-          <Link href="/professor/profile">
-            <Avatar>
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Professor"
-              />
-              <AvatarFallback>PD</AvatarFallback>
-            </Avatar>
-          </Link>
-        </div>
-      </header>
+      <Header />
       <main className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex items-center justify-between">
           <div>

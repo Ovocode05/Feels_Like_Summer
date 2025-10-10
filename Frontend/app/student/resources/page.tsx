@@ -29,6 +29,7 @@ import {
   GraduationCap,
   History,
   Lightbulb,
+  Menu,
   MessageSquare,
   Route,
   Search,
@@ -37,6 +38,7 @@ import {
   Video,
 } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
+import MenubarStudent from "@/components/ui/menubar_student";
 
 export default function ResourcesPage() {
   const { loading, authorized } = useAuth("student");
@@ -56,68 +58,7 @@ export default function ResourcesPage() {
   }
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2 lg:flex">
-          <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">ResearchConnect</span>
-        </Link>
-        <nav className="hidden flex-1 items-center justify-center lg:flex">
-          <div className="flex gap-6">
-            <Link
-              href="/student/dashboard"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/student/explore"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Explore
-            </Link>
-            <Link
-              href="/student/applications"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              My Applications
-            </Link>
-            <Link
-              href="/student/resources"
-              className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-            >
-              Resources
-            </Link>
-            <Link
-              href="/student/cv"
-              className="text-sm font-medium underline-offset-4 hover:underline"
-            >
-              My CV
-            </Link>
-          </div>
-        </nav>
-        <div className="ml-auto flex items-center gap-4">
-          <Link href="/messages">
-            <Button variant="ghost" size="icon" className="relative">
-              <MessageSquare className="h-5 w-5" />
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                2
-              </span>
-            </Button>
-          </Link>
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
-          <Link href="/student/profile">
-            <Avatar>
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Student"
-              />
-              <AvatarFallback>JS</AvatarFallback>
-            </Avatar>
-          </Link>
-        </div>
-      </header>
+      <MenubarStudent />
       <main className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
