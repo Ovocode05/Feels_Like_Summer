@@ -20,4 +20,14 @@ func RegisterProjectRoutes(api *echo.Group) {
 	projects.GET("/:id", handlers.GetProject)                                    // Get a specific project by ID
 	projects.PUT("/:id", handlers.EditProject)                                   // Update a project by ID
 	projects.DELETE("/:id", handlers.DeleteProject)                              // Delete a project by ID
+
+	// Application routes
+	projects.POST("/:id/apply", handlers.ApplyToProject, middleware.RequireUserType("stu"))                       // Apply to a project (Students only)
+	projects.GET("/:id/applications", handlers.GetProjectApplications, middleware.RequireUserType("fac"))         // Get all applications for a project (Faculty only)
+	projects.PUT("/:id/applications/:appId", handlers.UpdateApplicationStatus, middleware.RequireUserType("fac")) // Update application status (Faculty only)
+
+	// Student application routes
+	applications := api.Group("/applications")
+	applications.Use(middleware.JWTMiddleware())
+	applications.GET("/my", handlers.GetMyApplications, middleware.RequireUserType("stu")) // Get student's own applications
 }

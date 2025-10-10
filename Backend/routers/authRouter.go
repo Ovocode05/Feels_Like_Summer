@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterAuthRoutes(g *echo.Group) {
-	authGroup := g.Group("/auth")
+func RegisterAuthRoutes(api *echo.Group) {
+	authGroup := api.Group("/auth")
 
 	// Public routes (no authentication required)
 	authGroup.POST("/signup", handlers.Signup)
