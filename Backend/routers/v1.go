@@ -10,4 +10,7 @@ func SetupRoutes(e *echo.Echo) {
 
 	// Auth routes
 	RegisterAuthRoutes(api)
+
+	// Project routes
+	RegisterProjectRoutes(api)
 }

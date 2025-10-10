@@ -40,10 +40,16 @@ func JWTMiddleware() echo.MiddlewareFunc {
 				})
 			}
 
-			// Add user info to context for use in handlers
-			c.Set("userId", claims.UserID)
-			c.Set("userEmail", claims.Email)
-			c.Set("userType", claims.Type)
+			// Create user data object from claims
+			userData := &models.AuthenticatedUser{
+				UID:   claims.UserID,
+				Email: claims.Email,
+				Type:  claims.Type,
+				Name:  "", // Name not available in JWT claims
+			}
+
+			// Add user data to context for use in handlers
+			c.Set("userData", userData)
 			c.Set("claims", claims)
 
 			// Continue to next handler
@@ -71,10 +77,16 @@ func OptionalJWTMiddleware() echo.MiddlewareFunc {
 				// Validate token
 				claims, err := utils.ValidateJWT(tokenString)
 				if err == nil {
-					// Add user info to context only if token is valid
-					c.Set("userId", claims.UserID)
-					c.Set("userEmail", claims.Email)
-					c.Set("userType", claims.Type)
+					// Create user data object from claims
+					userData := &models.AuthenticatedUser{
+						UID:   claims.UserID,
+						Email: claims.Email,
+						Type:  claims.Type,
+						Name:  "", // Name not available in JWT claims
+					}
+
+					// Add user data to context only if token is valid
+					c.Set("userData", userData)
 					c.Set("claims", claims)
 				}
 			}
@@ -89,15 +101,16 @@ func OptionalJWTMiddleware() echo.MiddlewareFunc {
 func RequireUserType(allowedTypes ...string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			// Get user type from context (set by JWTMiddleware)
-			userType := c.Get("userType")
-			if userType == nil {
+			// Get user data from context (set by JWTMiddleware)
+			userDataInterface := c.Get("userData")
+			if userDataInterface == nil {
 				return c.JSON(http.StatusUnauthorized, echo.Map{
 					"error": "User not authenticated",
 				})
 			}
 
-			userTypeStr := string(userType.(models.UserType))
+			userData := userDataInterface.(models.UserData)
+			userTypeStr := string(userData.GetUserType())
 
 			// Check if user type is allowed
 			for _, allowedType := range allowedTypes {

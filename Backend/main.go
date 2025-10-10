@@ -20,7 +20,7 @@ func main() {
 
 	// Initialize Database
 	config.InitDB()
-	config.DB.AutoMigrate(&models.User{})
+	config.DB.AutoMigrate(&models.User{}, &models.Projects{})
 
 	// Initialize Echo
 	e := echo.New()

@@ -35,7 +35,7 @@ func getJWTSecret() string {
 func GenerateJWT(user *models.User) (string, error) {
 	// Create claims
 	claims := JWTClaims{
-		UserID: user.UserID,
+		UserID: user.Uid,
 		Email:  user.Email,
 		Type:   user.Type,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -43,7 +43,7 @@ func GenerateJWT(user *models.User) (string, error) {
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    "feels-like-summer",
-			Subject:   user.UserID,
+			Subject:   user.Uid,
 		},
 	}
 

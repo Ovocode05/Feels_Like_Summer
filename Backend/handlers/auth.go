@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"net/http"
 	"strings"
 
@@ -15,25 +13,10 @@ import (
 	"backend/utils"
 )
 
-// SignupRequest represents the data needed for user registration
-type SignupRequest struct {
-	Name     string          `json:"name"`
-	Email    string          `json:"email"`
-	Password string          `json:"password"`
-	Type     models.UserType `json:"type"`
-}
-
-// generateUserID creates a unique 12-character userId
-func generateUserID() (string, error) {
-	bytes := make([]byte, 6) // 6 bytes = 12 hex characters
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
-}
+// generateuid creates a unique 12-character uid
 
 func Signup(c echo.Context) error {
-	var signupReq SignupRequest
+	var signupReq interfaces.SignupRequest
 	if err := c.Bind(&signupReq); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid input"})
 	}
@@ -51,24 +34,24 @@ func Signup(c echo.Context) error {
 		}
 	}()
 
-	// Generate unique userId with retry logic
-	var userId string
+	// Generate unique uid with retry logic
+	var uid string
 	for attempts := 0; attempts < 5; attempts++ {
-		generatedId, err := generateUserID()
+		generatedId, err := utils.Generateuid()
 		if err != nil {
 			tx.Rollback()
 			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate user ID"})
 		}
 
-		// Check if userId already exists
-		var existingByUserId models.User
-		if tx.Where("user_id = ?", generatedId).First(&existingByUserId).Error != nil {
-			userId = generatedId
+		// Check if uid already exists
+		var existingByuid models.User
+		if tx.Where("user_id = ?", generatedId).First(&existingByuid).Error != nil {
+			uid = generatedId
 			break
 		}
 	}
 
-	if userId == "" {
+	if uid == "" {
 		tx.Rollback()
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate unique user ID"})
 	}
@@ -90,7 +73,7 @@ func Signup(c echo.Context) error {
 
 	// Create user model from signup request
 	user := models.User{
-		UserID:   userId,
+		Uid:      uid,
 		Name:     signupReq.Name,
 		Email:    signupReq.Email,
 		Password: string(hashedPassword),

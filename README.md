@@ -237,6 +237,251 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 - **Input Validation**: All requests are validated before processing
 - **Unique User IDs**: Cryptographically secure user ID generation
 
+---
+
+## Project Management Endpoints
+
+### Base URL for Projects
+```
+http://localhost:8080/api/v1/projects
+```
+
+All project endpoints require JWT authentication via the `Authorization: Bearer <token>` header.
+
+---
+
+#### 1. Create Project (Faculty Only)
+**Endpoint**: `POST /projects`
+
+**Description**: Creates a new research project. Only faculty members can create projects.
+
+**Authorization**: Faculty only (`type: "fac"`)
+
+**Request Body**:
+```json
+{
+  "name": "AI Research Project",
+  "sdesc": "Machine Learning research opportunity",
+  "ldesc": "Detailed description of the research project including objectives, methodology, and expected outcomes...",
+  "isActive": true
+}
+```
+
+**Field Descriptions**:
+- `name` (string, required): Project title
+- `sdesc` (string, required): Short description/summary
+- `ldesc` (string, required): Detailed project description
+- `isActive` (boolean, required): Whether the project is currently accepting applications
+
+**Success Response** (201 Created):
+```json
+{
+  "ID": 1,
+  "CreatedAt": "2025-10-10T12:00:00Z",
+  "UpdatedAt": "2025-10-10T12:00:00Z",
+  "DeletedAt": null,
+  "name": "AI Research Project",
+  "pid": "proj_a1b2c3d4e5f6",
+  "shortDesc": "Machine Learning research opportunity",
+  "longDesc": "Detailed description...",
+  "isActive": "true",
+  "uid": "faculty_user_id"
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Invalid input
+- `403 Forbidden`: Only faculty can create projects
+- `409 Conflict`: Project with this name already exists
+- `500 Internal Server Error`: Server error
+
+---
+
+#### 2. List All Active Projects
+**Endpoint**: `GET /projects`
+
+**Description**: Retrieves all active projects with faculty information.
+
+**Authorization**: All authenticated users
+
+**Success Response** (200 OK):
+```json
+{
+  "projects": [
+    {
+      "ID": 1,
+      "CreatedAt": "2025-10-10T12:00:00Z",
+      "UpdatedAt": "2025-10-10T12:00:00Z",
+      "DeletedAt": null,
+      "name": "AI Research Project",
+      "pid": "proj_a1b2c3d4e5f6",
+      "shortDesc": "Machine Learning research opportunity",
+      "longDesc": "Detailed description...",
+      "isActive": "true",
+      "uid": "faculty_uid",
+      "user": {
+        "ID": 2,
+        "userId": "faculty_uid",
+        "name": "Dr. Jane Smith",
+        "email": "jane@university.edu",
+        "type": "fac"
+      }
+    }
+  ],
+  "count": 1
+}
+```
+
+---
+
+#### 3. Get My Projects
+**Endpoint**: `GET /projects/my`
+
+**Description**: Retrieves all projects belonging to the authenticated user.
+
+**Authorization**: All authenticated users
+
+**Success Response** (200 OK):
+```json
+{
+  "projects": [
+    {
+      "ID": 1,
+      "name": "My Research Project",
+      "pid": "proj_xyz123",
+      "shortDesc": "Short description",
+      "longDesc": "Long description",
+      "isActive": "true",
+      "uid": "user_id"
+    }
+  ],
+  "count": 1
+}
+```
+
+---
+
+#### 4. Get Single Project
+**Endpoint**: `GET /projects/:id`
+
+**Description**: Retrieves a specific project by its ID with faculty information.
+
+**Authorization**: All authenticated users
+
+**Parameters**:
+- `id` (path parameter): Project ID
+
+**Success Response** (200 OK):
+```json
+{
+  "ID": 1,
+  "name": "AI Research Project",
+  "pid": "proj_a1b2c3d4e5f6",
+  "shortDesc": "Short description",
+  "longDesc": "Detailed description",
+  "isActive": "true",
+  "uid": "faculty_uid",
+  "user": {
+    "name": "Dr. Jane Smith",
+    "email": "jane@university.edu",
+    "type": "fac"
+  }
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Project ID is required
+- `404 Not Found`: Project not found
+
+---
+
+#### 5. Update Project
+**Endpoint**: `PUT /projects/:id`
+
+**Description**: Updates an existing project. Only the project owner can update it.
+
+**Authorization**: Project owner only
+
+**Parameters**:
+- `id` (path parameter): Project ID
+
+**Request Body** (all fields optional):
+```json
+{
+  "name": "Updated Project Name",
+  "sdesc": "Updated short description",
+  "ldesc": "Updated long description",
+  "isActive": false
+}
+```
+
+**Success Response** (200 OK):
+```json
+{
+  "message": "Project updated successfully",
+  "project": {
+    "ID": 1,
+    "name": "Updated Project Name",
+    "pid": "proj_a1b2c3d4e5f6",
+    "shortDesc": "Updated short description",
+    "longDesc": "Updated long description",
+    "isActive": "false",
+    "uid": "user_id"
+  }
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Invalid input or missing project ID
+- `403 Forbidden`: Not authorized to edit this project
+- `404 Not Found`: Project not found
+- `409 Conflict`: Project name already exists
+
+---
+
+#### 6. Delete Project
+**Endpoint**: `DELETE /projects/:id`
+
+**Description**: Deletes a project. Only the project owner can delete it.
+
+**Authorization**: Project owner only
+
+**Parameters**:
+- `id` (path parameter): Project ID
+
+**Success Response** (200 OK):
+```json
+{
+  "message": "Project deleted successfully",
+  "projectId": "proj_a1b2c3d4e5f6"
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Project ID is required
+- `403 Forbidden`: Not authorized to delete this project
+- `404 Not Found`: Project not found
+
+---
+
+### Database Schema
+
+#### Projects Table
+```sql
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    project_id VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    short_desc TEXT,
+    long_desc TEXT,
+    is_active VARCHAR(5) DEFAULT 'true',
+    uid VARCHAR(255) NOT NULL REFERENCES users(uid),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL
+);
+```
+
 ### Response Format
 All API responses follow a consistent JSON format:
 - **Success responses** include the requested data or confirmation message
@@ -248,6 +493,8 @@ All API responses follow a consistent JSON format:
 - `201 Created`: Resource created successfully
 - `400 Bad Request`: Invalid request format or missing required fields
 - `401 Unauthorized`: Authentication failed
+- `403 Forbidden`: Insufficient permissions
+- `404 Not Found`: Resource not found
 - `409 Conflict`: Resource already exists (e.g., email already registered)
 - `500 Internal Server Error`: Server-side error occurred
 
