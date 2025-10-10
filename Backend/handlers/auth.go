@@ -11,36 +11,15 @@ import (
 	"backend/models"
 )
 
-// Signup creates a new user account
-// 
-// Request Body (JSON):
-// {
-//   "name": "John Doe",
-//   "email": "john@example.com", 
-//   "password": "password123",
-//   "type": "student" // or "professor"
-// }
-//
-// Success Response (201 Created):
-// {
-//   "ID": 1,
-//   "CreatedAt": "2025-10-10T12:00:00Z",
-//   "UpdatedAt": "2025-10-10T12:00:00Z",
-//   "DeletedAt": null,
-//   "name": "John Doe",
-//   "email": "john@example.com",
-//   "password": "", // hidden for security
-//   "type": "student"
-// }
-//
-// Error Responses:
-// 400 Bad Request: {"error": "Invalid input"}
-// 409 Conflict: {"error": "User already exists"}
-// 500 Internal Server Error: {"error": "Failed to hash password"} or {"error": "Database error"}
 func Signup(c echo.Context) error {
 	var user models.User
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid input"})
+	}
+
+	// Validate user type
+	if !user.Type.IsValid() {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid user type. Must be 'fac' or 'stu'"})
 	}
 
 	// Start database transaction to prevent write/write conflicts
@@ -82,32 +61,6 @@ func Signup(c echo.Context) error {
 	return c.JSON(http.StatusCreated, user)
 }
 
-// Login authenticates a user and returns user information
-//
-// Request Body (JSON):
-// {
-//   "email": "john@example.com",
-//   "password": "password123"
-// }
-//
-// Success Response (200 OK):
-// {
-//   "message": "Login successful",
-//   "user": {
-//     "ID": 1,
-//     "CreatedAt": "2025-10-10T12:00:00Z",
-//     "UpdatedAt": "2025-10-10T12:00:00Z", 
-//     "DeletedAt": null,
-//     "name": "John Doe",
-//     "email": "john@example.com",
-//     "password": "", // hidden for security
-//     "type": "student"
-//   }
-// }
-//
-// Error Responses:
-// 400 Bad Request: {"error": "Invalid input"}
-// 401 Unauthorized: {"error": "Invalid credentials"}
 func Login(c echo.Context) error {
 	var loginRequest interfaces.LoginRequest
 	if err := c.Bind(&loginRequest); err != nil {
