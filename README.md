@@ -1712,12 +1712,6 @@ This design allows for:
 
 ---
 
-## API Versioning
-
-### Current Version: v1
-- Base URL: `/v1`
-- Stable endpoints with backward compatibility
-- Breaking changes will introduce new versions (v2, v3, etc.)
 
 ### Future Versions
 - Pagination support
