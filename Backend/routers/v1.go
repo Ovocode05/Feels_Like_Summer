@@ -16,4 +16,7 @@ func SetupRoutes(e *echo.Echo) {
 
 	// Profile routes
 	RegisterProfileRoutes(api)
+
+	// Problem Statement routes
+	RegisterProblemStatementRoutes(api)
 }

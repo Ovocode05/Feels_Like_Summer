@@ -1269,6 +1269,449 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 ---
 
+## Problem Statements Management Endpoints
+
+### Base URL for Problem Statements
+```
+http://localhost:8080/v1/problem-statements
+```
+
+The Problem Statements API provides access to hackathon problem statements and coding challenges. **Summary information is publicly accessible, but full details are only revealed when specifically requested.**
+
+---
+
+#### 1. List All Problem Statements (Summary View)
+**Endpoint**: `GET /problem-statements`
+
+**Description**: Retrieves all problem statements with summary information only. Full descriptions are hidden until specifically requested.
+
+**Authorization**: Public (no authentication required)
+
+**Success Response** (200 OK):
+```json
+{
+  "problemStatements": [
+    {
+      "id": 1,
+      "psid": "ps_a1b2c3d4e5f6",
+      "shortDesc": "Smart Traffic Management System",
+      "theme": "Smart Cities",
+      "category": "IoT & AI",
+      "organization": "City Planning Department",
+      "createdAt": "2025-10-11T12:00:00Z"
+    },
+    {
+      "id": 2,
+      "psid": "ps_b2c3d4e5f6a7",
+      "shortDesc": "Sustainable Energy Monitor",
+      "theme": "Green Technology",
+      "category": "Hardware & Software",
+      "organization": "Environmental Agency",
+      "createdAt": "2025-10-11T13:00:00Z"
+    }
+  ],
+  "count": 2
+}
+```
+
+**Note**: The `longDesc` field (full problem description) is intentionally excluded from this endpoint to maintain privacy until users show specific interest.
+
+**Error Responses**:
+- `500 Internal Server Error`: Failed to fetch problem statements
+
+---
+
+#### 2. Get Problem Statement Details
+**Endpoint**: `GET /problem-statements/:id`
+
+**Description**: Retrieves full details of a specific problem statement, including the complete description and uploader information. This endpoint reveals all information when a user clicks on a specific problem.
+
+**Authorization**: Public (no authentication required)
+
+**Parameters**:
+- `id` (path parameter): Problem Statement ID (can be numeric ID or PSID like "ps_abc123")
+
+**Success Response** (200 OK):
+```json
+{
+  "id": 1,
+  "psid": "ps_a1b2c3d4e5f6",
+  "shortDesc": "Smart Traffic Management System",
+  "longDesc": "Design an AI-powered system to optimize traffic flow in urban areas using real-time data from sensors and cameras. The solution should reduce congestion by 30% and improve emergency vehicle response times. Requirements include: 1) Real-time traffic monitoring, 2) Predictive analytics for congestion, 3) Integration with existing traffic infrastructure, 4) Mobile app for citizens, 5) Dashboard for traffic controllers. Expected deliverables: Working prototype, documentation, and presentation.",
+  "theme": "Smart Cities",
+  "category": "IoT & AI",
+  "organization": "City Planning Department",
+  "createdAt": "2025-10-11T12:00:00Z",
+  "updatedAt": "2025-10-11T12:00:00Z",
+  "uploader": {
+    "name": "Dr. Jane Smith",
+    "email": "jane@university.edu",
+    "type": "fac"
+  }
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Problem statement ID is required
+- `404 Not Found`: Problem statement not found
+- `500 Internal Server Error`: Failed to fetch problem statement
+
+---
+
+#### 3. Search Problem Statements by Category
+**Endpoint**: `GET /problem-statements/search?category=categoryName`
+
+**Description**: Retrieves problem statements filtered by category with summary information only.
+
+**Authorization**: Public (no authentication required)
+
+**Query Parameters**:
+- `category` (required): Category to filter by (case-insensitive partial match)
+
+**Example Request**:
+```
+GET /problem-statements/search?category=AI
+```
+
+**Success Response** (200 OK):
+```json
+{
+  "problemStatements": [
+    {
+      "id": 1,
+      "psid": "ps_a1b2c3d4e5f6",
+      "shortDesc": "Smart Traffic Management System",
+      "theme": "Smart Cities",
+      "category": "IoT & AI",
+      "organization": "City Planning Department",
+      "createdAt": "2025-10-11T12:00:00Z"
+    }
+  ],
+  "category": "AI",
+  "count": 1
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Category parameter is required
+- `500 Internal Server Error`: Failed to fetch problem statements
+
+---
+
+#### 4. Create Problem Statement
+**Endpoint**: `POST /problem-statements`
+
+**Description**: Creates a new problem statement. Available to all authenticated users.
+
+**Authorization**: All authenticated users
+
+**Request Body**:
+```json
+{
+  "shortDesc": "Blockchain Voting System",
+  "longDesc": "Develop a secure, transparent, and tamper-proof voting system using blockchain technology. The system should ensure voter anonymity while maintaining vote integrity. Requirements: 1) Voter authentication system, 2) Secure ballot casting, 3) Real-time vote counting, 4) Audit trail, 5) Mobile and web interfaces. Deliverables: Working blockchain implementation, security analysis, user interface, and deployment guide.",
+  "theme": "Digital Democracy",
+  "category": "Blockchain & Security",
+  "organization": "Election Commission"
+}
+```
+
+**Field Descriptions**:
+- `shortDesc` (string, required): Brief problem title/summary
+- `longDesc` (string, required): Detailed problem description with requirements and deliverables
+- `theme` (string, required): Overall theme or domain of the problem
+- `category` (string, required): Technical category or field
+- `organization` (string, optional): Organization that posed the problem
+
+**Success Response** (201 Created):
+```json
+{
+  "message": "Problem statement created successfully",
+  "problemStatement": {
+    "ID": 3,
+    "CreatedAt": "2025-10-11T14:00:00Z",
+    "UpdatedAt": "2025-10-11T14:00:00Z",
+    "DeletedAt": null,
+    "psid": "ps_c3d4e5f6a7b8",
+    "shortDesc": "Blockchain Voting System",
+    "longDesc": "Develop a secure, transparent, and tamper-proof voting system...",
+    "theme": "Digital Democracy",
+    "category": "Blockchain & Security",
+    "uploadedBy": "user_uid_123",
+    "organization": "Election Commission"
+  }
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Invalid request body or missing required fields
+- `401 Unauthorized`: User not authenticated
+- `409 Conflict`: Problem statement with this title already exists for this user
+- `500 Internal Server Error`: Failed to create problem statement
+
+---
+
+#### 5. Get My Problem Statements
+**Endpoint**: `GET /problem-statements/my`
+
+**Description**: Retrieves all problem statements created by the authenticated user with full details.
+
+**Authorization**: All authenticated users
+
+**Success Response** (200 OK):
+```json
+{
+  "problemStatements": [
+    {
+      "ID": 1,
+      "CreatedAt": "2025-10-11T12:00:00Z",
+      "UpdatedAt": "2025-10-11T12:00:00Z",
+      "DeletedAt": null,
+      "psid": "ps_a1b2c3d4e5f6",
+      "shortDesc": "Smart Traffic Management System",
+      "longDesc": "Design an AI-powered system to optimize traffic flow...",
+      "theme": "Smart Cities",
+      "category": "IoT & AI",
+      "uploadedBy": "user_uid_123",
+      "organization": "City Planning Department"
+    }
+  ],
+  "count": 1
+}
+```
+
+**Error Responses**:
+- `401 Unauthorized`: User not authenticated
+- `500 Internal Server Error`: Failed to fetch problem statements
+
+---
+
+#### 6. Update Problem Statement
+**Endpoint**: `PUT /problem-statements/:id`
+
+**Description**: Updates an existing problem statement. Only the owner can update their problem statements.
+
+**Authorization**: Problem owner only
+
+**Parameters**:
+- `id` (path parameter): Problem Statement ID (numeric ID or PSID)
+
+**Request Body** (all fields optional):
+```json
+{
+  "shortDesc": "Updated Smart Traffic Management System",
+  "longDesc": "Updated detailed description with new requirements...",
+  "theme": "Smart Cities 2.0",
+  "category": "AI & Machine Learning",
+  "organization": "Updated Organization Name"
+}
+```
+
+**Success Response** (200 OK):
+```json
+{
+  "message": "Problem statement updated successfully",
+  "problemStatement": {
+    "ID": 1,
+    "CreatedAt": "2025-10-11T12:00:00Z",
+    "UpdatedAt": "2025-10-11T15:00:00Z",
+    "DeletedAt": null,
+    "psid": "ps_a1b2c3d4e5f6",
+    "shortDesc": "Updated Smart Traffic Management System",
+    "longDesc": "Updated detailed description with new requirements...",
+    "theme": "Smart Cities 2.0",
+    "category": "AI & Machine Learning",
+    "uploadedBy": "user_uid_123",
+    "organization": "Updated Organization Name"
+  }
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Invalid request body or missing problem statement ID
+- `401 Unauthorized`: User not authenticated
+- `403 Forbidden`: You can only update your own problem statements
+- `404 Not Found`: Problem statement not found
+- `500 Internal Server Error`: Failed to update problem statement
+
+---
+
+#### 7. Delete Problem Statement
+**Endpoint**: `DELETE /problem-statements/:id`
+
+**Description**: Deletes a problem statement. Owners can delete their own problem statements, and faculty can delete any problem statement.
+
+**Authorization**: Problem owner or faculty members
+
+**Parameters**:
+- `id` (path parameter): Problem Statement ID (numeric ID or PSID)
+
+**Success Response** (200 OK):
+```json
+{
+  "message": "Problem statement deleted successfully",
+  "psid": "ps_a1b2c3d4e5f6"
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Problem statement ID is required
+- `401 Unauthorized`: User not authenticated
+- `403 Forbidden`: You can only delete your own problem statements
+- `404 Not Found`: Problem statement not found
+- `500 Internal Server Error`: Failed to delete problem statement
+
+---
+
+### Problem Statement Categories
+
+Common categories include:
+- **AI & Machine Learning**: Artificial intelligence, neural networks, computer vision
+- **IoT & Hardware**: Internet of Things, embedded systems, sensor networks
+- **Blockchain & Security**: Cryptography, distributed systems, cybersecurity
+- **Web & Mobile Development**: Frontend, backend, mobile applications
+- **Data Science & Analytics**: Big data, data visualization, statistical analysis
+- **Green Technology**: Sustainability, renewable energy, environmental solutions
+- **Healthcare & Biotech**: Medical devices, health informatics, biotechnology
+- **Fintech**: Financial technology, payment systems, investment platforms
+- **Education Technology**: E-learning, educational tools, student management
+- **Smart Cities**: Urban planning, traffic management, public services
+
+### Problem Statement Themes
+
+Popular themes include:
+- **Smart Cities**: Urban innovation and city management solutions
+- **Digital Health**: Healthcare technology and medical innovations
+- **Sustainable Development**: Environmental and sustainability challenges
+- **Financial Inclusion**: Banking and financial access solutions
+- **Education for All**: Educational accessibility and learning tools
+- **Digital Democracy**: Governance and civic engagement platforms
+- **Agriculture Tech**: Farming and food security innovations
+- **Disaster Management**: Emergency response and crisis management
+- **Transportation**: Mobility and logistics solutions
+- **Energy Efficiency**: Power management and optimization
+
+---
+
+## Database Schema Updates
+
+### Problem Statements Table
+```sql
+CREATE TABLE problem_statements (
+    id SERIAL PRIMARY KEY,
+    psid VARCHAR(255) UNIQUE NOT NULL,
+    ps_title VARCHAR(255) NOT NULL,
+    ps_long_desc TEXT NOT NULL,
+    theme VARCHAR(255) NOT NULL,
+    category VARCHAR(255) NOT NULL,
+    uploaded_by VARCHAR(255) NOT NULL REFERENCES users(uid),
+    organization VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL
+);
+```
+
+**Purpose**: Stores hackathon problem statements and coding challenges.
+
+**Fields**:
+- `psid`: Unique problem statement identifier (generated with "ps_" prefix)
+- `ps_title`: Brief problem title (mapped to shortDesc in API)
+- `ps_long_desc`: Detailed problem description with requirements
+- `theme`: Overall theme or domain of the problem
+- `category`: Technical category or field
+- `uploaded_by`: User who created the problem statement
+- `organization`: Organization that posed the problem (optional)
+
+**Indexes**:
+```sql
+CREATE INDEX idx_problem_statements_uploaded_by ON problem_statements(uploaded_by);
+CREATE INDEX idx_problem_statements_category ON problem_statements(category);
+CREATE INDEX idx_problem_statements_theme ON problem_statements(theme);
+CREATE INDEX idx_problem_statements_psid ON problem_statements(psid);
+```
+
+---
+
+## API Usage Examples - Problem Statements
+
+### 1. Browse and Explore Problem Statements Flow
+
+#### Step 1: Browse All Problem Statements (Summary View)
+```bash
+curl -X GET http://localhost:8080/v1/problem-statements
+```
+
+#### Step 2: Filter by Category
+```bash
+curl -X GET "http://localhost:8080/v1/problem-statements/search?category=AI"
+```
+
+#### Step 3: Get Full Details (When User Clicks)
+```bash
+curl -X GET http://localhost:8080/v1/problem-statements/ps_a1b2c3d4e5f6
+```
+
+### 2. Create and Manage Problem Statements Flow
+
+#### Step 1: Login and Get Token
+```bash
+curl -X POST http://localhost:8080/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "organizer@hackathon.com",
+    "password": "securepassword"
+  }'
+```
+
+#### Step 2: Create Problem Statement
+```bash
+curl -X POST http://localhost:8080/v1/problem-statements \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "shortDesc": "AI-Powered Healthcare Diagnosis",
+    "longDesc": "Develop an AI system that can analyze medical images and patient data to assist doctors in early disease detection. The system should process X-rays, MRIs, and lab results to provide diagnostic suggestions with confidence scores. Requirements: 1) Medical image processing, 2) Machine learning model training, 3) Integration with hospital systems, 4) Compliance with medical data privacy, 5) User-friendly interface for medical staff.",
+    "theme": "Digital Health",
+    "category": "AI & Machine Learning",
+    "organization": "Regional Medical Center"
+  }'
+```
+
+#### Step 3: View Your Problem Statements
+```bash
+curl -X GET http://localhost:8080/v1/problem-statements/my \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+#### Step 4: Update Problem Statement
+```bash
+curl -X PUT http://localhost:8080/v1/problem-statements/ps_abc123 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "shortDesc": "Updated AI Healthcare Diagnosis System",
+    "longDesc": "Updated description with additional requirements..."
+  }'
+```
+
+### 3. Privacy-First Design
+
+The Problem Statements API follows a **privacy-first approach**:
+
+1. **Public Summary**: Anyone can see problem titles, themes, and categories
+2. **Protected Details**: Full descriptions are only revealed when specifically requested
+3. **Owner Control**: Only creators can modify their problem statements
+4. **Faculty Override**: Faculty members can delete any inappropriate content
+
+This design allows for:
+- **Open Discovery**: Users can browse and find interesting problems
+- **Content Protection**: Full details remain private until there's genuine interest
+- **Quality Control**: Faculty oversight ensures appropriate content
+- **User Ownership**: Creators maintain control over their contributions
+
+---
+
 ## API Versioning
 
 ### Current Version: v1
