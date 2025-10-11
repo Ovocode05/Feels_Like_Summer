@@ -42,7 +42,7 @@ export default function ProfilePage() {
   });
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto max-w-6xl ">
       <header className="mb-8">
         <h1 className="text-balance text-3xl font-semibold">Profile</h1>
         <p className="text-sm text-muted-foreground">
@@ -51,12 +51,11 @@ export default function ProfilePage() {
       </header>
 
       <div className="flex gap-6 h-[80vh]">
-        {" "}
         {/* or h-full if parent is sized */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 p-2 h-[90vh] overflow-auto  d-2 border-b-2">
           <ProfileForm value={data} onChange={setData} />
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1  p-2 h-[90vh] overflow-auto d-2 border-b-2">
           <ResumePreview data={data} />
         </div>
       </div>

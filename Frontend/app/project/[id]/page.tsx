@@ -23,24 +23,24 @@ import {
   Share2,
   Users,
 } from "lucide-react";
-import useAuth from "@/hooks/useAuth";
+// import useAuth from "@/hooks/useAuth";
 
 export default function ProjectDetails() {
-  const { loading, authorized } = useAuth("prof");
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-  if (!authorized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Unauthorized
-      </div>
-    );
-  }
+  // const { loading, authorized } = useAuth("prof");
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Loading...
+  //     </div>
+  //   );
+  // }
+  // if (!authorized) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Unauthorized
+  //     </div>
+  //   );
+  // }
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">

@@ -45,7 +45,7 @@ func Signup(c echo.Context) error {
 
 		// Check if uid already exists
 		var existingByuid models.User
-		if tx.Where("user_id = ?", generatedId).First(&existingByuid).Error != nil {
+		if tx.Where("uid = ?", generatedId).First(&existingByuid).Error != nil {
 			uid = generatedId
 			break
 		}

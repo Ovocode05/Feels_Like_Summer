@@ -21,23 +21,44 @@ import {
 } from "@/components/ui/select";
 import { BookOpen, Bookmark, Filter, Search, Star, Users } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
+import { fetchProjects_active } from "@/api/api";
 
 export default function ProjectListing() {
-  const { loading, authorized } = useAuth("student");
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-  if (!authorized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Unauthorized
-      </div>
-    );
-  }
+  // const { loading, authorized } = useAuth("student");
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Loading...
+  //     </div>
+  //   );
+  // }
+  // if (!authorized) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Unauthorized
+  //     </div>
+  //   );
+  // }
+
+  // const fetchActiveProjects = async () => {
+  //   const res = await fetchProjects_active(localStorage.getItem("token") || "");
+  //   console.log(res);
+  //   return res.projects;
+  // };
+
+  // useEffect(() => {
+  //   // We'll fetch and set projects in state, then display them in a component
+
+  //   const [projects, setProjects] = useState<any[]>([]);
+
+  //   useEffect(() => {
+  //     fetchActiveProjects().then((data) => {
+  //     setProjects(data || []);
+  //     });
+  //   }, []);
+  // }, []);
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">

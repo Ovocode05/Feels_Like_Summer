@@ -71,6 +71,7 @@ import {
 import useAuth from "@/hooks/useAuth";
 import Navbar from "@/components/ui/manual_navbar_prof";
 import Header from "@/components/ui/manual_navbar_prof";
+import { createProject } from "@/api/api";
 
 const projectFormSchema = z.object({
   title: z.string().min(1, { message: "Project title is required" }),
@@ -207,7 +208,7 @@ export default function ProfessorProjectsPage() {
     },
   ]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const { loading, authorized } = useAuth("prof");
+  // const { loading, authorized } = useAuth("prof");
 
   const form = useForm<z.infer<typeof projectFormSchema>>({
     resolver: zodResolver(projectFormSchema),
@@ -226,22 +227,23 @@ export default function ProfessorProjectsPage() {
     },
   });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-  if (!authorized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Unauthorized
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Loading...
+  //     </div>
+  //   );
+  // }
+  // if (!authorized) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Unauthorized
+  //     </div>
+  //   );
+  // }
 
   function onSubmit(values: z.infer<typeof projectFormSchema>) {
+    const token = localStorage.getItem("token") || "";
     const newProject = {
       id: projects.length + 1,
       ...values,
@@ -252,22 +254,14 @@ export default function ProfessorProjectsPage() {
     setProjects([...projects, newProject]);
     setIsCreateDialogOpen(false);
     form.reset();
+
+    console.log("New project created:", newProject);
+    const res = createProject(newProject, token);
+    console.log("API response:", res);
   }
 
   const deleteProject = (id: number) => {
     setProjects(projects.filter((project) => project.id !== id));
-  };
-
-  const duplicateProject = (project: any) => {
-    const newProject = {
-      ...project,
-      id: projects.length + 1,
-      title: `${project.title} (Copy)`,
-      status: "pending",
-      applications: 0,
-      students: [],
-    };
-    setProjects([...projects, newProject]);
   };
 
   const filteredProjects = projects.filter((project) => {
@@ -287,6 +281,7 @@ export default function ProfessorProjectsPage() {
               with students.
             </p>
           </div>
+
           <Dialog
             open={isCreateDialogOpen}
             onOpenChange={setIsCreateDialogOpen}
@@ -296,7 +291,7 @@ export default function ProfessorProjectsPage() {
                 <Plus className="h-4 w-4" /> Create Project
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[800px] h-[500px] border-spacing-2 overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Research Project</DialogTitle>
                 <DialogDescription>
@@ -304,10 +299,11 @@ export default function ProfessorProjectsPage() {
                   Students will be able to view and apply to this project.
                 </DialogDescription>
               </DialogHeader>
+
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
+                  className="space-y-1 "
                 >
                   <FormField
                     control={form.control}

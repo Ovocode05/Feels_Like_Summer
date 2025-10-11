@@ -38,8 +38,8 @@ const registerFormSchema = z
       .string()
       .min(8, { message: "Password must be at least 8 characters." }),
     confirmPassword: z.string(),
-    role: z.enum(["student", "prof"], {
-      required_error: "You need to select a role.",
+    type: z.enum(["stu", "fac"], {
+      required_error: "You need to select a type.",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -50,7 +50,7 @@ const registerFormSchema = z
 export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const defaultRole = searchParams.get("role") || "student";
+  const defaultRole = searchParams.get("type") || "stu";
   const [activeTab, setActiveTab] = useState(defaultRole);
 
   type FormData = z.infer<typeof registerFormSchema>;
@@ -62,18 +62,23 @@ export default function RegisterPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      role: defaultRole as "student" | "prof",
+      type: defaultRole as "stu" | "fac",
     },
   });
 
-  function onSubmit(values: FormData) {
+  async function onSubmit(values: FormData) {
     console.log("Form submitted with values:", values);
     const { confirmPassword, ...rest } = values;
+    console.log(rest);
 
     if (confirmPassword == rest.password) {
-      const res = registerUser(rest);
-      console.log(res);
-      router.push("/profile");
+      try {
+        const res = await registerUser(rest);
+        console.log(res);
+        router.push("/profile");
+      } catch (error) {
+        console.error("Registration failed:", error);
+      }
     }
   }
 
@@ -169,7 +174,7 @@ export default function RegisterPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="role"
+                  name="type"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
                       <FormLabel>Account Type</FormLabel>
@@ -184,7 +189,7 @@ export default function RegisterPage() {
                         >
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="student" />
+                              <RadioGroupItem value="stu" />
                             </FormControl>
                             <FormLabel className="font-normal cursor-pointer">
                               Student
@@ -192,7 +197,7 @@ export default function RegisterPage() {
                           </FormItem>
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="prof" />
+                              <RadioGroupItem value="fac" />
                             </FormControl>
                             <FormLabel className="font-normal cursor-pointer">
                               Professor
