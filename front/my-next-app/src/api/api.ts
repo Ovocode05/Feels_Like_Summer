@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const url = "http://localhost:8080/v1";
+const url = process.env.NEXT_PUBLIC_BACKEND_API || "http://localhost:8080/v1";
 
 interface RegisterUserData {
   name: string;

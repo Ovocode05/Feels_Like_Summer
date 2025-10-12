@@ -156,7 +156,16 @@ export default function ProfessorProjectsPage() {
 
   async function onSubmit(values: z.infer<typeof projectFormSchema>) {
     const token = localStorage.getItem("token") || "";
-    await createProject({ ...values, tags: values.tags ?? [] }, token);
+    const res = await createProject(
+      { ...values, tags: values.tags ?? [] },
+      token
+    );
+    console.log(res);
+
+    if (!res) {
+      return;
+    }
+
     await fetchProjects(); // <-- Fetch latest projects from DB after creation
     form.reset();
     setIsCreateDialogOpen(false);
