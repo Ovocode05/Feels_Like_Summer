@@ -73,9 +73,8 @@ export default function RegisterPage() {
 
     if (confirmPassword == rest.password) {
       try {
-        const res = await registerUser(rest);
-        console.log(res);
-        router.push("/profile");
+        await registerUser(rest);
+        router.push("/login");
       } catch (error) {
         console.error("Registration failed:", error);
       }

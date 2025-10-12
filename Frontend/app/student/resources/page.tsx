@@ -41,21 +41,21 @@ import useAuth from "@/hooks/useAuth";
 import MenubarStudent from "@/components/ui/menubar_student";
 
 export default function ResourcesPage() {
-  const { loading, authorized } = useAuth("student");
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-  if (!authorized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Unauthorized
-      </div>
-    );
-  }
+  // const { loading, authorized } = useAuth("student");
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Loading...
+  //     </div>
+  //   );
+  // }
+  // if (!authorized) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Unauthorized
+  //     </div>
+  //   );
+  // }
   return (
     <div className="flex min-h-screen flex-col">
       <MenubarStudent />

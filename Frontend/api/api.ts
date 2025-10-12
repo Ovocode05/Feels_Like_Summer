@@ -100,6 +100,21 @@ export const fetchProjects_active = async (token: string) => {
   }
 };
 
+export const fetchProjects_active_my = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/projects/my`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    throw error;
+  }
+};
+
 export const deleteProject = async (projectId: string, token: string) => {
   try {
     const response = await axios.delete(`${url}/projects/${projectId}`, {

@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import Header from "@/components/ui/manual_navbar_prof";
+import { useEffect, useState } from "react";
+import { fetchProjects_active, fetchProjects_active_my } from "@/api/api"; // Make sure this API returns all projects for the professor
 
 export default function ProfessorDashboard() {
   // const { loading, authorized } = useAuth("prof");
@@ -44,6 +46,27 @@ export default function ProfessorDashboard() {
   //     </div>
   //   );
   // }
+
+  const [activeProjectsCount, setActiveProjectsCount] = useState<number>(0);
+
+  // Fetch all projects and count active ones
+  async function fetchAndCountProjects() {
+    const token = localStorage.getItem("token") || "";
+    const res = await fetchProjects_active_my(token);
+
+    if (res.count != 0) {
+      setActiveProjectsCount(res.count);
+    } else {
+      setActiveProjectsCount(0);
+    }
+  }
+
+  useEffect(() => {
+    fetchAndCountProjects();
+    const onFocus = () => fetchAndCountProjects();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -68,7 +91,7 @@ export default function ProfessorDashboard() {
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4</div>
+              <div className="text-2xl font-bold">{activeProjectsCount}</div>
               <p className="text-xs text-muted-foreground">
                 +1 from last month
               </p>
@@ -241,152 +264,6 @@ export default function ProfessorDashboard() {
             </CardFooter>
           </Card>
         </div>
-
-        {/* <Tabs defaultValue="active" className="w-full">
-          <TabsList>
-            <TabsTrigger value="active">Active Projects</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-          </TabsList>
-          <TabsContent value="active" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[
-                {
-                  title: "Quantum Computing Algorithms",
-                  description:
-                    "Developing novel quantum algorithms for optimization problems.",
-                  students: 3,
-                  applications: 5,
-                  startDate: "Jan 15, 2023",
-                },
-                {
-                  title: "Machine Learning for Climate Data",
-                  description:
-                    "Using machine learning to analyze and predict climate patterns.",
-                  students: 2,
-                  applications: 4,
-                  startDate: "Mar 10, 2023",
-                },
-                {
-                  title: "Algebraic Topology Applications",
-                  description:
-                    "Exploring applications of algebraic topology in data analysis.",
-                  students: 2,
-                  applications: 3,
-                  startDate: "Feb 5, 2023",
-                },
-              ].map((project, i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <CardTitle>{project.title}</CardTitle>
-                    <CardDescription>{project.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">
-                            {project.students} Students
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">
-                            {project.applications} Applications
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          Started {project.startDate}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Link href={`/professor/projects/${i + 1}`}>
-                      <Button variant="outline" size="sm">
-                        View Project
-                      </Button>
-                    </Link>
-                    <Link href={`/professor/projects/${i + 1}/applications`}>
-                      <Button size="sm">Review Applications</Button>
-                    </Link>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="pending" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Neural Networks in Robotics</CardTitle>
-                  <CardDescription>
-                    Implementing neural networks for robotic control systems.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Awaiting approval</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Positions: 2</span>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button variant="outline" size="sm">
-                    Edit
-                  </Button>
-                  <Button size="sm">Submit</Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </TabsContent>
-          <TabsContent value="completed" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Statistical Mechanics Models</CardTitle>
-                  <CardDescription>
-                    Developed new statistical mechanics models for complex
-                    systems.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">4 Students Participated</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Jan 2022 - Dec 2022</span>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Link href="#">
-                    <Button variant="outline" size="sm">
-                      View Results
-                    </Button>
-                  </Link>
-                  <Link href="#">
-                    <Button variant="outline" size="sm">
-                      Publications
-                    </Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs> */}
       </main>
     </div>
   );

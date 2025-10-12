@@ -33,7 +33,7 @@ const loginFormSchema = z.object({
 });
 
 type JWT = {
-  role: string;
+  type: string;
 };
 
 export default function LoginPage() {
@@ -50,6 +50,7 @@ export default function LoginPage() {
     const res = await loginUser(values);
     localStorage.setItem("token", res);
     const decoded: JWT = jwtDecode(res);
+
     if (decoded.type === "stu") {
       router.push("/student/dashboard");
     } else if (decoded.type === "fac") {
