@@ -33,7 +33,7 @@ func ApplyToProject(c echo.Context) error {
 
 	// Check if project exists and is active
 	var project models.Projects
-	if err := tx.Where("project_id = ? AND is_active = ?", projectID, "true").First(&project).Error; err != nil {
+	if err := tx.Where("project_id = ? AND is_active = ?", projectID, true).First(&project).Error; err != nil {
 		tx.Rollback()
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found or not active"})
 	}
@@ -84,9 +84,9 @@ func GetProjectApplications(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, echo.Map{"error": "Only faculty can view project applications"})
 	}
 
-	// Check if project exists and belongs to the professor
+	// Check if project exists and belongs to the professor (by creator)
 	var project models.Projects
-	if err := config.DB.Where("project_id = ? AND uid = ?", projectID, userData.GetUID()).First(&project).Error; err != nil {
+	if err := config.DB.Where("project_id = ? AND creator_id = ?", projectID, userData.GetUID()).First(&project).Error; err != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found or you don't have permission to view applications"})
 	}
 
@@ -202,9 +202,9 @@ func UpdateApplicationStatus(c echo.Context) error {
 		}
 	}()
 
-	// Check if project belongs to the professor
+	// Check if project belongs to the professor (by creator)
 	var project models.Projects
-	if err := tx.Where("project_id = ? AND uid = ?", projectID, userData.GetUID()).First(&project).Error; err != nil {
+	if err := tx.Where("project_id = ? AND creator_id = ?", projectID, userData.GetUID()).First(&project).Error; err != nil {
 		tx.Rollback()
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found or you don't have permission"})
 	}
@@ -288,9 +288,9 @@ func GetMyApplications(c echo.Context) error {
 		}
 
 		var professor models.User
-		if err := config.DB.Where("uid = ?", project.Uid).First(&professor).Error; err != nil {
+		if err := config.DB.Where("uid = ?", project.CreatorID).First(&professor).Error; err != nil {
 			// Create empty professor record if not found
-			professor = models.User{Uid: project.Uid}
+			professor = models.User{Uid: project.CreatorID}
 		}
 
 		appWithProject := ApplicationWithProject{
