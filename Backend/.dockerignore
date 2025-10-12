@@ -1,0 +1,10 @@
+# Ignore local files and folders not needed in Docker build context
+.git
+.gitignore
+Dockerfile*
+README.md
+logs/
+**/*.log
+node_modules/
+**/.DS_Store
+**/*.tsbuildinfo
