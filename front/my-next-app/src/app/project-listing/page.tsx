@@ -45,7 +45,6 @@ export default function ProfessorProjectsPage() {
   }
 
   if (!authorized) {
-    // Optionally, you can return null here since the redirect will happen
     return null;
   }
 

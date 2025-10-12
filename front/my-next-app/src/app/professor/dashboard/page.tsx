@@ -11,15 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  CalendarClock,
-  ChevronRight,
-  ClipboardList,
-  Clock,
-  FileText,
-  Users,
-} from "lucide-react";
+import { Users, ClipboardList, FileText } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import Header from "@/components/ui/manual_navbar_prof";
 import { useEffect, useState } from "react";
@@ -36,7 +28,7 @@ export default function ProfessorDashboard() {
       const token = localStorage.getItem("token") || "";
       const res = await fetchProjects_active_my(token);
 
-      if (res.count != 0) {
+      if (res.count !== 0) {
         setActiveProjectsCount(res.count);
       } else {
         setActiveProjectsCount(0);
@@ -75,8 +67,8 @@ export default function ProfessorDashboard() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back, Professor Davis. Here's an overview of your research
-              activity.
+              Welcome back, Professor Davis. Here is an overview of your
+              research activity.
             </p>
           </div>
         </div>

@@ -42,7 +42,6 @@ import useAuth from "@/hooks/useAuth";
 import Header from "@/components/ui/manual_navbar_prof";
 import { useRouter } from "next/navigation";
 
-// With a specific type:
 type ApplicationType = {
   id: number;
   student: {
@@ -71,11 +70,11 @@ export default function ProfessorApplicationsPage() {
   const { loading, authorized } = useAuth("fac");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedApplication, setSelectedApplication] =
-    useState<ApplicationType>({} as ApplicationType);
+    useState<ApplicationType | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
-  const [applications, setApplications] = useState([
+  const [applications, setApplications] = useState<ApplicationType[]>([
     {
       id: 1,
       student: {
@@ -295,6 +294,7 @@ export default function ProfessorApplicationsPage() {
   };
 
   const sendFeedback = () => {
+    if (!selectedApplication) return;
     // In a real application, you would send the feedback to the student
     console.log(
       `Sending feedback to ${selectedApplication.student.name}: ${feedbackText}`
@@ -388,7 +388,7 @@ export default function ProfessorApplicationsPage() {
                         {application.student.name}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {application.student.university} •{" "}
+                        {application.student.university} &bull;{" "}
                         {application.student.major}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
@@ -404,7 +404,7 @@ export default function ProfessorApplicationsPage() {
                       {application.project.title}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {application.project.field} •{" "}
+                      {application.project.field} &bull;{" "}
                       {application.project.specialization}
                     </div>
                     <div className="mt-1">
@@ -494,8 +494,8 @@ export default function ProfessorApplicationsPage() {
               </h3>
               <p className="mb-4 mt-2 text-sm text-muted-foreground">
                 {activeTab === "all"
-                  ? "You don't have any applications yet."
-                  : `You don't have any ${activeTab} applications.`}
+                  ? "You don&apos;t have any applications yet."
+                  : `You don&apos;t have any ${activeTab} applications.`}
               </p>
               <Link href="/professor/projects">
                 <Button>View My Projects</Button>
@@ -536,8 +536,8 @@ export default function ProfessorApplicationsPage() {
                       {selectedApplication.student.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {selectedApplication.student.university} •{" "}
-                      {selectedApplication.student.major} •{" "}
+                      {selectedApplication.student.university} &bull;{" "}
+                      {selectedApplication.student.major} &bull;{" "}
                       {selectedApplication.student.year}
                     </p>
                   </div>
@@ -711,21 +711,22 @@ export default function ProfessorApplicationsPage() {
                   </label>
                   <Select
                     onValueChange={(value) => {
+                      if (!selectedApplication) return;
                       if (value === "accepted") {
                         setFeedbackText(
-                          `Dear ${selectedApplication.student.name},\n\nI am pleased to inform you that your application for the "${selectedApplication.project.title}" project has been accepted. Your qualifications and experience make you an excellent fit for this research opportunity.\n\nPlease let me know your availability for an onboarding meeting next week.\n\nBest regards,\nProfessor Davis`
+                          `Dear ${selectedApplication.student.name},\n\nI am pleased to inform you that your application for the &quot;${selectedApplication.project.title}&quot; project has been accepted. Your qualifications and experience make you an excellent fit for this research opportunity.\n\nPlease let me know your availability for an onboarding meeting next week.\n\nBest regards,\nProfessor Davis`
                         );
                       } else if (value === "interview") {
                         setFeedbackText(
-                          `Dear ${selectedApplication.student.name},\n\nThank you for your application to the "${selectedApplication.project.title}" project. I would like to schedule an interview to discuss your application further.\n\nAre you available for a 30-minute meeting on Monday or Tuesday next week?\n\nBest regards,\nProfessor Davis`
+                          `Dear ${selectedApplication.student.name},\n\nThank you for your application to the &quot;${selectedApplication.project.title}&quot; project. I would like to schedule an interview to discuss your application further.\n\nAre you available for a 30-minute meeting on Monday or Tuesday next week?\n\nBest regards,\nProfessor Davis`
                         );
                       } else if (value === "rejected") {
                         setFeedbackText(
-                          `Dear ${selectedApplication.student.name},\n\nThank you for your interest in the "${selectedApplication.project.title}" project. After careful consideration, I regret to inform you that we are unable to offer you a position at this time.\n\nI encourage you to apply for future research opportunities that match your interests and qualifications.\n\nBest regards,\nProfessor Davis`
+                          `Dear ${selectedApplication.student.name},\n\nThank you for your interest in the &quot;${selectedApplication.project.title}&quot; project. After careful consideration, I regret to inform you that we are unable to offer you a position at this time.\n\nI encourage you to apply for future research opportunities that match your interests and qualifications.\n\nBest regards,\nProfessor Davis`
                         );
                       } else if (value === "more-info") {
                         setFeedbackText(
-                          `Dear ${selectedApplication.student.name},\n\nThank you for your application to the "${selectedApplication.project.title}" project. I would like to request some additional information about your experience with [specific skill/technology].\n\nCould you please provide more details about your previous work in this area?\n\nBest regards,\nProfessor Davis`
+                          `Dear ${selectedApplication.student.name},\n\nThank you for your application to the &quot;${selectedApplication.project.title}&quot; project. I would like to request some additional information about your experience with [specific skill/technology].\n\nCould you please provide more details about your previous work in this area?\n\nBest regards,\nProfessor Davis`
                         );
                       }
                     }}

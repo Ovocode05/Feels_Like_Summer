@@ -100,6 +100,7 @@ const cvFormSchema = z.object({
 
 export default function CVBuilderPage() {
   const [isHydrated, setIsHydrated] = useState(false);
+  // const { loading, authorized } = useAuth("student");
   const [activeTab, setActiveTab] = useState("edit");
   const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
   const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
@@ -778,8 +779,8 @@ export default function CVBuilderPage() {
                       </Button>
                     </div>
                     <FormDescription>
-                      Add skills that are relevant to the research positions
-                      you're applying for.
+                      Add skills that are relevant to the research positions you
+                      are applying for.
                     </FormDescription>
                   </CardContent>
                 </Card>

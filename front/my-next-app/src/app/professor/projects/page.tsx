@@ -92,18 +92,6 @@ export default function ProfessorProjectsPage() {
     }
   }, [loading, authorized, router]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    return null;
-  }
-
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -119,6 +107,18 @@ export default function ProfessorProjectsPage() {
       working_users: [],
     },
   });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    return null;
+  }
 
   function handleAddTag(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" || e.key === ",") {
@@ -352,8 +352,7 @@ export default function ProfessorProjectsPage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Add keywords for the subject or research field (e.g.,
-                          "AI", "Quantum Computing", "Biology").
+                          Add keywords for the subject or research field
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

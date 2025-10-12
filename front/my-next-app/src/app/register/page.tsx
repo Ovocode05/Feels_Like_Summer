@@ -47,13 +47,13 @@ const registerFormSchema = z
     path: ["confirmPassword"],
   });
 
+type FormData = z.infer<typeof registerFormSchema>;
+
 export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultRole = searchParams.get("type") || "stu";
   const [activeTab, setActiveTab] = useState(defaultRole);
-
-  type FormData = z.infer<typeof registerFormSchema>;
 
   const form = useForm<FormData>({
     resolver: zodResolver(registerFormSchema),

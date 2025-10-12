@@ -78,19 +78,6 @@ export default function ExplorePage() {
     }
   }, [loading2, authorized, router]);
 
-  if (loading2) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    // Optionally, you can return null here since the redirect will happen
-    return null;
-  }
-
   useEffect(() => {
     async function fetchAllProjects() {
       setLoading(true);
@@ -110,6 +97,19 @@ export default function ExplorePage() {
 
     fetchAllProjects();
   }, []);
+
+  if (loading2) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    // Optionally, you can return null here since the redirect will happen
+    return null;
+  }
 
   const projectsPerPage = 2; // Show 2 projects per page
 
