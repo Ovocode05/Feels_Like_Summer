@@ -105,7 +105,7 @@ const cvFormSchema = z.object({
 
 export default function CVBuilderPage() {
   const [isHydrated, setIsHydrated] = useState(false);
-  const { loading, authorized } = useAuth("student");
+  // const { loading, authorized } = useAuth("student");
   const [activeTab, setActiveTab] = useState("edit");
   const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
   const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
@@ -196,20 +196,20 @@ export default function CVBuilderPage() {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-  if (!authorized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Unauthorized
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Loading...
+  //     </div>
+  //   );
+  // }
+  // if (!authorized) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       Unauthorized
+  //     </div>
+  //   );
+  // }
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "Present";

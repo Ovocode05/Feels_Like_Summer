@@ -72,7 +72,12 @@ import {
 import useAuth from "@/hooks/useAuth";
 import Navbar from "@/components/ui/manual_navbar_prof";
 import Header from "@/components/ui/manual_navbar_prof";
-import { createProject, fetchProjects_active, deleteProject } from "@/api/api";
+import {
+  createProject,
+  fetchProjects_active,
+  deleteProject,
+  fetchProjects_active_my,
+} from "@/api/api";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -160,8 +165,7 @@ export default function ProfessorProjectsPage() {
   async function fetchProjects() {
     // Fetch projects from API and set state
     const token = localStorage.getItem("token") || "";
-    const res = await fetchProjects_active(token);
-
+    const res = await fetchProjects_active_my(token);
     setProjects(res.projects);
   }
 
@@ -424,7 +428,7 @@ export default function ProfessorProjectsPage() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {(searchedProjects ?? []).map((project) => (
             <div
-              key={project.pid} // Use pid as key
+              key={project.pid}
               onClick={() => handleProjectClick(project.pid)}
               className={`cursor-pointer border-2 border-primary/30 p-6 rounded-xl shadow-lg bg-background flex flex-col justify-between min-h-[320px] ${
                 searchActive &&
@@ -445,6 +449,8 @@ export default function ProfessorProjectsPage() {
                   ? "ring-2 ring-yellow-400"
                   : ""
               }`}
+              tabIndex={0}
+              role="button"
             >
               <div>
                 <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
@@ -489,7 +495,10 @@ export default function ProfessorProjectsPage() {
                     variant="destructive"
                     size="sm"
                     className="flex items-center gap-1 bg-red-900"
-                    onClick={() => handleDeleteClick(project)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent click from bubbling to parent
+                      handleDeleteClick(project);
+                    }}
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
