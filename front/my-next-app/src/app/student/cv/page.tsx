@@ -179,7 +179,6 @@ export default function CVBuilderPage() {
 
   function onSubmit(values: z.infer<typeof cvFormSchema>) {
     console.log(values);
-    // In a real application, you would save the CV data here
     setActiveTab("preview");
   }
 
@@ -881,9 +880,10 @@ export default function CVBuilderPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Publications</CardTitle>
+                    {/* FIX: Replaced the apostrophe in "you've" with "&apos;" to fix the unescaped-entities error. */}
                     <CardDescription>
-                      Add any research papers, articles, or publications you've
-                      contributed to.
+                      Add any research papers, articles, or publications
+                      you&apos;ve contributed to.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">

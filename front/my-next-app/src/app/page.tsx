@@ -182,71 +182,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* <section
-          id="testimonials"
-          className="w-full py-12 md:py-24 bg-background"
-        >
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  Testimonials
-                </h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Hear from students and professors who have found success on
-                  our platform.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl gap-6 py-8 md:py-12 lg:grid-cols-2">
-              <div className="rounded-lg border bg-background p-6 shadow-sm">
-                <div className="flex items-center gap-4">
-                  <img
-                    src="/placeholder.svg?height=64&width=64"
-                    alt="Student profile"
-                    className="h-16 w-16 rounded-full object-cover"
-                  />
-                  <div>
-                    <h4 className="text-lg font-semibold">Emily Chen</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Ph.D. Student, Quantum Physics
-                    </p>
-                  </div>
-                </div>
-                <p className="mt-4">
-                  "Before ResearchConnect, I spent months trying to find a
-                  professor who specialized in quantum entanglement. Within a
-                  week of joining, I found my perfect match and now I'm working
-                  on groundbreaking research!"
-                </p>
-              </div>
-              <div className="rounded-lg border bg-background p-6 shadow-sm">
-                <div className="flex items-center gap-4">
-                  <img
-                    src="/placeholder.svg?height=64&width=64"
-                    alt="Professor profile"
-                    className="h-16 w-16 rounded-full object-cover"
-                  />
-                  <div>
-                    <h4 className="text-lg font-semibold">
-                      Prof. James Wilson
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Mathematics Department, Stanford University
-                    </p>
-                  </div>
-                </div>
-                <p className="mt-4">
-                  "As a professor with multiple research projects, finding the
-                  right students was always challenging. This platform has
-                  streamlined my recruitment process, helping me find students
-                  who are truly passionate about my field."
-                </p>
-              </div>
-            </div>
-          </div>
-        </section> */}
-
         <section className="w-full py-12 md:py-24 bg-primary text-primary-foreground">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -352,14 +287,6 @@ export default function Home() {
                       Applications
                     </Link>
                   </li>
-                  {/* <li>
-                    <Link
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      Resource Sharing
-                    </Link>
-                  </li> */}
                 </ul>
               </div>
               <div className="space-y-3">

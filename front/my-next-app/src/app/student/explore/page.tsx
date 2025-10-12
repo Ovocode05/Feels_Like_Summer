@@ -39,10 +39,8 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import useAuth from "@/hooks/useAuth";
 import MenubarStudent from "@/components/ui/menubar_student";
 import { fetchProjects_active } from "@/api/api";
-import { useRouter } from "next/navigation";
 
 type ProjectType = {
   pid: string;
@@ -66,17 +64,6 @@ export default function ExplorePage() {
   const [savedProjects, setSavedProjects] = useState<number[]>([]);
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const router = useRouter();
-  const { loading: loading2, authorized } = useAuth("stu");
-
-  // Redirect to unauthorized page if not authenticated
-  useEffect(() => {
-    if (!loading2 && !authorized) {
-      router.replace("/unauthorized");
-    }
-  }, [loading2, authorized, router]);
 
   useEffect(() => {
     async function fetchAllProjects() {
@@ -90,6 +77,7 @@ export default function ExplorePage() {
           setProjects([]);
         }
       } catch (error) {
+        console.error("Error fetching projects:", error);
         setProjects([]);
       }
       setLoading(false);
@@ -98,21 +86,6 @@ export default function ExplorePage() {
     fetchAllProjects();
   }, []);
 
-  if (loading2) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    // Optionally, you can return null here since the redirect will happen
-    return null;
-  }
-
-  const projectsPerPage = 2; // Show 2 projects per page
-
   const toggleSaveProject = (id: number) => {
     if (savedProjects.includes(id)) {
       setSavedProjects(savedProjects.filter((projectId) => projectId !== id));
@@ -120,13 +93,6 @@ export default function ExplorePage() {
       setSavedProjects([...savedProjects, id]);
     }
   };
-
-  // Pagination logic
-  const totalPages = Math.ceil(projects.length / projectsPerPage);
-  const paginatedProjects = projects.slice(
-    (currentPage - 1) * projectsPerPage,
-    currentPage * projectsPerPage
-  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -312,7 +278,7 @@ export default function ExplorePage() {
                     <Checkbox id="volunteer" />
                     <label
                       htmlFor="volunteer"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-dowed peer-disabled:opacity-70"
                     >
                       Volunteer
                     </label>
@@ -428,11 +394,8 @@ export default function ExplorePage() {
                     No projects found.
                   </div>
                 ) : (
-                  paginatedProjects.map((project: any) => (
-                    <Card
-                      key={project.pid || project.ID}
-                      className="overflow-hidden"
-                    >
+                  projects.map((project: any) => (
+                    <Card key={project.pid} className="overflow-hidden">
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
                           <div>
@@ -444,14 +407,10 @@ export default function ExplorePage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() =>
-                              toggleSaveProject(project.pid || project.ID)
-                            }
+                            onClick={() => toggleSaveProject(project.pid)}
                             className="text-muted-foreground hover:text-foreground"
                           >
-                            {savedProjects.includes(
-                              project.pid || project.ID
-                            ) ? (
+                            {savedProjects.includes(project.pid) ? (
                               <BookmarkCheck className="h-5 w-5 text-primary" />
                             ) : (
                               <Bookmark className="h-5 w-5" />
@@ -494,26 +453,6 @@ export default function ExplorePage() {
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-xs text-muted-foreground">
-                              Created:
-                            </div>
-                            <span className="text-xs">
-                              {project.CreatedAt
-                                ? new Date(
-                                    project.CreatedAt
-                                  ).toLocaleDateString()
-                                : "-"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-xs text-muted-foreground">
-                              Working Users:
-                            </div>
-                            <span className="text-xs">
-                              {project.workingUsers?.length ?? 0}
-                            </span>
-                          </div>
                         </div>
                         <div className="mt-4">
                           <div className="font-semibold mb-1">
@@ -552,39 +491,6 @@ export default function ExplorePage() {
                 )}
               </TabsContent>
             </Tabs>
-
-            {/* Pagination Controls */}
-            <div className="flex items-center justify-center space-x-2 pt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              >
-                Previous
-              </Button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Button
-                  key={i + 1}
-                  variant={currentPage === i + 1 ? "default" : "outline"}
-                  size="sm"
-                  className="px-4"
-                  onClick={() => setCurrentPage(i + 1)}
-                >
-                  {i + 1}
-                </Button>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-              >
-                Next
-              </Button>
-            </div>
           </div>
         </div>
       </main>

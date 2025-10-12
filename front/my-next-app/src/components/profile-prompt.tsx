@@ -94,7 +94,7 @@ export default function ProfilePrompt({
           )}
           aria-pressed={role === "student"}
         >
-          I'm a Student
+          I am a Student
         </button>
         <button
           type="button"
@@ -107,7 +107,7 @@ export default function ProfilePrompt({
           )}
           aria-pressed={role === "professor"}
         >
-          I'm a Professor
+          I am a Professor
         </button>
       </div>
 

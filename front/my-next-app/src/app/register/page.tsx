@@ -1,6 +1,4 @@
 "use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,7 +51,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultRole = searchParams.get("type") || "stu";
-  const [activeTab, setActiveTab] = useState(defaultRole);
 
   const form = useForm<FormData>({
     resolver: zodResolver(registerFormSchema),
@@ -181,7 +178,6 @@ export default function RegisterPage() {
                         <RadioGroup
                           onValueChange={(value) => {
                             field.onChange(value);
-                            setActiveTab(value);
                           }}
                           defaultValue={field.value}
                           className="flex space-x-4"

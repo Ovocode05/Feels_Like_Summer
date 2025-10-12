@@ -23,6 +23,10 @@ export type ProjectCreateType = {
   working_users?: string[];
 };
 
+type booled = {
+  isActive: boolean;
+};
+
 export const registerUser = async (data: RegisterUserData) => {
   try {
     const response = await axios.post(`${url}/auth/signup`, data, {
@@ -156,7 +160,7 @@ export const getProjectByPid = async (pid: string, token: string) => {
 
 export const updateProjectByPid = async (
   pid: string,
-  data: boolean,
+  data: booled,
   token: string
 ) => {
   try {

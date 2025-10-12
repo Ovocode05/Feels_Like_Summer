@@ -26,33 +26,9 @@ import {
   Search,
   Star,
 } from "lucide-react";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import useAuth from "@/hooks/useAuth";
 import MenubarStudent from "@/components/ui/menubar_student";
 
 export default function StudentDashboard() {
-  const router = useRouter();
-  const { loading, authorized } = useAuth("stu");
-
-  useEffect(() => {
-    if (!loading && !authorized) {
-      router.replace("/unauthorized");
-    }
-  }, [loading, authorized, router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    return null;
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <MenubarStudent />
@@ -61,7 +37,7 @@ export default function StudentDashboard() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back, Krrish. Track your research journey here.
+              Welcome back Krrish. Track your research journey here.
             </p>
           </div>
           <Link href="/student/explore">

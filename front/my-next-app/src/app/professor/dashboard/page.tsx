@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,15 +11,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Users, ClipboardList, FileText } from "lucide-react";
-import useAuth from "@/hooks/useAuth";
 import Header from "@/components/ui/manual_navbar_prof";
 import { useEffect, useState } from "react";
 import { fetchProjects_active_my } from "@/api/api";
-import { useRouter } from "next/navigation";
 
 export default function ProfessorDashboard() {
-  const router = useRouter();
-  const { loading, authorized } = useAuth("fac");
   const [activeProjectsCount, setActiveProjectsCount] = useState<number>(0);
 
   useEffect(() => {
@@ -40,24 +35,6 @@ export default function ProfessorDashboard() {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
-
-  useEffect(() => {
-    if (!loading && !authorized) {
-      router.replace("/unauthorized");
-    }
-  }, [loading, authorized, router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    return null;
-  }
 
   return (
     <div className="flex min-h-screen flex-col">

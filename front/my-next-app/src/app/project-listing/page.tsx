@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,31 +22,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BookOpen, Bookmark, Filter, Search, Star, Users } from "lucide-react";
-import useAuth from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+
+type ProjectType = {
+  ID: number;
+  pid: string;
+  name: string;
+  sdesc: string; // alternative short description field
+  ldesc: string; // alternative long description field
+  tags: string[];
+  isActive: boolean;
+  uid: string;
+  user: {
+    name: string;
+    email: string;
+    type: string;
+    ID: number;
+  };
+};
 
 export default function ProfessorProjectsPage() {
-  const router = useRouter();
-  const { loading, authorized } = useAuth("fac");
-
-  useEffect(() => {
-    if (!loading && !authorized) {
-      router.replace("/unauthorized");
-    }
-  }, [loading, authorized, router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    return null;
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -479,7 +472,7 @@ export default function ProfessorProjectsPage() {
                       <div>
                         <CardTitle>CRISPR Gene Editing for Diseases</CardTitle>
                         <CardDescription className="mt-1">
-                          Dr. Robert Zhang • Johns Hopkins University
+                          Dr. Robert Zhang ,Johns Hopkins University
                         </CardDescription>
                       </div>
                       <Button variant="ghost" size="icon">
@@ -560,7 +553,7 @@ export default function ProfessorProjectsPage() {
                       <div>
                         <CardTitle>Quantum Field Theory Applications</CardTitle>
                         <CardDescription className="mt-1">
-                          Dr. Thomas Wilson • Princeton University
+                          Dr. Thomas Wilson ,Princeton University
                         </CardDescription>
                       </div>
                       <Button variant="ghost" size="icon">

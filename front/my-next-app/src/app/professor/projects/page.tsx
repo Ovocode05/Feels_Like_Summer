@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import useAuth from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -80,17 +79,10 @@ export default function ProfessorProjectsPage() {
   const [showDeletedPopup, setShowDeletedPopup] = useState(false);
   const deletedPopupTimeout = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
-  const { loading, authorized } = useAuth("fac");
 
   useEffect(() => {
     if (!searchQuery) setSearchActive(false);
   }, [searchQuery]);
-
-  useEffect(() => {
-    if (!loading && !authorized) {
-      router.replace("/unauthorized");
-    }
-  }, [loading, authorized, router]);
 
   useEffect(() => {
     fetchProjects();
@@ -107,18 +99,6 @@ export default function ProfessorProjectsPage() {
       working_users: [],
     },
   });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    return null;
-  }
 
   function handleAddTag(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" || e.key === ",") {
@@ -142,10 +122,13 @@ export default function ProfessorProjectsPage() {
 
   async function onSubmit(values: z.infer<typeof projectFormSchema>) {
     const token = localStorage.getItem("token") || "";
+    console.log("Creating project:", values);
     const res = await createProject(
       { ...values, tags: values.tags ?? [] },
       token
     );
+    console.log(res);
+
     if (!res) return;
     await fetchProjects();
     form.reset();
@@ -532,8 +515,8 @@ export default function ProfessorProjectsPage() {
             <h3 className="mt-4 text-lg font-semibold">No projects found</h3>
             <p className="mb-4 mt-2 text-sm text-muted-foreground">
               {activeTab === "all"
-                ? "You haven't created any projects yet."
-                : `You don't have any ${activeTab} projects.`}
+                ? "You have not created any projects yet."
+                : `You do not have any ${activeTab} projects.`}
             </p>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" /> Create Project

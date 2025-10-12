@@ -38,9 +38,7 @@ import {
   ThumbsDown,
   FileText,
 } from "lucide-react";
-import useAuth from "@/hooks/useAuth";
 import Header from "@/components/ui/manual_navbar_prof";
-import { useRouter } from "next/navigation";
 
 type ApplicationType = {
   id: number;
@@ -66,8 +64,6 @@ type ApplicationType = {
 };
 
 export default function ProfessorApplicationsPage() {
-  const router = useRouter();
-  const { loading, authorized } = useAuth("fac");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedApplication, setSelectedApplication] =
     useState<ApplicationType | null>(null);
@@ -260,26 +256,6 @@ export default function ProfessorApplicationsPage() {
       cv: "/path/to/cv.pdf",
     },
   ]);
-
-  // Redirect to unauthorized page if not authenticated
-  useEffect(() => {
-    if (!loading && !authorized) {
-      router.replace("/unauthorized");
-    }
-  }, [loading, authorized, router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    // Optionally, you can return null here since the redirect will happen
-    return null;
-  }
 
   const updateApplicationStatus = (id: number, status: string) => {
     setApplications(

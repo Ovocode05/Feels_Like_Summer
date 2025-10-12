@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import useAuth from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,29 +37,6 @@ import {
 import MenubarStudent from "@/components/ui/menubar_student";
 
 export default function ResourcesPage() {
-  const router = useRouter();
-  const { loading, authorized } = useAuth("stu");
-
-  // Redirect to unauthorized page if not authenticated
-  useEffect(() => {
-    if (!loading && !authorized) {
-      router.replace("/unauthorized");
-    }
-  }, [loading, authorized, router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    // Optionally, you can return null here since the redirect will happen
-    return null;
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <MenubarStudent />

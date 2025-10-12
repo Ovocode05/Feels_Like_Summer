@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
   CheckCircle2,
-  Users,
   Mail,
   User2,
   BookOpen,
@@ -18,19 +17,19 @@ import {
 } from "lucide-react";
 
 type ProjectType = {
+  ID: number;
   pid: string;
   name: string;
-  shortDesc: string;
-  longDesc: string;
-  sdesc?: string; // alternative short description field
-  ldesc?: string; // alternative long description field
+  sdesc: string; // alternative short description field
+  ldesc: string; // alternative long description field
   tags: string[];
-  isActive: boolean | string;
+  isActive: boolean;
   uid: string;
   user: {
     name: string;
     email: string;
     type: string;
+    ID: number;
   };
 };
 
@@ -46,10 +45,7 @@ export default function ProjectDetails() {
   const pid = params?.id as string;
 
   useEffect(() => {
-    // Move fetchProject outside useEffect so you can call it anywhere
-
     if (pid) fetchProject();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pid]);
 
   const fetchProject = async () => {
@@ -70,12 +66,13 @@ export default function ProjectDetails() {
     setUpdating(true);
     try {
       const token = localStorage.getItem("token") || "";
-      await updateProjectByPid(pid, !project.isActive, token);
+      await updateProjectByPid(pid, { isActive: !project.isActive }, token);
       setShowUpdatedPopup(true);
-      await fetchProject(); // <-- Fetch latest project data after update
+      await fetchProject();
       setTimeout(() => setShowUpdatedPopup(false), 2000);
     } catch (error) {
       // Optionally show error
+      console.error("Error updating project status:", error);
     }
     setUpdating(false);
   };
@@ -138,14 +135,12 @@ export default function ProjectDetails() {
                   {project.name}
                   <Badge
                     className={
-                      project.isActive === true || project.isActive === "true"
+                      project.isActive === true
                         ? "bg-black text-white"
                         : "bg-white border border-black text-black"
                     }
                   >
-                    {project.isActive === true || project.isActive === "true"
-                      ? "Active"
-                      : "Inactive"}
+                    {project.isActive === true ? "Active" : "Inactive"}
                   </Badge>
                 </h1>
                 <span className="text-xs text-black/60 font-mono">
@@ -170,16 +165,12 @@ export default function ProjectDetails() {
                 <FileText className="h-5 w-5 text-black" />
                 Short Description
               </h2>
-              <p className="mb-6 text-base text-black/80">
-                {project.shortDesc || project.sdesc}
-              </p>
+              <p className="mb-6 text-base text-black/80">{project.sdesc}</p>
               <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-black" />
                 Long Description
               </h2>
-              <p className="text-base text-black/80">
-                {project.longDesc || project.ldesc}
-              </p>
+              <p className="text-base text-black/80">{project.ldesc}</p>
             </div>
           </div>
 
@@ -203,7 +194,7 @@ export default function ProjectDetails() {
 
         {/* Set Inactive Button at the end */}
         <div className="flex justify-end mt-8">
-          {project.isActive === true || project.isActive === "true" ? (
+          {project.isActive === true ? (
             <Button
               onClick={() => setShowInactiveConfirm(true)}
               disabled={updating}
