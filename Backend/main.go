@@ -26,7 +26,7 @@ func main() {
 	// Initialize Echo
 	e := echo.New()
 	    e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-        AllowOrigins: []string{"http://localhost:3000", "https://feels-like-summer.vercel.app/register"},
+        AllowOrigins: []string{"http://localhost:3000", "https://feels-like-summer.vercel.app"},
         AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
         AllowHeaders: []string{
             echo.HeaderOrigin,
