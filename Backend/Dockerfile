@@ -26,6 +26,7 @@ WORKDIR /app
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 ENV TZ=UTC
 
+COPY .env ./.env
 # Copy binary
 COPY --from=builder /app/server /app/server
 

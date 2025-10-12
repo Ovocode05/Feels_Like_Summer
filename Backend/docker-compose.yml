@@ -30,7 +30,7 @@ services:
     environment:
       # Ensure the app connects to the compose service name
       DB_HOST: db
-      DB_PORT: "5431"
+      DB_PORT: "5432"
     ports:
       - "8090:8080"
     restart: unless-stopped
