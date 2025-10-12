@@ -32,24 +32,6 @@ export default function ProfessorDashboard() {
   const [activeProjectsCount, setActiveProjectsCount] = useState<number>(0);
 
   useEffect(() => {
-    if (!loading && !authorized) {
-      router.replace("/unauthorized");
-    }
-  }, [loading, authorized, router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!authorized) {
-    return null;
-  }
-
-  useEffect(() => {
     async function fetchAndCountProjects() {
       const token = localStorage.getItem("token") || "";
       const res = await fetchProjects_active_my(token);
@@ -66,6 +48,24 @@ export default function ProfessorDashboard() {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
+
+  useEffect(() => {
+    if (!loading && !authorized) {
+      router.replace("/unauthorized");
+    }
+  }, [loading, authorized, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

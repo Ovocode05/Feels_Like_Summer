@@ -67,7 +67,6 @@ export default function ExplorePage() {
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const projectsPerPage = 2; // Show 2 projects per page
 
   const router = useRouter();
   const { loading: loading2, authorized } = useAuth("stu");
@@ -111,6 +110,8 @@ export default function ExplorePage() {
 
     fetchAllProjects();
   }, []);
+
+  const projectsPerPage = 2; // Show 2 projects per page
 
   const toggleSaveProject = (id: number) => {
     if (savedProjects.includes(id)) {

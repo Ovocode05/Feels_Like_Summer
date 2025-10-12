@@ -131,7 +131,7 @@ export default function RegisterPage() {
                         />
                       </FormControl>
                       <FormDescription>
-                        We'll use this email to verify your account.
+                        We will use this email to verify your account.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

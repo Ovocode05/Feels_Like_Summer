@@ -70,7 +70,7 @@ export default function ProjectDetails() {
     setUpdating(true);
     try {
       const token = localStorage.getItem("token") || "";
-      await updateProjectByPid(pid, { isActive: !project.isActive }, token);
+      await updateProjectByPid(pid, !project.isActive, token);
       setShowUpdatedPopup(true);
       await fetchProject(); // <-- Fetch latest project data after update
       setTimeout(() => setShowUpdatedPopup(false), 2000);

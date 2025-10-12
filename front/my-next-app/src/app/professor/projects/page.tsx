@@ -83,6 +83,10 @@ export default function ProfessorProjectsPage() {
   const { loading, authorized } = useAuth("fac");
 
   useEffect(() => {
+    if (!searchQuery) setSearchActive(false);
+  }, [searchQuery]);
+
+  useEffect(() => {
     if (!loading && !authorized) {
       router.replace("/unauthorized");
     }
@@ -99,6 +103,10 @@ export default function ProfessorProjectsPage() {
   if (!authorized) {
     return null;
   }
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   const form = useForm<z.infer<typeof projectFormSchema>>({
     resolver: zodResolver(projectFormSchema),
@@ -149,10 +157,6 @@ export default function ProfessorProjectsPage() {
     const res = await fetchProjects_active_my(token);
     setProjects(res.projects);
   }
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
 
   const filteredProjects = projects?.filter((project) =>
     activeTab === "active" ? project.isActive : !project.isActive
@@ -217,10 +221,6 @@ export default function ProfessorProjectsPage() {
               ))
         )
       : filteredProjects;
-
-  useEffect(() => {
-    if (!searchQuery) setSearchActive(false);
-  }, [searchQuery]);
 
   const handleProjectClick = (pid: string) => {
     router.push(`/project/${pid}`);

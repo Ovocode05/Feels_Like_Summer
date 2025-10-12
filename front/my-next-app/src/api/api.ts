@@ -14,6 +14,15 @@ interface LoginUserData {
   password: string;
 }
 
+export type ProjectCreateType = {
+  name: string;
+  sdesc: string;
+  ldesc: string;
+  isActive: boolean;
+  tags?: string[];
+  working_users?: string[];
+};
+
 export const registerUser = async (data: RegisterUserData) => {
   try {
     const response = await axios.post(`${url}/auth/signup`, data, {
@@ -69,7 +78,7 @@ export const refreshToken = async () => {
   }
 };
 
-export const createProject = async (data: any, token: string) => {
+export const createProject = async (data: ProjectCreateType, token: string) => {
   try {
     const response = await axios.post(`${url}/projects`, data, {
       headers: {
@@ -147,7 +156,7 @@ export const getProjectByPid = async (pid: string, token: string) => {
 
 export const updateProjectByPid = async (
   pid: string,
-  data: any,
+  data: boolean,
   token: string
 ) => {
   try {
