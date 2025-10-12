@@ -47,14 +47,12 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
-    console.log(values);
     const res = await loginUser(values);
-    console.log(res);
-    localStorage.setItem("token", res.token);
-
-    if (res.user.type === "stu") {
+    localStorage.setItem("token", res);
+    const decoded: JWT = jwtDecode(res);
+    if (decoded.type === "stu") {
       router.push("/student/dashboard");
-    } else if (res.user.type === "prof") {
+    } else if (decoded.type === "fac") {
       router.push("/professor/dashboard");
     }
   };

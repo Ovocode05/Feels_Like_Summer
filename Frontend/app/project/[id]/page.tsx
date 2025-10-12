@@ -1,59 +1,100 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getProjectByPid, updateProjectByPid } from "@/api/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  BookOpen,
-  Calendar,
-  ChevronLeft,
-  Clock,
-  Download,
-  FileText,
-  GraduationCap,
-  MapPin,
-  Share2,
+  AlertTriangle,
+  CheckCircle2,
   Users,
+  Mail,
+  User2,
+  BookOpen,
+  ChevronLeft,
+  FileText,
 } from "lucide-react";
-// import useAuth from "@/hooks/useAuth";
 
 export default function ProjectDetails() {
-  // const { loading, authorized } = useAuth("prof");
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Loading...
-  //     </div>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Unauthorized
-  //     </div>
-  //   );
-  // }
+  const params = useParams();
+  const pid = params?.id as string;
+
+  const [project, setProject] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [showInactiveConfirm, setShowInactiveConfirm] = useState(false);
+  const [showActiveConfirm, setShowActiveConfirm] = useState(false); // NEW
+  const [showUpdatedPopup, setShowUpdatedPopup] = useState(false);
+
+  // Move fetchProject outside useEffect so you can call it anywhere
+  const fetchProject = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token") || "";
+      const data = await getProjectByPid(pid, token);
+      setProject(data);
+    } catch (error) {
+      setProject(null);
+    }
+    setLoading(false);
+  };
+
+  // Fetch project by pid
+  useEffect(() => {
+    if (pid) fetchProject();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pid]);
+
+  // Handle update active status
+  const handleUpdateActive = async () => {
+    if (!project) return;
+    setUpdating(true);
+    try {
+      const token = localStorage.getItem("token") || "";
+      await updateProjectByPid(pid, { isActive: !project.isActive }, token);
+      setShowUpdatedPopup(true);
+      await fetchProject(); // <-- Fetch latest project data after update
+      setTimeout(() => setShowUpdatedPopup(false), 2000);
+    } catch (error) {
+      // Optionally show error
+    }
+    setUpdating(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white text-black">
+        Loading...
+      </div>
+    );
+  }
+  if (!project) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white text-black">
+        Project not found.
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <div className="flex min-h-screen flex-col bg-white text-black">
+      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-black/10 bg-white px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
-          <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">ResearchConnect</span>
+          <BookOpen className="h-6 w-6 text-black" />
+          <span className="text-xl font-bold text-black">ResearchConnect</span>
         </Link>
         <div className="ml-auto flex items-center gap-4">
           <Link href="/login">
-            <Button variant="ghost">Log in</Button>
+            <Button variant="ghost" className="text-black hover:bg-black/10">
+              Log in
+            </Button>
           </Link>
           <Link href="/register">
-            <Button>Sign up</Button>
+            <Button className="bg-black text-white hover:bg-black/80">
+              Sign up
+            </Button>
           </Link>
         </div>
       </header>
@@ -61,503 +102,216 @@ export default function ProjectDetails() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-2">
             <Link
-              href="/project-listing"
-              className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+              href="/professor/projects"
+              className="inline-flex items-center gap-1 text-black/60 hover:text-black"
             >
               <ChevronLeft className="h-4 w-4" />
               <span>Back to Projects</span>
             </Link>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
-            </Button>
-            <Button variant="outline" size="sm">
-              <Calendar className="mr-2 h-4 w-4" />
-              Save
-            </Button>
-          </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main Project Info */}
           <div className="space-y-6 lg:col-span-2">
-            <div>
-              <h1 className="scroll-m-20 text-3xl font-bold tracking-tight lg:text-4xl">
-                Quantum Computing Algorithms
-              </h1>
-              <div className="mt-2 flex items-center gap-2">
-                <Badge variant="secondary">Physics</Badge>
-                <Badge variant="secondary">Quantum Computing</Badge>
-                <Badge variant="outline">Open</Badge>
+            <div className="rounded-xl bg-white shadow-lg border border-black/10 p-6">
+              <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                  {project.name}
+                  <Badge
+                    className={
+                      project.isActive === true || project.isActive === "true"
+                        ? "bg-black text-white"
+                        : "bg-white border border-black text-black"
+                    }
+                  >
+                    {project.isActive === true || project.isActive === "true"
+                      ? "Active"
+                      : "Inactive"}
+                  </Badge>
+                </h1>
+                <span className="text-xs text-black/60 font-mono">
+                  PID: {project.pid}
+                </span>
               </div>
-              <div className="mt-4 flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Avatar>
-                    <AvatarImage
-                      src="/placeholder.svg?height=32&width=32"
-                      alt="Dr. Richard Williams"
-                    />
-                    <AvatarFallback>RW</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">Dr. Richard Williams</div>
-                    <div className="text-sm text-muted-foreground">
-                      Professor of Physics
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm">MIT</span>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {/* If you have tags, display here */}
+                {project.tags?.map((tag: string, idx: number) => (
+                  <Badge
+                    key={tag + idx}
+                    className="bg-black/90 text-white border border-black"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex items-center gap-2 text-black/70">
+                  <Users className="h-4 w-4" />
+                  <span>
+                    <span className="font-semibold">
+                      {project.working_users?.length ?? 0}
+                    </span>{" "}
+                    Working Users
+                  </span>
                 </div>
               </div>
             </div>
 
-            <Tabs defaultValue="description" className="w-full">
-              <TabsList className="w-full justify-start border-b pb-px">
-                <TabsTrigger
-                  value="description"
-                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
-                >
-                  Description
-                </TabsTrigger>
-                <TabsTrigger
-                  value="requirements"
-                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
-                >
-                  Requirements
-                </TabsTrigger>
-                <TabsTrigger
-                  value="timeline"
-                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
-                >
-                  Timeline
-                </TabsTrigger>
-                <TabsTrigger
-                  value="resources"
-                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
-                >
-                  Resources
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="description" className="pt-4 space-y-4">
-                <p className="leading-7">
-                  This research project focuses on developing novel quantum
-                  algorithms for optimization problems. We aim to explore new
-                  approaches to quantum computing that can solve complex
-                  optimization challenges more efficiently than classical
-                  computers.
-                </p>
-                <p className="leading-7">
-                  Our team is working on implementing these algorithms on the
-                  latest quantum hardware platforms, and testing their
-                  performance on real-world problems. The research has potential
-                  applications in fields such as logistics, finance, drug
-                  discovery, and artificial intelligence.
-                </p>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
-                  Research Objectives
-                </h3>
-                <ul className="list-disc pl-6 space-y-2">
-                  <li>
-                    Develop new quantum algorithms for combinatorial
-                    optimization problems
-                  </li>
-                  <li>
-                    Implement and test these algorithms on current quantum
-                    computing platforms
-                  </li>
-                  <li>
-                    Compare performance against classical algorithms and other
-                    quantum approaches
-                  </li>
-                  <li>Investigate potential applications in various domains</li>
-                  <li>
-                    Contribute to the theoretical understanding of quantum
-                    computing complexity
-                  </li>
-                </ul>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
-                  What You'll Learn
-                </h3>
-                <ul className="list-disc pl-6 space-y-2">
-                  <li>
-                    Quantum computing principles and quantum information theory
-                  </li>
-                  <li>Quantum algorithm design and analysis</li>
-                  <li>
-                    Programming quantum computers using frameworks like Qiskit
-                    or Cirq
-                  </li>
-                  <li>
-                    Optimization problem formulation and solution methodologies
-                  </li>
-                  <li>
-                    Research methodology and scientific publication writing
-                  </li>
-                </ul>
-              </TabsContent>
-              <TabsContent value="requirements" className="pt-4 space-y-4">
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  Required Qualifications
-                </h3>
-                <ul className="list-disc pl-6 space-y-2">
-                  <li>
-                    Strong background in linear algebra and probability theory
-                  </li>
-                  <li>Programming experience in Python</li>
-                  <li>Basic understanding of quantum mechanics</li>
-                  <li>Strong analytical and problem-solving skills</li>
-                  <li>Ability to work collaboratively in a research team</li>
-                </ul>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
-                  Preferred Qualifications
-                </h3>
-                <ul className="list-disc pl-6 space-y-2">
-                  <li>
-                    Previous experience with quantum computing frameworks
-                    (Qiskit, Cirq, etc.)
-                  </li>
-                  <li>
-                    Coursework in quantum information science or quantum
-                    computing
-                  </li>
-                  <li>Experience with optimization algorithms</li>
-                  <li>
-                    Background in computer science or computational physics
-                  </li>
-                </ul>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
-                  Time Commitment
-                </h3>
-                <p className="leading-7">
-                  This project requires a commitment of 10-15 hours per week for
-                  a minimum of 6 months. Weekly team meetings are held on
-                  Tuesdays at 2:00 PM.
-                </p>
-              </TabsContent>
-              <TabsContent value="timeline" className="pt-4 space-y-4">
-                <div className="space-y-4">
-                  <div className="flex">
-                    <div className="flex flex-col items-center mr-4">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground">
-                        1
-                      </div>
-                      <div className="w-px h-full bg-border"></div>
-                    </div>
-                    <div className="pb-6">
-                      <h3 className="text-lg font-semibold">
-                        Phase 1: Literature Review and Problem Formulation
-                      </h3>
-                      <p className="text-muted-foreground">June - July 2023</p>
-                      <p className="mt-2">
-                        Review existing quantum algorithms and identify specific
-                        optimization problems to target.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex">
-                    <div className="flex flex-col items-center mr-4">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground">
-                        2
-                      </div>
-                      <div className="w-px h-full bg-border"></div>
-                    </div>
-                    <div className="pb-6">
-                      <h3 className="text-lg font-semibold">
-                        Phase 2: Algorithm Design and Theoretical Analysis
-                      </h3>
-                      <p className="text-muted-foreground">
-                        August - September 2023
-                      </p>
-                      <p className="mt-2">
-                        Develop new quantum algorithms and analyze their
-                        theoretical performance and complexity.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex">
-                    <div className="flex flex-col items-center mr-4">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground">
-                        3
-                      </div>
-                      <div className="w-px h-full bg-border"></div>
-                    </div>
-                    <div className="pb-6">
-                      <h3 className="text-lg font-semibold">
-                        Phase 3: Implementation and Preliminary Testing
-                      </h3>
-                      <p className="text-muted-foreground">
-                        October - November 2023
-                      </p>
-                      <p className="mt-2">
-                        Implement algorithms on quantum simulators and
-                        small-scale quantum hardware.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex">
-                    <div className="flex flex-col items-center mr-4">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground">
-                        4
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">
-                        Phase 4: Performance Evaluation and Publication
-                      </h3>
-                      <p className="text-muted-foreground">
-                        December 2023 - January 2024
-                      </p>
-                      <p className="mt-2">
-                        Comprehensive testing, analysis of results, and
-                        preparation of research papers.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              <TabsContent value="resources" className="pt-4 space-y-4">
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  Recommended Reading
-                </h3>
-                <ul className="list-disc pl-6 space-y-2">
-                  <li>
-                    "Quantum Computation and Quantum Information" by Michael A.
-                    Nielsen and Isaac L. Chuang
-                  </li>
-                  <li>
-                    "Programming Quantum Computers: Essential Algorithms and
-                    Code Samples" by Eric R. Johnston, Nic Harrigan, and
-                    Mercedes Gimeno-Segovia
-                  </li>
-                  <li>
-                    "Quantum Computing: A Gentle Introduction" by Eleanor G.
-                    Rieffel and Wolfgang H. Polak
-                  </li>
-                </ul>
-                <div className="flex items-center gap-4 mt-4">
-                  <Button variant="outline" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Project Syllabus
-                  </Button>
-                  <Button variant="outline" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Reading List
-                  </Button>
-                </div>
-                <h3 className="scroll-m-20 text-xl font-semibold tracking-tight mt-6">
-                  Online Resources
-                </h3>
-                <ul className="list-disc pl-6 space-y-2">
-                  <li>
-                    <Link href="#" className="text-primary hover:underline">
-                      Qiskit Textbook
-                    </Link>{" "}
-                    - Comprehensive guide to quantum computing and Qiskit
-                  </li>
-                  <li>
-                    <Link href="#" className="text-primary hover:underline">
-                      MIT OpenCourseWare: Quantum Computing
-                    </Link>{" "}
-                    - Lecture notes and materials
-                  </li>
-                  <li>
-                    <Link href="#" className="text-primary hover:underline">
-                      Quantum Algorithm Zoo
-                    </Link>{" "}
-                    - Repository of quantum algorithms
-                  </li>
-                </ul>
-              </TabsContent>
-            </Tabs>
+            <div className="mt-6 rounded-xl bg-white shadow border border-black/10 p-6">
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-black" />
+                Short Description
+              </h2>
+              <p className="mb-6 text-base text-black/80">
+                {project.shortDesc || project.sdesc}
+              </p>
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-black" />
+                Long Description
+              </h2>
+              <p className="text-base text-black/80">
+                {project.longDesc || project.ldesc}
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Details</CardTitle>
-                <CardDescription>
-                  Key information about this research opportunity
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">
-                      Application Deadline
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>June 15, 2023</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Start Date</div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>July 1, 2023</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Duration</div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>6-12 months</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Positions</div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>2 openings</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Position Type</div>
-                    <div className="flex items-center gap-2">
-                      <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                      <span>Research Assistant</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Compensation</div>
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span>Paid / For Credit</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-1 pt-2">
-                  <div className="text-sm font-medium">Required Skills</div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">Linear Algebra</Badge>
-                    <Badge variant="outline">Python</Badge>
-                    <Badge variant="outline">Quantum Mechanics</Badge>
-                    <Badge variant="outline">Algorithm Design</Badge>
-                  </div>
-                </div>
-                <div className="space-y-1 pt-2">
-                  <div className="text-sm font-medium">
-                    Current Applications
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>18 applicants</span>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full">Apply for This Project</Button>
-              </CardFooter>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Professor Profile</CardTitle>
-                <CardDescription>About the research supervisor</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage
-                      src="/placeholder.svg?height=64&width=64"
-                      alt="Dr. Richard Williams"
-                    />
-                    <AvatarFallback>RW</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">Dr. Richard Williams</div>
-                    <div className="text-sm text-muted-foreground">
-                      Professor of Physics
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Department of Physics, MIT
-                    </div>
-                  </div>
-                </div>
-                <p className="text-sm">
-                  Dr. Williams specializes in quantum information theory and
-                  quantum algorithms. His research focuses on developing new
-                  quantum computing methods for solving complex problems.
-                </p>
-                <div className="space-y-1">
-                  <div className="text-sm font-medium">Research Interests</div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">Quantum Computing</Badge>
-                    <Badge variant="outline">Quantum Algorithms</Badge>
-                    <Badge variant="outline">Quantum Information Theory</Badge>
-                  </div>
-                </div>
-                <div className="pt-2 text-sm">
-                  <div className="font-medium mb-2">Current Projects</div>
-                  <ul className="list-disc pl-4 space-y-1">
-                    <li>Quantum Computing Algorithms (This project)</li>
-                    <li>Quantum Error Correction Methods</li>
-                    <li>Quantum Machine Learning Applications</li>
-                  </ul>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full">
-                  View Full Profile
-                </Button>
-              </CardFooter>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Similar Projects</CardTitle>
-                <CardDescription>
-                  You might also be interested in these
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  {
-                    title: "Quantum Error Correction Methods",
-                    professor: "Dr. Lisa Chen",
-                    university: "Caltech",
-                  },
-                  {
-                    title: "Quantum Machine Learning",
-                    professor: "Dr. James Wilson",
-                    university: "Stanford University",
-                  },
-                  {
-                    title: "Quantum Cryptography Applications",
-                    professor: "Dr. Michael Johnson",
-                    university: "Princeton University",
-                  },
-                ].map((project, i) => (
-                  <div
-                    key={i}
-                    className={`space-y-1 ${i < 2 ? "border-b pb-3" : ""}`}
-                  >
-                    <Link href="#" className="font-medium hover:underline">
-                      {project.title}
-                    </Link>
-                    <div className="text-sm text-muted-foreground">
-                      {project.professor}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {project.university}
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+          {/* Sidebar: Professor Info */}
+          <div className="flex flex-col gap-6">
+            <div className="rounded-xl bg-white shadow border border-black/10 p-6 flex flex-col items-center">
+              <User2 className="h-12 w-12 text-black mb-2" />
+              <div className="text-lg font-semibold mb-1 text-black">
+                {project.user?.name || "Unknown Professor"}
+              </div>
+              <div className="flex items-center gap-2 text-black/70 mb-1">
+                <Mail className="h-4 w-4" />
+                <span className="text-sm">{project.user?.email}</span>
+              </div>
+              <Badge className="bg-black text-white">
+                {project.user?.type === "fac" ? "Faculty" : "User"}
+              </Badge>
+            </div>
           </div>
         </div>
+
+        {/* Set Inactive Button at the end */}
+        <div className="flex justify-end mt-8">
+          {project.isActive === true || project.isActive === "true" ? (
+            <Button
+              onClick={() => setShowInactiveConfirm(true)}
+              disabled={updating}
+              variant="destructive"
+              className="bg-red-800 text-white px-8 py-2 rounded-lg shadow hover:bg-red-900"
+            >
+              Set Inactive
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setShowActiveConfirm(true)}
+              disabled={updating}
+              variant="default"
+              className="bg-black text-white px-8 py-2 rounded-lg shadow hover:bg-black/80"
+            >
+              {updating ? "Updating..." : "Set Active"}
+            </Button>
+          )}
+        </div>
+
+        {/* Inactive Confirmation Pop-up (side/end) */}
+        {showInactiveConfirm && (
+          <div className="fixed right-8 bottom-8 z-50 flex flex-col items-end">
+            <div className="rounded-lg border border-red-800 bg-white px-6 py-4 shadow-xl flex items-center gap-4 animate-fade-in">
+              <AlertTriangle className="h-6 w-6 text-red-800" />
+              <div>
+                <div className="font-semibold text-red-800 mb-1">
+                  Confirm Inactivation
+                </div>
+                <div className="text-sm text-black mb-2">
+                  Are you sure you want to set this project as inactive? This
+                  will prevent new applications.
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-black text-black"
+                    onClick={() => setShowInactiveConfirm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="bg-red-800 text-white"
+                    onClick={async () => {
+                      setShowInactiveConfirm(false);
+                      await handleUpdateActive();
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Active Confirmation Pop-up (side/end) */}
+        {showActiveConfirm && (
+          <div className="fixed right-8 bottom-8 z-50 flex flex-col items-end">
+            <div className="rounded-lg border border-black bg-white px-6 py-4 shadow-xl flex items-center gap-4 animate-fade-in">
+              <AlertTriangle className="h-6 w-6 text-black" />
+              <div>
+                <div className="font-semibold text-black mb-1">
+                  Confirm Activation
+                </div>
+                <div className="text-sm text-black mb-2">
+                  Are you sure you want to set this project as active? This will
+                  allow new applications.
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-black text-black"
+                    onClick={() => setShowActiveConfirm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-black text-white"
+                    onClick={async () => {
+                      setShowActiveConfirm(false);
+                      await handleUpdateActive();
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Updated Popup */}
+        {showUpdatedPopup && (
+          <div className="fixed right-8 bottom-24 z-50 flex items-center gap-3 rounded-lg border border-black bg-white px-6 py-3 text-black shadow-xl animate-fade-in">
+            <CheckCircle2 className="h-6 w-6 text-black" />
+            <span className="font-semibold">Project status updated.</span>
+          </div>
+        )}
       </main>
-      <footer className="border-t py-6 md:py-8">
+      <footer className="border-t py-6 md:py-8 bg-white">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            <span className="text-lg font-semibold">ResearchConnect</span>
+            <BookOpen className="h-5 w-5 text-black" />
+            <span className="text-lg font-semibold text-black">
+              ResearchConnect
+            </span>
           </div>
-          <p className="text-center text-sm text-muted-foreground md:text-left">
+          <p className="text-center text-sm text-black/60 md:text-left">
             &copy; {new Date().getFullYear()} ResearchConnect. All rights
             reserved.
           </p>
@@ -566,3 +320,7 @@ export default function ProjectDetails() {
     </div>
   );
 }
+
+// Add this animation to your global CSS or tailwind config if you want a fade-in effect:
+// .animate-fade-in { animation: fadeIn 0.3s; }
+// @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }

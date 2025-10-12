@@ -224,7 +224,6 @@ func UpdateApplicationStatus(c echo.Context) error {
 
 	// If accepted, add user to project's working users
 	if requestBody.Status == "accepted" {
-		// Check if user is already in working users
 		workingUsers := project.WorkingUsers
 		userExists := false
 		for _, uid := range workingUsers {
@@ -233,7 +232,6 @@ func UpdateApplicationStatus(c echo.Context) error {
 				break
 			}
 		}
-
 		if !userExists {
 			workingUsers = append(workingUsers, application.UID)
 			if err := tx.Model(&project).Update("working_users", workingUsers).Error; err != nil {

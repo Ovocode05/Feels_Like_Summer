@@ -99,3 +99,53 @@ export const fetchProjects_active = async (token: string) => {
     throw error;
   }
 };
+
+export const deleteProject = async (projectId: string, token: string) => {
+  try {
+    const response = await axios.delete(`${url}/projects/${projectId}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    throw error;
+  }
+};
+
+export const getProjectByPid = async (pid: string, token: string) => {
+  try {
+    const response = await axios.get(`${url}/projects/${pid}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching project by pid:", error);
+    throw error;
+  }
+};
+
+export const updateProjectByPid = async (
+  pid: string,
+  data: any,
+  token: string
+) => {
+  try {
+    const response = await axios.put(`${url}/projects/${pid}`, data, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating project by pid:", error);
+    throw error;
+  }
+};

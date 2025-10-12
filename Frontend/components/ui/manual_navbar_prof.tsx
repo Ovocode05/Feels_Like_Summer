@@ -4,16 +4,16 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Bell, BookOpen, MessageSquare, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 function Header() {
-  // const router = useRouter();
+  const router = useRouter();
 
   // Log out handler: remove token and redirect to login
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
-      // router.push("/login");
+      router.push("/login");
     }
   };
 

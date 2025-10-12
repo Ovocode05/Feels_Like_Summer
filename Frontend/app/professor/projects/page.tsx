@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -67,207 +67,185 @@ import {
   Search,
   Trash2,
   Users,
+  CheckCircle2,
 } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import Navbar from "@/components/ui/manual_navbar_prof";
 import Header from "@/components/ui/manual_navbar_prof";
-import { createProject } from "@/api/api";
+import { createProject, fetchProjects_active, deleteProject } from "@/api/api";
+import { X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const projectFormSchema = z.object({
-  title: z.string().min(1, { message: "Project title is required" }),
-  description: z
-    .string()
-    .min(1, { message: "Project description is required" }),
-  field: z.string().min(1, { message: "Field is required" }),
-  specialization: z.string().min(1, { message: "Specialization is required" }),
-  positions: z.coerce
-    .number()
-    .min(1, { message: "At least one position is required" }),
-  startDate: z.string().min(1, { message: "Start date is required" }),
-  endDate: z.string().optional(),
-  deadline: z.string().min(1, { message: "Application deadline is required" }),
-  requirements: z.string().min(1, { message: "Requirements are required" }),
-  positionType: z.string().min(1, { message: "Position type is required" }),
-  status: z.string().min(1, { message: "Status is required" }),
+  name: z.string().min(1, { message: "Project name is required" }),
+  sdesc: z.string().min(1, { message: "Short description is required" }),
+  ldesc: z.string().min(1, { message: "Long description is required" }),
+  isActive: z.boolean(),
+  tags: z.array(z.string()).optional(),
+  working_users: z.array(z.string()).optional(),
 });
 
 export default function ProfessorProjectsPage() {
   const [activeTab, setActiveTab] = useState("active");
-  const [projects, setProjects] = useState([
-    {
-      id: 1,
-      title: "Quantum Computing Algorithms",
-      description:
-        "Developing novel quantum algorithms for optimization problems.",
-      field: "Physics",
-      specialization: "Quantum Computing",
-      positions: 3,
-      applications: 5,
-      startDate: "Jan 15, 2023",
-      endDate: "Dec 15, 2023",
-      deadline: "Dec 1, 2022",
-      status: "active",
-      students: [
-        {
-          id: 1,
-          name: "Alex Johnson",
-          avatar: "/placeholder.svg?height=32&width=32",
-        },
-        {
-          id: 2,
-          name: "Sarah Williams",
-          avatar: "/placeholder.svg?height=32&width=32",
-        },
-        {
-          id: 3,
-          name: "Michael Chen",
-          avatar: "/placeholder.svg?height=32&width=32",
-        },
-      ],
-    },
-    {
-      id: 2,
-      title: "Machine Learning for Climate Data",
-      description:
-        "Using machine learning to analyze and predict climate patterns.",
-      field: "Computer Science",
-      specialization: "Machine Learning",
-      positions: 2,
-      applications: 4,
-      startDate: "Mar 10, 2023",
-      endDate: "Sep 10, 2023",
-      deadline: "Feb 15, 2023",
-      status: "active",
-      students: [
-        {
-          id: 4,
-          name: "Emily Davis",
-          avatar: "/placeholder.svg?height=32&width=32",
-        },
-        {
-          id: 5,
-          name: "David Lee",
-          avatar: "/placeholder.svg?height=32&width=32",
-        },
-      ],
-    },
-    {
-      id: 3,
-      title: "Algebraic Topology Applications",
-      description:
-        "Exploring applications of algebraic topology in data analysis.",
-      field: "Mathematics",
-      specialization: "Algebraic Topology",
-      positions: 2,
-      applications: 3,
-      startDate: "Feb 5, 2023",
-      endDate: "Aug 5, 2023",
-      deadline: "Jan 15, 2023",
-      status: "active",
-      students: [
-        {
-          id: 6,
-          name: "Jessica Brown",
-          avatar: "/placeholder.svg?height=32&width=32",
-        },
-        {
-          id: 7,
-          name: "Ryan Taylor",
-          avatar: "/placeholder.svg?height=32&width=32",
-        },
-      ],
-    },
-    {
-      id: 4,
-      title: "Neural Networks in Robotics",
-      description: "Implementing neural networks for robotic control systems.",
-      field: "Computer Science",
-      specialization: "Robotics",
-      positions: 2,
-      applications: 0,
-      startDate: "Jun 1, 2023",
-      endDate: "Dec 1, 2023",
-      deadline: "May 15, 2023",
-      status: "pending",
-      students: [],
-    },
-    {
-      id: 5,
-      title: "Statistical Mechanics Models",
-      description:
-        "Developed new statistical mechanics models for complex systems.",
-      field: "Physics",
-      specialization: "Statistical Mechanics",
-      positions: 4,
-      applications: 0,
-      startDate: "Jan 2022",
-      endDate: "Dec 2022",
-      deadline: "Dec 1, 2021",
-      status: "completed",
-      students: [],
-    },
-  ]);
+  type Project_type = {
+    ID: number; // <-- Use ID, not id
+    name: string;
+    sdesc: string;
+    ldesc: string;
+    isActive: boolean;
+    tags?: string[];
+    working_users?: string[];
+    pid: string;
+    uid: string;
+  };
+
+  const [projects, setProjects] = useState<Project_type[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  // const { loading, authorized } = useAuth("prof");
+  const [tagInput, setTagInput] = useState("");
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchActive, setSearchActive] = useState(false);
+  // State for delete confirmation dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<null | Project_type>(
+    null
+  );
+  const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
+
+  const [showDeletedPopup, setShowDeletedPopup] = useState(false);
+  const deletedPopupTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const form = useForm<z.infer<typeof projectFormSchema>>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      field: "",
-      specialization: "",
-      positions: 1,
-      startDate: "",
-      endDate: "",
-      deadline: "",
-      requirements: "",
-      positionType: "",
-      status: "pending",
+      name: "",
+      sdesc: "",
+      ldesc: "",
+      isActive: false,
+      tags: [],
+      working_users: [],
     },
   });
 
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Loading...
-  //     </div>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Unauthorized
-  //     </div>
-  //   );
-  // }
+  const router = useRouter();
 
-  function onSubmit(values: z.infer<typeof projectFormSchema>) {
-    const token = localStorage.getItem("token") || "";
-    const newProject = {
-      id: projects.length + 1,
-      ...values,
-      endDate: values.endDate ?? "",
-      applications: 0,
-      students: [],
-    };
-    setProjects([...projects, newProject]);
-    setIsCreateDialogOpen(false);
-    form.reset();
-
-    console.log("New project created:", newProject);
-    const res = createProject(newProject, token);
-    console.log("API response:", res);
+  function handleAddTag(e: React.KeyboardEvent<HTMLInputElement>) {
+    if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+      e.preventDefault();
+      if (!form.getValues("tags")?.includes(tagInput.trim())) {
+        form.setValue("tags", [
+          ...(form.getValues("tags") || []),
+          tagInput.trim(),
+        ]);
+      }
+      setTagInput("");
+    }
   }
 
-  const deleteProject = (id: number) => {
-    setProjects(projects.filter((project) => project.id !== id));
+  function handleRemoveTag(tag: string) {
+    form.setValue(
+      "tags",
+      (form.getValues("tags") || []).filter((t) => t !== tag)
+    );
+  }
+
+  async function onSubmit(values: z.infer<typeof projectFormSchema>) {
+    const token = localStorage.getItem("token") || "";
+    await createProject({ ...values, tags: values.tags ?? [] }, token);
+    await fetchProjects(); // <-- Fetch latest projects from DB after creation
+    form.reset();
+    setIsCreateDialogOpen(false);
+  }
+
+  async function fetchProjects() {
+    // Fetch projects from API and set state
+    const token = localStorage.getItem("token") || "";
+    const res = await fetchProjects_active(token);
+
+    setProjects(res.projects);
+  }
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  // Filtered projects: only show active or not active based on tab
+  const filteredProjects = projects?.filter((project) =>
+    activeTab === "active" ? project.isActive : !project.isActive
+  );
+
+  // Open delete dialog
+  const handleDeleteClick = (project: Project_type) => {
+    setProjectToDelete(project);
+    setDeleteConfirmInput("");
+    setDeleteDialogOpen(true);
   };
 
-  const filteredProjects = projects.filter((project) => {
-    if (activeTab === "all") return true;
-    return project.status === activeTab;
-  });
+  // Confirm deletion
+  const confirmDelete = async () => {
+    if (!projectToDelete?.pid) return;
+    const token = localStorage.getItem("token") || "";
+    try {
+      await deleteProject(projectToDelete.pid, token);
+      setProjects(projects.filter((p) => p.pid !== projectToDelete.pid));
+      setDeleteDialogOpen(false);
+      setProjectToDelete(null);
+      setDeleteConfirmInput("");
+      setShowDeletedPopup(true);
+      if (deletedPopupTimeout.current)
+        clearTimeout(deletedPopupTimeout.current);
+      deletedPopupTimeout.current = setTimeout(
+        () => setShowDeletedPopup(false),
+        2000
+      );
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+    }
+  };
+
+  const highlightText = (text: string, query: string) => {
+    if (!query || query.trim().length === 0) return text;
+
+    // Use word boundaries to match only complete words (case-insensitive)
+    const regex = new RegExp(`\\b(${query})\\b`, "gi");
+    const parts = text.split(regex);
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === query.toLowerCase() && query.trim() !== "" ? (
+            <span key={i} className="bg-yellow-200">
+              {part}
+            </span>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  };
+
+  const searchedProjects =
+    searchActive && searchQuery
+      ? (filteredProjects ?? []).filter(
+          (project) =>
+            project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            project.sdesc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            project.ldesc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (project.tags &&
+              project.tags.some((tag: string) =>
+                tag.toLowerCase().includes(searchQuery.toLowerCase())
+              ))
+        )
+      : filteredProjects;
+
+  useEffect(() => {
+    if (!searchQuery) setSearchActive(false);
+  }, [searchQuery]);
+
+  // Add this function inside your component
+  const handleProjectClick = (pid: string) => {
+    router.push(`/project/${pid}`);
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -303,16 +281,16 @@ export default function ProfessorProjectsPage() {
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-1 "
+                  className="space-y-4"
                 >
                   <FormField
                     control={form.control}
-                    name="title"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Project Title</FormLabel>
+                        <FormLabel>Project Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter project title" {...field} />
+                          <Input placeholder="Enter project name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -320,176 +298,26 @@ export default function ProfessorProjectsPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="description"
+                    name="sdesc"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>Short Description</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Describe the research project, goals, and expected outcomes"
-                            className="min-h-[100px]"
-                            {...field}
-                          />
+                          <Input placeholder="Short description" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="field"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Field</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select field" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Physics">Physics</SelectItem>
-                              <SelectItem value="Computer Science">
-                                Computer Science
-                              </SelectItem>
-                              <SelectItem value="Mathematics">
-                                Mathematics
-                              </SelectItem>
-                              <SelectItem value="Biology">Biology</SelectItem>
-                              <SelectItem value="Chemistry">
-                                Chemistry
-                              </SelectItem>
-                              <SelectItem value="Engineering">
-                                Engineering
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="specialization"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Specialization</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="E.g., Quantum Computing, Machine Learning"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <FormField
-                      control={form.control}
-                      name="positions"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Positions</FormLabel>
-                          <FormControl>
-                            <Input type="number" min="1" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Number of available positions
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="deadline"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Application Deadline</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="positionType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Position Type</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Paid">Paid</SelectItem>
-                              <SelectItem value="Volunteer">
-                                Volunteer
-                              </SelectItem>
-                              <SelectItem value="For Credit">
-                                For Credit
-                              </SelectItem>
-                              <SelectItem value="Thesis/Dissertation">
-                                Thesis/Dissertation
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="startDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Start Date</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="endDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>End Date (Optional)</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                   <FormField
                     control={form.control}
-                    name="requirements"
+                    name="ldesc"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Requirements</FormLabel>
+                        <FormLabel>Long Description</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="List required skills, qualifications, and experience"
-                            className="min-h-[100px]"
+                            placeholder="Detailed description"
                             {...field}
                           />
                         </FormControl>
@@ -499,43 +327,62 @@ export default function ProfessorProjectsPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="status"
+                    name="isActive"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Is Active?</FormLabel>
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="tags"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Tags (Subject/Research Field)</FormLabel>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {(form.getValues("tags") || []).map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center rounded bg-primary/10 px-2 py-1 text-sm font-medium text-primary"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                className="ml-1 text-primary hover:text-red-600"
+                                onClick={() => handleRemoveTag(tag)}
+                                tabIndex={-1}
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                        <FormControl>
+                          <Input
+                            placeholder="Add a tag and press Enter"
+                            value={tagInput}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            onKeyDown={handleAddTag}
+                          />
+                        </FormControl>
                         <FormDescription>
-                          Pending projects are not visible to students until you
-                          activate them
+                          Add keywords for the subject or research field (e.g.,
+                          "AI", "Quantum Computing", "Biology").
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <DialogFooter>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsCreateDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit">Create Project</Button>
-                  </DialogFooter>
+                  <Button type="submit">Create Project</Button>
                 </form>
               </Form>
             </DialogContent>
@@ -550,9 +397,15 @@ export default function ProfessorProjectsPage() {
                 type="search"
                 placeholder="Search projects..."
                 className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="icon">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSearchActive(true)}
+            >
               <Filter className="h-4 w-4" />
             </Button>
           </div>
@@ -562,137 +415,138 @@ export default function ProfessorProjectsPage() {
             className="w-full md:w-auto"
           >
             <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger value="notactive">Not Active</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredProjects.map((project) => (
-            <Card key={project.id} className="flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <Badge
-                      variant={
-                        project.status === "active"
-                          ? "default"
-                          : project.status === "pending"
-                          ? "secondary"
-                          : "outline"
-                      }
-                      className="mb-2"
-                    >
-                      {project.status.charAt(0).toUpperCase() +
-                        project.status.slice(1)}
-                    </Badge>
-                    <CardTitle className="line-clamp-1">
-                      {project.title}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-1">
-                      {project.field} • {project.specialization}
-                    </CardDescription>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" /> Edit Project
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => duplicateProject(project)}
-                      >
-                        <Copy className="mr-2 h-4 w-4" /> Duplicate
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => deleteProject(project.id)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete Project
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                  {project.description}
-                </p>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {project.students.length}/{project.positions} Students
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {(searchedProjects ?? []).map((project) => (
+            <div
+              key={project.pid} // Use pid as key
+              onClick={() => handleProjectClick(project.pid)}
+              className={`cursor-pointer border-2 border-primary/30 p-6 rounded-xl shadow-lg bg-background flex flex-col justify-between min-h-[320px] ${
+                searchActive &&
+                searchQuery &&
+                (project.name
+                  .toLowerCase()
+                  .includes(searchQuery.toLowerCase()) ||
+                  project.sdesc
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                  project.ldesc
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                  (project.tags &&
+                    project.tags.some((tag: string) =>
+                      tag.toLowerCase().includes(searchQuery.toLowerCase())
+                    )))
+                  ? "ring-2 ring-yellow-400"
+                  : ""
+              }`}
+            >
+              <div>
+                <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                  {highlightText(project?.name, searchQuery)}
+                  {project.isActive && (
+                    <span className="ml-2 text-green-600 text-base font-semibold bg-green-100 px-2 py-0.5 rounded">
+                      Active
                     </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span>{project.applications} Applications</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>Started {project.startDate}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>Deadline {project.deadline}</span>
-                  </div>
-                </div>
-                {project.students.length > 0 && (
-                  <div className="mt-4">
-                    <div className="text-sm font-medium mb-2">
-                      Current Students:
-                    </div>
-                    <div className="flex -space-x-2">
-                      {project.students.map((student) => (
-                        <Avatar
-                          key={student.id}
-                          className="border-2 border-background h-8 w-8"
-                        >
-                          <AvatarImage
-                            src={student.avatar || "/placeholder.svg"}
-                            alt={student.name}
-                          />
-                          <AvatarFallback>
-                            {student.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                      ))}
-                    </div>
+                  )}
+                </h3>
+                <p className="mb-2 text-base text-muted-foreground">
+                  <strong>Short Desc:</strong>{" "}
+                  {highlightText(project.sdesc, searchQuery)}
+                </p>
+                <p className="text-base">
+                  <strong>Long Desc:</strong>{" "}
+                  {highlightText(project.ldesc, searchQuery)}
+                </p>
+              </div>
+              {/* Tags at the bottom */}
+              <div>
+                {project.tags && project.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {project.tags.map((tag: string, idx) => (
+                      <span
+                        key={tag + idx}
+                        className={`inline-flex items-center rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary ${
+                          searchActive &&
+                          searchQuery &&
+                          tag.toLowerCase().includes(searchQuery.toLowerCase())
+                            ? "bg-yellow-200"
+                            : ""
+                        }`}
+                      >
+                        {highlightText(tag, searchQuery)}
+                      </span>
+                    ))}
                   </div>
                 )}
-              </CardContent>
-              <CardFooter className="flex justify-between pt-4">
-                <Link href={`/professor/projects/${project.id}`}>
-                  <Button variant="outline" size="sm">
-                    View Details
+                <div className="mt-3 flex justify-end">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-1 bg-red-900"
+                    onClick={() => handleDeleteClick(project)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
                   </Button>
-                </Link>
-                <Link href={`/professor/projects/${project.id}/applications`}>
-                  <Button size="sm">
-                    {project.applications > 0
-                      ? "Review Applications"
-                      : "Manage Project"}
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
 
-        {filteredProjects.length === 0 && (
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Project</DialogTitle>
+              <DialogDescription>
+                This action{" "}
+                <span className="font-bold text-destructive">
+                  cannot be undone
+                </span>
+                .
+                <br />
+                Please type{" "}
+                <span className="font-mono font-semibold">
+                  {projectToDelete?.name}
+                </span>{" "}
+                to confirm deletion of this project.
+              </DialogDescription>
+            </DialogHeader>
+            <input
+              type="text"
+              className="w-full border rounded px-3 py-2 mt-4"
+              placeholder="Type project name to confirm"
+              value={deleteConfirmInput}
+              onChange={(e) => setDeleteConfirmInput(e.target.value)}
+              autoFocus
+            />
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={deleteConfirmInput !== projectToDelete?.name}
+                onClick={confirmDelete}
+                className="bg-red-900"
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {(filteredProjects ?? []).length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted">
               <ClipboardList className="h-10 w-10 text-muted-foreground" />
@@ -706,6 +560,13 @@ export default function ProfessorProjectsPage() {
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" /> Create Project
             </Button>
+          </div>
+        )}
+
+        {showDeletedPopup && (
+          <div className="fixed bottom-8 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-green-300 bg-green-50 px-6 py-3 text-green-800 shadow-xl animate-fade-in">
+            <CheckCircle2 className="h-6 w-6 text-green-600" />
+            <span className="font-semibold">Project has been deleted.</span>
           </div>
         )}
       </main>
@@ -732,3 +593,7 @@ function Bell(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+// Add this animation to your global CSS or tailwind config if you want a fade-in effect:
+// .animate-fade-in { animation: fadeIn 0.3s; }
+// @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }

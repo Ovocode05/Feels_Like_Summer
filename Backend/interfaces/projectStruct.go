@@ -1,16 +1,19 @@
 package interfaces
 
 type CProj struct {
-	Name      string `json:"name"`
-	ShortDesc string `json:"sdesc"`
-	LongDesc  string `json:"ldesc"`
-	IsActive  bool   `json:"isActive"`
-	UserID    string `json:"userId"`
+	Name         string   `json:"name"`
+	Sdesc        string   `json:"sdesc"`
+	Ldesc        string   `json:"ldesc"`
+	IsActive     bool     `json:"isActive"`
+	Tags         []string `json:"tags"`
+	WorkingUsers []string `json:"workingUsers"`
 }
 
 type UpdateProj struct {
-	Name      *string `json:"name,omitempty"`
-	ShortDesc *string `json:"sdesc,omitempty"`
-	LongDesc  *string `json:"ldesc,omitempty"`
-	IsActive  *bool   `json:"isActive,omitempty"`
+	Name         *string   `json:"name"`
+	Sdesc        *string   `json:"sdesc"`
+	Ldesc        *string   `json:"ldesc"`
+	IsActive     *bool     `json:"isActive"`
+	Tags         *[]string `json:"tags"`
+	WorkingUsers *[]string `json:"workingUsers"`
 }

@@ -59,8 +59,8 @@ export default function ProfessorDashboard() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+        <div className="grid gap-[200px] md:grid-cols-2 lg:grid-cols-4 ml-[250px]">
+          <Card className="w-[300px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Active Projects
@@ -74,7 +74,7 @@ export default function ProfessorDashboard() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="w-[300px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Applications
@@ -86,7 +86,7 @@ export default function ProfessorDashboard() {
               <p className="text-xs text-muted-foreground">7 new this week</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="w-[300px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Students</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -98,7 +98,7 @@ export default function ProfessorDashboard() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          {/* <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Upcoming Meetings
@@ -111,7 +111,7 @@ export default function ProfessorDashboard() {
                 Next: Tomorrow at 2:00 PM
               </p>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -242,7 +242,7 @@ export default function ProfessorDashboard() {
           </Card>
         </div>
 
-        <Tabs defaultValue="active" className="w-full">
+        {/* <Tabs defaultValue="active" className="w-full">
           <TabsList>
             <TabsTrigger value="active">Active Projects</TabsTrigger>
             <TabsTrigger value="pending">Pending</TabsTrigger>
@@ -386,7 +386,7 @@ export default function ProfessorDashboard() {
               </Card>
             </div>
           </TabsContent>
-        </Tabs>
+        </Tabs> */}
       </main>
     </div>
   );
