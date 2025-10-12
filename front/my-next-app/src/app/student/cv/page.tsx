@@ -4,7 +4,6 @@ import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,19 +27,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertCircle,
-  BookOpen,
   Download,
   Edit,
   FileText,
-  MessageSquare,
   Plus,
   Trash2,
   Upload,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { NavigationMenu } from "@radix-ui/react-navigation-menu";
-import useAuth from "@/hooks/useAuth";
 import MenubarStudent from "@/components/ui/menubar_student";
 
 const cvFormSchema = z.object({
@@ -105,7 +100,6 @@ const cvFormSchema = z.object({
 
 export default function CVBuilderPage() {
   const [isHydrated, setIsHydrated] = useState(false);
-  // const { loading, authorized } = useAuth("student");
   const [activeTab, setActiveTab] = useState("edit");
   const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
   const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
@@ -195,34 +189,6 @@ export default function CVBuilderPage() {
       </div>
     );
   }
-
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Loading...
-  //     </div>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Unauthorized
-  //     </div>
-  //   );
-  // }
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Present";
-    try {
-      return new Intl.DateTimeFormat("en-US", {
-        year: "numeric",
-        month: "short",
-        timeZone: "UTC", // Ensures consistent timezone
-      }).format(new Date(dateString + "T00:00:00.000Z"));
-    } catch {
-      return dateString;
-    }
-  };
 
   const addEducationEntry = () => {
     const newId =
@@ -1274,25 +1240,5 @@ export default function CVBuilderPage() {
         </Tabs>
       </main>
     </div>
-  );
-}
-
-function Bell(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
   );
 }

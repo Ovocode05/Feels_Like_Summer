@@ -38,6 +38,7 @@ type JWT = {
 
 export default function LoginPage() {
   const router = useRouter();
+
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
@@ -73,17 +74,6 @@ export default function LoginPage() {
             <CardDescription>Welcome back to ResearchConnect.</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="mb-6"
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="student">Student</TabsTrigger>
-                <TabsTrigger value="prof">Professor</TabsTrigger>
-              </TabsList>
-            </Tabs> */}
-
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}

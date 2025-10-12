@@ -22,30 +22,36 @@ import {
   FileText,
   GraduationCap,
   History,
-  MessageSquare,
   Rocket,
   Search,
   Star,
 } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import MenubarStudent from "@/components/ui/menubar_student";
 
 export default function StudentDashboard() {
-  // const { loading, authorized } = useAuth("stu");
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Loading...
-  //     </div>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Unauthorized
-  //     </div>
-  //   );
-  // }
+  const router = useRouter();
+  const { loading, authorized } = useAuth("stu");
+
+  useEffect(() => {
+    if (!loading && !authorized) {
+      router.replace("/unauthorized");
+    }
+  }, [loading, authorized, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -106,20 +112,6 @@ export default function StudentDashboard() {
               <p className="text-xs text-muted-foreground">In your watchlist</p>
             </CardContent>
           </Card>
-          {/* <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Profile Views
-              </CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">24</div>
-              <p className="text-xs text-muted-foreground">
-                Professors viewed your profile
-              </p>
-            </CardContent>
-          </Card> */}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -451,47 +443,5 @@ export default function StudentDashboard() {
         </Tabs>
       </main>
     </div>
-  );
-}
-
-interface BellProps extends React.SVGProps<SVGSVGElement> {}
-
-function Bell(props: BellProps) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
-  );
-}
-
-function Eye(props: BellProps) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
   );
 }

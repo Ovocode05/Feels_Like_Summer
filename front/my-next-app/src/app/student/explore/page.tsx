@@ -24,17 +24,13 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  BookOpen,
   Bookmark,
   BookmarkCheck,
   ChevronDown,
-  MessageSquare,
   Search,
   SlidersHorizontal,
   Star,
-  Users,
 } from "lucide-react";
 import {
   Collapsible,
@@ -46,14 +42,75 @@ import { Checkbox } from "@/components/ui/checkbox";
 import useAuth from "@/hooks/useAuth";
 import MenubarStudent from "@/components/ui/menubar_student";
 import { fetchProjects_active } from "@/api/api";
+import { useRouter } from "next/navigation";
+
+type ProjectType = {
+  pid: string;
+  name: string;
+  shortDesc: string;
+  longDesc: string;
+  sdesc?: string; // alternative short description field
+  ldesc?: string; // alternative long description field
+  tags: string[];
+  isActive: boolean | string;
+  uid: string;
+  user: {
+    name: string;
+    email: string;
+    type: string;
+  };
+};
 
 export default function ExplorePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [savedProjects, setSavedProjects] = useState<number[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectType[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const projectsPerPage = 2; // Show 2 projects per page
+
+  const router = useRouter();
+  const { loading: loading2, authorized } = useAuth("stu");
+
+  // Redirect to unauthorized page if not authenticated
+  useEffect(() => {
+    if (!loading2 && !authorized) {
+      router.replace("/unauthorized");
+    }
+  }, [loading2, authorized, router]);
+
+  if (loading2) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    // Optionally, you can return null here since the redirect will happen
+    return null;
+  }
+
+  useEffect(() => {
+    async function fetchAllProjects() {
+      setLoading(true);
+      const token = localStorage.getItem("token") || "";
+      try {
+        const res = await fetchProjects_active(token);
+        if (res.projects && Array.isArray(res.projects)) {
+          setProjects(res.projects);
+        } else {
+          setProjects([]);
+        }
+      } catch (error) {
+        setProjects([]);
+      }
+      setLoading(false);
+    }
+
+    fetchAllProjects();
+  }, []);
 
   const toggleSaveProject = (id: number) => {
     if (savedProjects.includes(id)) {
@@ -62,27 +119,6 @@ export default function ExplorePage() {
       setSavedProjects([...savedProjects, id]);
     }
   };
-
-  // Fetch all projects from the API
-  async function fetchAllProjects() {
-    setLoading(true);
-    const token = localStorage.getItem("token") || "";
-    try {
-      const res = await fetchProjects_active(token);
-      if (res.projects && Array.isArray(res.projects)) {
-        setProjects(res.projects);
-      } else {
-        setProjects([]);
-      }
-    } catch (error) {
-      setProjects([]);
-    }
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    fetchAllProjects();
-  }, []);
 
   // Pagination logic
   const totalPages = Math.ceil(projects.length / projectsPerPage);
@@ -552,27 +588,5 @@ export default function ExplorePage() {
         </div>
       </main>
     </div>
-  );
-}
-
-interface BellProps extends React.SVGProps<SVGSVGElement> {}
-
-function Bell(props: BellProps) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
   );
 }

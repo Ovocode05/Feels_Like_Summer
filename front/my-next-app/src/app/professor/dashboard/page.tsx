@@ -12,56 +12,55 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  BookOpen,
   CalendarClock,
   ChevronRight,
   ClipboardList,
   Clock,
   FileText,
-  MessageSquare,
-  Plus,
-  User,
   Users,
 } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import Header from "@/components/ui/manual_navbar_prof";
 import { useEffect, useState } from "react";
-import { fetchProjects_active, fetchProjects_active_my } from "@/api/api"; // Make sure this API returns all projects for the professor
+import { fetchProjects_active_my } from "@/api/api";
+import { useRouter } from "next/navigation";
 
 export default function ProfessorDashboard() {
-  // const { loading, authorized } = useAuth("prof");
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Loading...
-  //     </div>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Unauthorized
-  //     </div>
-  //   );
-  // }
-
+  const router = useRouter();
+  const { loading, authorized } = useAuth("fac");
   const [activeProjectsCount, setActiveProjectsCount] = useState<number>(0);
 
-  // Fetch all projects and count active ones
-  async function fetchAndCountProjects() {
-    const token = localStorage.getItem("token") || "";
-    const res = await fetchProjects_active_my(token);
-
-    if (res.count != 0) {
-      setActiveProjectsCount(res.count);
-    } else {
-      setActiveProjectsCount(0);
+  useEffect(() => {
+    if (!loading && !authorized) {
+      router.replace("/unauthorized");
     }
+  }, [loading, authorized, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    return null;
   }
 
   useEffect(() => {
+    async function fetchAndCountProjects() {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetchProjects_active_my(token);
+
+      if (res.count != 0) {
+        setActiveProjectsCount(res.count);
+      } else {
+        setActiveProjectsCount(0);
+      }
+    }
+
     fetchAndCountProjects();
     const onFocus = () => fetchAndCountProjects();
     window.addEventListener("focus", onFocus);
@@ -121,20 +120,6 @@ export default function ProfessorDashboard() {
               </p>
             </CardContent>
           </Card>
-          {/* <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Upcoming Meetings
-              </CardTitle>
-              <CalendarClock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">3</div>
-              <p className="text-xs text-muted-foreground">
-                Next: Tomorrow at 2:00 PM
-              </p>
-            </CardContent>
-          </Card> */}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -145,74 +130,6 @@ export default function ProfessorDashboard() {
                 Students who recently applied to your research projects.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {[
-                  {
-                    name: "Alex Johnson",
-                    project: "Quantum Computing Algorithms",
-                    date: "2 days ago",
-                    status: "New",
-                  },
-                  {
-                    name: "Sarah Williams",
-                    project: "Machine Learning for Climate Data",
-                    date: "4 days ago",
-                    status: "Reviewed",
-                  },
-                  {
-                    name: "Michael Chen",
-                    project: "Algebraic Topology Applications",
-                    date: "6 days ago",
-                    status: "New",
-                  },
-                ].map((application, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between space-x-4"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <Avatar>
-                        <AvatarImage
-                          src="/placeholder.svg?height=40&width=40"
-                          alt={application.name}
-                        />
-                        <AvatarFallback>
-                          {application.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium leading-none">
-                          {application.name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {application.project}
-                        </p>
-                        <div className="flex items-center gap-2 pt-1">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {application.date}
-                          </span>
-                          {application.status === "New" && (
-                            <Badge variant="default" className="text-xs">
-                              New
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <Link href={`/professor/applications/${i + 1}`}>
-                      <Button variant="ghost" size="sm">
-                        View <ChevronRight className="ml-1 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
             <CardFooter>
               <Link href="/professor/applications">
                 <Button variant="outline" className="w-full">
@@ -228,33 +145,6 @@ export default function ProfessorDashboard() {
                 Current office hours and meeting slots.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  {
-                    day: "Monday",
-                    slots: ["10:00 AM - 12:00 PM", "2:00 PM - 3:00 PM"],
-                  },
-                  { day: "Wednesday", slots: ["1:00 PM - 4:00 PM"] },
-                  { day: "Friday", slots: ["9:00 AM - 11:00 AM"] },
-                ].map((schedule, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="font-medium">{schedule.day}</div>
-                    <div className="space-y-1">
-                      {schedule.slots.map((slot, j) => (
-                        <div
-                          key={j}
-                          className="flex items-center gap-2 rounded-md border p-2 text-sm"
-                        >
-                          <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                          {slot}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
             <CardFooter>
               <Link href="/professor/calendar">
                 <Button variant="outline" className="w-full">
@@ -266,25 +156,5 @@ export default function ProfessorDashboard() {
         </div>
       </main>
     </div>
-  );
-}
-
-function Bell(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
   );
 }

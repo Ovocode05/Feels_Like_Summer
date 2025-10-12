@@ -1,6 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import useAuth from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,33 +31,38 @@ import {
   GraduationCap,
   History,
   Lightbulb,
-  Menu,
-  MessageSquare,
   Route,
   Search,
   Star,
   Trophy,
   Video,
 } from "lucide-react";
-import useAuth from "@/hooks/useAuth";
 import MenubarStudent from "@/components/ui/menubar_student";
 
 export default function ResourcesPage() {
-  // const { loading, authorized } = useAuth("student");
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Loading...
-  //     </div>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Unauthorized
-  //     </div>
-  //   );
-  // }
+  const router = useRouter();
+  const { loading, authorized } = useAuth("stu");
+
+  // Redirect to unauthorized page if not authenticated
+  useEffect(() => {
+    if (!loading && !authorized) {
+      router.replace("/unauthorized");
+    }
+  }, [loading, authorized, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    // Optionally, you can return null here since the redirect will happen
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <MenubarStudent />
@@ -749,26 +756,6 @@ export default function ResourcesPage() {
         </div>
       </main>
     </div>
-  );
-}
-
-function Bell(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
   );
 }
 

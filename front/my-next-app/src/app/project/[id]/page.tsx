@@ -17,19 +17,41 @@ import {
   FileText,
 } from "lucide-react";
 
+type ProjectType = {
+  pid: string;
+  name: string;
+  shortDesc: string;
+  longDesc: string;
+  sdesc?: string; // alternative short description field
+  ldesc?: string; // alternative long description field
+  tags: string[];
+  isActive: boolean | string;
+  uid: string;
+  user: {
+    name: string;
+    email: string;
+    type: string;
+  };
+};
+
 export default function ProjectDetails() {
   const params = useParams();
-  const pid = params?.id as string;
   const router = useRouter();
-
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<ProjectType | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showInactiveConfirm, setShowInactiveConfirm] = useState(false);
   const [showActiveConfirm, setShowActiveConfirm] = useState(false); // NEW
   const [showUpdatedPopup, setShowUpdatedPopup] = useState(false);
+  const pid = params?.id as string;
 
-  // Move fetchProject outside useEffect so you can call it anywhere
+  useEffect(() => {
+    // Move fetchProject outside useEffect so you can call it anywhere
+
+    if (pid) fetchProject();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pid]);
+
   const fetchProject = async () => {
     setLoading(true);
     try {
@@ -41,12 +63,6 @@ export default function ProjectDetails() {
     }
     setLoading(false);
   };
-
-  // Fetch project by pid
-  useEffect(() => {
-    if (pid) fetchProject();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pid]);
 
   // Handle update active status
   const handleUpdateActive = async () => {
@@ -146,17 +162,6 @@ export default function ProjectDetails() {
                     {tag}
                   </Badge>
                 ))}
-              </div>
-              <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4">
-                <div className="flex items-center gap-2 text-black/70">
-                  <Users className="h-4 w-4" />
-                  <span>
-                    <span className="font-semibold">
-                      {project.working_users?.length ?? 0}
-                    </span>{" "}
-                    Working Users
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -322,7 +327,3 @@ export default function ProjectDetails() {
     </div>
   );
 }
-
-// Add this animation to your global CSS or tailwind config if you want a fade-in effect:
-// .animate-fade-in { animation: fadeIn 0.3s; }
-// @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }

@@ -1,18 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
+import useAuth from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -23,14 +14,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Form,
   FormControl,
   FormDescription,
@@ -40,46 +23,26 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import {
-  BookOpen,
-  Calendar,
   ClipboardList,
-  Clock,
-  Copy,
-  Edit,
-  FileText,
   Filter,
-  MessageSquare,
-  MoreHorizontal,
   Plus,
   Search,
   Trash2,
-  Users,
   CheckCircle2,
+  X,
 } from "lucide-react";
-import useAuth from "@/hooks/useAuth";
-import Navbar from "@/components/ui/manual_navbar_prof";
 import Header from "@/components/ui/manual_navbar_prof";
 import {
   createProject,
-  fetchProjects_active,
   deleteProject,
   fetchProjects_active_my,
 } from "@/api/api";
-import { X } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 const projectFormSchema = z.object({
   name: z.string().min(1, { message: "Project name is required" }),
@@ -90,35 +53,52 @@ const projectFormSchema = z.object({
   working_users: z.array(z.string()).optional(),
 });
 
+type Project_type = {
+  ID: number;
+  name: string;
+  sdesc: string;
+  ldesc: string;
+  isActive: boolean;
+  tags?: string[];
+  working_users?: string[];
+  pid: string;
+  uid: string;
+};
+
 export default function ProfessorProjectsPage() {
   const [activeTab, setActiveTab] = useState("active");
-  type Project_type = {
-    ID: number; // <-- Use ID, not id
-    name: string;
-    sdesc: string;
-    ldesc: string;
-    isActive: boolean;
-    tags?: string[];
-    working_users?: string[];
-    pid: string;
-    uid: string;
-  };
-
   const [projects, setProjects] = useState<Project_type[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [tagInput, setTagInput] = useState("");
-
   const [searchQuery, setSearchQuery] = useState("");
   const [searchActive, setSearchActive] = useState(false);
-  // State for delete confirmation dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<null | Project_type>(
     null
   );
   const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
-
   const [showDeletedPopup, setShowDeletedPopup] = useState(false);
   const deletedPopupTimeout = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
+  const { loading, authorized } = useAuth("fac");
+
+  useEffect(() => {
+    if (!loading && !authorized) {
+      router.replace("/unauthorized");
+    }
+  }, [loading, authorized, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    return null;
+  }
 
   const form = useForm<z.infer<typeof projectFormSchema>>({
     resolver: zodResolver(projectFormSchema),
@@ -132,10 +112,8 @@ export default function ProfessorProjectsPage() {
     },
   });
 
-  const router = useRouter();
-
   function handleAddTag(e: React.KeyboardEvent<HTMLInputElement>) {
-    if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+    if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       if (!form.getValues("tags")?.includes(tagInput.trim())) {
         form.setValue("tags", [
@@ -160,19 +138,13 @@ export default function ProfessorProjectsPage() {
       { ...values, tags: values.tags ?? [] },
       token
     );
-    console.log(res);
-
-    if (!res) {
-      return;
-    }
-
-    await fetchProjects(); // <-- Fetch latest projects from DB after creation
+    if (!res) return;
+    await fetchProjects();
     form.reset();
     setIsCreateDialogOpen(false);
   }
 
   async function fetchProjects() {
-    // Fetch projects from API and set state
     const token = localStorage.getItem("token") || "";
     const res = await fetchProjects_active_my(token);
     setProjects(res.projects);
@@ -182,19 +154,16 @@ export default function ProfessorProjectsPage() {
     fetchProjects();
   }, []);
 
-  // Filtered projects: only show active or not active based on tab
   const filteredProjects = projects?.filter((project) =>
     activeTab === "active" ? project.isActive : !project.isActive
   );
 
-  // Open delete dialog
   const handleDeleteClick = (project: Project_type) => {
     setProjectToDelete(project);
     setDeleteConfirmInput("");
     setDeleteDialogOpen(true);
   };
 
-  // Confirm deletion
   const confirmDelete = async () => {
     if (!projectToDelete?.pid) return;
     const token = localStorage.getItem("token") || "";
@@ -218,8 +187,6 @@ export default function ProfessorProjectsPage() {
 
   const highlightText = (text: string, query: string) => {
     if (!query || query.trim().length === 0) return text;
-
-    // Use word boundaries to match only complete words (case-insensitive)
     const regex = new RegExp(`\\b(${query})\\b`, "gi");
     const parts = text.split(regex);
     return (
@@ -255,7 +222,6 @@ export default function ProfessorProjectsPage() {
     if (!searchQuery) setSearchActive(false);
   }, [searchQuery]);
 
-  // Add this function inside your component
   const handleProjectClick = (pid: string) => {
     router.push(`/project/${pid}`);
   };
@@ -272,7 +238,6 @@ export default function ProfessorProjectsPage() {
               with students.
             </p>
           </div>
-
           <Dialog
             open={isCreateDialogOpen}
             onOpenChange={setIsCreateDialogOpen}
@@ -290,7 +255,6 @@ export default function ProfessorProjectsPage() {
                   Students will be able to view and apply to this project.
                 </DialogDescription>
               </DialogHeader>
-
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
@@ -479,7 +443,6 @@ export default function ProfessorProjectsPage() {
                   {highlightText(project.ldesc, searchQuery)}
                 </p>
               </div>
-              {/* Tags at the bottom */}
               <div>
                 {project.tags && project.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -505,7 +468,7 @@ export default function ProfessorProjectsPage() {
                     size="sm"
                     className="flex items-center gap-1 bg-red-900"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent click from bubbling to parent
+                      e.stopPropagation();
                       handleDeleteClick(project);
                     }}
                   >
@@ -518,7 +481,6 @@ export default function ProfessorProjectsPage() {
           ))}
         </div>
 
-        {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -528,8 +490,7 @@ export default function ProfessorProjectsPage() {
                 <span className="font-bold text-destructive">
                   cannot be undone
                 </span>
-                .
-                <br />
+                .<br />
                 Please type{" "}
                 <span className="font-mono font-semibold">
                   {projectToDelete?.name}
@@ -591,27 +552,3 @@ export default function ProfessorProjectsPage() {
     </div>
   );
 }
-
-function Bell(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
-  );
-}
-
-// Add this animation to your global CSS or tailwind config if you want a fade-in effect:
-// .animate-fade-in { animation: fadeIn 0.3s; }
-// @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }

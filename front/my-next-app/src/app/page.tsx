@@ -373,53 +373,8 @@ export default function Home() {
                       Hackathon Archives
                     </Link>
                   </li>
-                  {/* <li>
-                    <Link
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      Research Roadmaps
-                    </Link>
-                  </li> */}
-                  {/* <li>
-                    <Link
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      Field Guides
-                    </Link>
-                  </li> */}
                 </ul>
               </div>
-              {/* <div className="space-y-3">
-                <h4 className="text-sm font-medium">Company</h4>
-                <ul className="space-y-2">
-                  <li>
-                    <Link
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      About Us
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      Contact
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      Privacy Policy
-                    </Link>
-                  </li>
-                </ul>
-              </div> */}
             </nav>
           </div>
           <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-4 border-t pt-6 pl-5">

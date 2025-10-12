@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,43 +24,30 @@ import {
 } from "@/components/ui/select";
 import { BookOpen, Bookmark, Filter, Search, Star, Users } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
-import { fetchProjects_active } from "@/api/api";
+import { useRouter } from "next/navigation";
 
-export default function ProjectListing() {
-  // const { loading, authorized } = useAuth("student");
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Loading...
-  //     </div>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Unauthorized
-  //     </div>
-  //   );
-  // }
+export default function ProfessorProjectsPage() {
+  const router = useRouter();
+  const { loading, authorized } = useAuth("fac");
 
-  // const fetchActiveProjects = async () => {
-  //   const res = await fetchProjects_active(localStorage.getItem("token") || "");
-  //   console.log(res);
-  //   return res.projects;
-  // };
+  useEffect(() => {
+    if (!loading && !authorized) {
+      router.replace("/unauthorized");
+    }
+  }, [loading, authorized, router]);
 
-  // useEffect(() => {
-  //   // We'll fetch and set projects in state, then display them in a component
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
 
-  //   const [projects, setProjects] = useState<any[]>([]);
-
-  //   useEffect(() => {
-  //     fetchActiveProjects().then((data) => {
-  //     setProjects(data || []);
-  //     });
-  //   }, []);
-  // }, []);
+  if (!authorized) {
+    // Optionally, you can return null here since the redirect will happen
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

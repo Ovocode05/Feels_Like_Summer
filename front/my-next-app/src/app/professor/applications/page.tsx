@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -25,26 +25,53 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  BookOpen,
   Calendar,
   Check,
   Clock,
   Download,
   ExternalLink,
   Eye,
-  FileText,
   Filter,
   GraduationCap,
   MessageSquare,
   Search,
   ThumbsDown,
+  FileText,
 } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import Header from "@/components/ui/manual_navbar_prof";
+import { useRouter } from "next/navigation";
+
+// With a specific type:
+type ApplicationType = {
+  id: number;
+  student: {
+    id: number;
+    name: string;
+    avatar: string;
+    university: string;
+    major: string;
+    year: string;
+    gpa: string;
+  };
+  project: {
+    id: number;
+    title: string;
+    field: string;
+    specialization: string;
+  };
+  date: string;
+  status: string;
+  coverLetter: string;
+  cv: string;
+};
 
 export default function ProfessorApplicationsPage() {
+  const router = useRouter();
+  const { loading, authorized } = useAuth("fac");
   const [activeTab, setActiveTab] = useState("all");
-  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [selectedApplication, setSelectedApplication] =
+    useState<ApplicationType>({} as ApplicationType);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
@@ -235,6 +262,26 @@ export default function ProfessorApplicationsPage() {
     },
   ]);
 
+  // Redirect to unauthorized page if not authenticated
+  useEffect(() => {
+    if (!loading && !authorized) {
+      router.replace("/unauthorized");
+    }
+  }, [loading, authorized, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    // Optionally, you can return null here since the redirect will happen
+    return null;
+  }
+
   const updateApplicationStatus = (id: number, status: string) => {
     setApplications(
       applications.map((app) => {
@@ -275,22 +322,6 @@ export default function ProfessorApplicationsPage() {
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-
-  // const { loading, authorized } = useAuth("prof");
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Loading...
-  //     </div>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       Unauthorized
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="flex min-h-screen flex-col">
