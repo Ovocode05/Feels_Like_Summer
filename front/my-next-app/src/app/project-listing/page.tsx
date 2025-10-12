@@ -23,23 +23,6 @@ import {
 } from "@/components/ui/select";
 import { BookOpen, Bookmark, Filter, Search, Star, Users } from "lucide-react";
 
-type ProjectType = {
-  ID: number;
-  pid: string;
-  name: string;
-  sdesc: string; // alternative short description field
-  ldesc: string; // alternative long description field
-  tags: string[];
-  isActive: boolean;
-  uid: string;
-  user: {
-    name: string;
-    email: string;
-    type: string;
-    ID: number;
-  };
-};
-
 export default function ProfessorProjectsPage() {
   return (
     <div className="flex min-h-screen flex-col">

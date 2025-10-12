@@ -44,10 +44,6 @@ export default function ProjectDetails() {
   const [showUpdatedPopup, setShowUpdatedPopup] = useState(false);
   const pid = params?.id as string;
 
-  useEffect(() => {
-    if (pid) fetchProject();
-  }, [pid]);
-
   const fetchProject = async () => {
     setLoading(true);
     try {
@@ -55,10 +51,15 @@ export default function ProjectDetails() {
       const data = await getProjectByPid(pid, token);
       setProject(data);
     } catch (error) {
+      console.error("Error fetching project:", error);
       setProject(null);
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (pid) fetchProject();
+  }, [pid]);
 
   // Handle update active status
   const handleUpdateActive = async () => {

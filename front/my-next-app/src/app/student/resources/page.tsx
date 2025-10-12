@@ -576,7 +576,7 @@ export default function ResourcesPage() {
                     efficient and thorough literature reviews.
                   </p>
                   <div className="space-y-2">
-                    <h4 className="font-medium">What You'll Learn:</h4>
+                    <h4 className="font-medium">What You will Learn:</h4>
                     <ul className="list-disc pl-6 space-y-1">
                       <li>Defining your search scope and parameters</li>
                       <li>Using academic databases effectively</li>

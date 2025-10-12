@@ -43,12 +43,11 @@ import MenubarStudent from "@/components/ui/menubar_student";
 import { fetchProjects_active } from "@/api/api";
 
 type ProjectType = {
+  ID: number;
   pid: string;
   name: string;
-  shortDesc: string;
-  longDesc: string;
-  sdesc?: string; // alternative short description field
-  ldesc?: string; // alternative long description field
+  sdesc: string; // alternative short description field
+  ldesc: string; // alternative long description field
   tags: string[];
   isActive: boolean | string;
   uid: string;
@@ -394,7 +393,7 @@ export default function ExplorePage() {
                     No projects found.
                   </div>
                 ) : (
-                  projects.map((project: any) => (
+                  projects.map((project: ProjectType) => (
                     <Card key={project.pid} className="overflow-hidden">
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
@@ -407,10 +406,10 @@ export default function ExplorePage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => toggleSaveProject(project.pid)}
+                            onClick={() => toggleSaveProject(project.ID)}
                             className="text-muted-foreground hover:text-foreground"
                           >
-                            {savedProjects.includes(project.pid) ? (
+                            {savedProjects.includes(project.ID) ? (
                               <BookmarkCheck className="h-5 w-5 text-primary" />
                             ) : (
                               <Bookmark className="h-5 w-5" />

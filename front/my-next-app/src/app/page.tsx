@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BookOpen, Calendar, FileText, Search } from "lucide-react";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -53,10 +54,12 @@ export default function Home() {
               </div>
               <div className="mx-auto flex w-full max-w-[520px] items-center justify-center lg:justify-end">
                 <div className="w-full h-[360px]  rounded-xl flex items-center justify-center">
-                  <img
-                    src="image3.png"
+                  <Image
+                    src="/image3.png"
                     alt="Research collaboration"
-                    className=" overflow-hidden rounded-xl object-cover"
+                    width={520}
+                    height={360}
+                    className="overflow-hidden rounded-xl object-cover"
                   />
                 </div>
               </div>
@@ -171,8 +174,8 @@ export default function Home() {
               </div>
               <div className="flex items-center justify-center">
                 <div className="w-full h-[400px] bg-muted rounded-xl flex items-center justify-center overflow-hidden">
-                  <img
-                    src="image.png"
+                  <Image
+                    src="/image.png"
                     alt="Platform workflow"
                     className="object-cover h-full w-full"
                   />
