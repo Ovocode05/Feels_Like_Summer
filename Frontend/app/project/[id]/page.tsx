@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getProjectByPid, updateProjectByPid } from "@/api/api";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import {
 export default function ProjectDetails() {
   const params = useParams();
   const pid = params?.id as string;
+  const router = useRouter();
 
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -101,13 +102,14 @@ export default function ProjectDetails() {
       <main className="flex-1 space-y-6 p-4 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Link
-              href="/professor/projects"
+            <Button
+              variant="ghost"
               className="inline-flex items-center gap-1 text-black/60 hover:text-black"
+              onClick={() => router.back()}
             >
               <ChevronLeft className="h-4 w-4" />
-              <span>Back to Projects</span>
-            </Link>
+              <span>Back</span>
+            </Button>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,10 +45,15 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import useAuth from "@/hooks/useAuth";
 import MenubarStudent from "@/components/ui/menubar_student";
+import { fetchProjects_active } from "@/api/api";
 
 export default function ExplorePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [savedProjects, setSavedProjects] = useState<number[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const projectsPerPage = 2; // Show 2 projects per page
 
   const toggleSaveProject = (id: number) => {
     if (savedProjects.includes(id)) {
@@ -58,21 +63,33 @@ export default function ExplorePage() {
     }
   };
 
-  const { loading, authorized } = useAuth("student");
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
-    );
+  // Fetch all projects from the API
+  async function fetchAllProjects() {
+    setLoading(true);
+    const token = localStorage.getItem("token") || "";
+    try {
+      const res = await fetchProjects_active(token);
+      if (res.projects && Array.isArray(res.projects)) {
+        setProjects(res.projects);
+      } else {
+        setProjects([]);
+      }
+    } catch (error) {
+      setProjects([]);
+    }
+    setLoading(false);
   }
-  if (!authorized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Unauthorized
-      </div>
-    );
-  }
+
+  useEffect(() => {
+    fetchAllProjects();
+  }, []);
+
+  // Pagination logic
+  const totalPages = Math.ceil(projects.length / projectsPerPage);
+  const paginatedProjects = projects.slice(
+    (currentPage - 1) * projectsPerPage,
+    currentPage * projectsPerPage
+  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -114,6 +131,7 @@ export default function ExplorePage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
+          {/* Sidebar Filters */}
           <Collapsible
             open={isFilterOpen}
             onOpenChange={setIsFilterOpen}
@@ -130,7 +148,11 @@ export default function ExplorePage() {
             <CollapsibleContent
               className="space-y-4"
               forceMount={true}
-              hidden={!isFilterOpen && window.innerWidth < 768}
+              hidden={
+                !isFilterOpen &&
+                typeof window !== "undefined" &&
+                window.innerWidth < 768
+              }
             >
               <div className="space-y-2">
                 <Label htmlFor="field">Field of Study</Label>
@@ -309,6 +331,7 @@ export default function ExplorePage() {
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Main Project List */}
           <div className="md:col-span-3 space-y-4">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -356,472 +379,172 @@ export default function ExplorePage() {
             <Tabs defaultValue="all" className="w-full">
               <TabsList>
                 <TabsTrigger value="all">All Projects</TabsTrigger>
-                <TabsTrigger value="recommended">Recommended</TabsTrigger>
-                <TabsTrigger value="new">New</TabsTrigger>
-                <TabsTrigger value="deadline">Upcoming Deadlines</TabsTrigger>
+                {/* You can add more tabs if you want */}
               </TabsList>
               <TabsContent value="all" className="space-y-4 mt-4">
-                {[
-                  {
-                    id: 1,
-                    title: "Quantum Computing Algorithms",
-                    description:
-                      "Research on novel quantum algorithms for optimization problems and their practical implementations.",
-                    field: "Physics",
-                    specialization: "Quantum Computing",
-                    professor: "Dr. Richard Williams",
-                    university: "MIT",
-                    deadline: "June 15, 2023",
-                    positions: 2,
-                    applicants: 18,
-                    tags: [
-                      "Quantum Physics",
-                      "Algorithm Design",
-                      "Optimization",
-                    ],
-                    match: 98,
-                  },
-                  {
-                    id: 2,
-                    title: "Advanced Machine Learning for Climate Models",
-                    description:
-                      "Developing machine learning models to improve climate prediction accuracy and identify patterns in climate data.",
-                    field: "Computer Science",
-                    specialization: "Machine Learning",
-                    professor: "Dr. Sarah Lee",
-                    university: "Stanford University",
-                    deadline: "June 30, 2023",
-                    positions: 3,
-                    applicants: 24,
-                    tags: ["AI", "Climate Science", "Data Analysis"],
-                    match: 95,
-                  },
-                  {
-                    id: 3,
-                    title: "Number Theory in Cryptography",
-                    description:
-                      "Exploring applications of number theory in modern cryptographic protocols and security systems.",
-                    field: "Mathematics",
-                    specialization: "Number Theory",
-                    professor: "Dr. James Chen",
-                    university: "Harvard University",
-                    deadline: "July 5, 2023",
-                    positions: 1,
-                    applicants: 12,
-                    tags: ["Number Theory", "Cryptography", "Security"],
-                    match: 87,
-                  },
-                  {
-                    id: 4,
-                    title: "Neural Networks for Speech Recognition",
-                    description:
-                      "Improving speech recognition accuracy through advanced neural network architectures and training methods.",
-                    field: "Computer Science",
-                    specialization: "Neural Networks",
-                    professor: "Dr. Emily Rodriguez",
-                    university: "UC Berkeley",
-                    deadline: "July 10, 2023",
-                    positions: 2,
-                    applicants: 15,
-                    tags: ["Speech Recognition", "Neural Networks", "NLP"],
-                    match: 92,
-                  },
-                  {
-                    id: 5,
-                    title:
-                      "Genetically Modified Organisms for Sustainable Agriculture",
-                    description:
-                      "Researching genetic modifications that can improve crop yield and resistance to environmental stressors.",
-                    field: "Biology",
-                    specialization: "Genetics",
-                    professor: "Dr. Michael Johnson",
-                    university: "Caltech",
-                    deadline: "July 15, 2023",
-                    positions: 3,
-                    applicants: 10,
-                    tags: ["Genetics", "Agriculture", "Sustainability"],
-                    match: 78,
-                  },
-                ].map((project) => (
-                  <Card key={project.id} className="overflow-hidden">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle>{project.title}</CardTitle>
-                          <CardDescription className="mt-1">
-                            {project.professor} • {project.university}
-                          </CardDescription>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleSaveProject(project.id)}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          {savedProjects.includes(project.id) ? (
-                            <BookmarkCheck className="h-5 w-5 text-primary" />
-                          ) : (
-                            <Bookmark className="h-5 w-5" />
-                          )}
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pb-3">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {project.description}
-                      </p>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <div className="flex items-center gap-2">
-                          <div className="text-xs text-muted-foreground">
-                            Field:
+                {loading ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    Loading projects...
+                  </div>
+                ) : projects.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    No projects found.
+                  </div>
+                ) : (
+                  paginatedProjects.map((project: any) => (
+                    <Card
+                      key={project.pid || project.ID}
+                      className="overflow-hidden"
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle>{project.name}</CardTitle>
+                            <CardDescription className="mt-1">
+                              {project.user?.name || "Unknown Professor"}
+                            </CardDescription>
                           </div>
-                          <Badge variant="outline">{project.field}</Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-xs text-muted-foreground">
-                            Specialization:
-                          </div>
-                          <Badge variant="outline">
-                            {project.specialization}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-xs text-muted-foreground">
-                            Deadline:
-                          </div>
-                          <span className="text-sm font-medium">
-                            {project.deadline}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-xs text-muted-foreground">
-                            Positions:
-                          </div>
-                          <span className="text-sm font-medium">
-                            {project.positions}
-                          </span>
-                          <Users className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {project.applicants} applicants
-                          </span>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {project.tags.map((tag, j) => (
-                          <Badge
-                            key={j}
-                            variant="secondary"
-                            className="text-xs"
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              toggleSaveProject(project.pid || project.ID)
+                            }
+                            className="text-muted-foreground hover:text-foreground"
                           >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                    <div className="bg-muted/50 px-6 py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className="bg-background flex items-center gap-1"
-                        >
-                          <Star className="h-3 w-3 fill-primary text-primary" />
-                          <span>{project.match}% match</span>
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Link href={`/project/${project.id}`}>
-                          <Button variant="outline" size="sm">
-                            View Details
+                            {savedProjects.includes(
+                              project.pid || project.ID
+                            ) ? (
+                              <BookmarkCheck className="h-5 w-5 text-primary" />
+                            ) : (
+                              <Bookmark className="h-5 w-5" />
+                            )}
                           </Button>
-                        </Link>
-                        <Link href={`/student/apply/${project.id}`}>
-                          <Button size="sm">Apply</Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </TabsContent>
-              <TabsContent value="recommended" className="space-y-4 mt-4">
-                <Card className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle>Deep Learning for Medical Imaging</CardTitle>
-                        <CardDescription className="mt-1">
-                          Dr. Maria Garcia • Stanford University
-                        </CardDescription>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <Bookmark className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pb-3">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Developing advanced deep learning models for medical image
-                      analysis to improve disease diagnosis and treatment
-                      planning.
-                    </p>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Field:
                         </div>
-                        <Badge variant="outline">Computer Science</Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Specialization:
+                      </CardHeader>
+                      <CardContent className="pb-3">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {project.sdesc}
+                        </p>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground">
+                              Status:
+                            </div>
+                            <Badge
+                              variant={
+                                project.isActive ? "secondary" : "outline"
+                              }
+                            >
+                              {project.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground">
+                              Tags:
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {(project.tags || []).map(
+                                (tag: string, idx: number) => (
+                                  <Badge
+                                    key={tag + idx}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {tag}
+                                  </Badge>
+                                )
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground">
+                              Created:
+                            </div>
+                            <span className="text-xs">
+                              {project.CreatedAt
+                                ? new Date(
+                                    project.CreatedAt
+                                  ).toLocaleDateString()
+                                : "-"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground">
+                              Working Users:
+                            </div>
+                            <span className="text-xs">
+                              {project.workingUsers?.length ?? 0}
+                            </span>
+                          </div>
                         </div>
-                        <Badge variant="outline">Deep Learning</Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Deadline:
+                        <div className="mt-4">
+                          <div className="font-semibold mb-1">
+                            Long Description
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {project.ldesc}
+                          </div>
                         </div>
-                        <span className="text-sm font-medium">
-                          July 20, 2023
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Positions:
+                      </CardContent>
+                      <div className="bg-muted/50 px-6 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className="bg-background flex items-center gap-1"
+                          >
+                            <Star className="h-3 w-3 fill-primary text-primary" />
+                            <span>
+                              {project.isActive ? "Active" : "Inactive"}
+                            </span>
+                          </Badge>
                         </div>
-                        <span className="text-sm font-medium">2</span>
-                        <Users className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          8 applicants
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        Deep Learning
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        Medical Imaging
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        Healthcare
-                      </Badge>
-                    </div>
-                  </CardContent>
-                  <div className="bg-muted/50 px-6 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="bg-background flex items-center gap-1"
-                      >
-                        <Star className="h-3 w-3 fill-primary text-primary" />
-                        <span>98% match</span>
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
-                      <Button size="sm">Apply</Button>
-                    </div>
-                  </div>
-                </Card>
-              </TabsContent>
-              <TabsContent value="new" className="space-y-4 mt-4">
-                <Card className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle>Neuromorphic Computing Systems</CardTitle>
-                        <CardDescription className="mt-1">
-                          Dr. Lisa Park • University of Washington
-                        </CardDescription>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <Bookmark className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pb-3">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Developing computing architectures inspired by the human
-                      brain to enable more efficient AI processing.
-                    </p>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Field:
+                        <div className="flex items-center gap-2">
+                          <Link href={`/project/${project.pid}`}>
+                            <Button variant="outline" size="sm">
+                              View Details
+                            </Button>
+                          </Link>
+                          <Link href={`/student/apply/${project.pid}`}>
+                            <Button size="sm">Apply</Button>
+                          </Link>
                         </div>
-                        <Badge variant="outline">Computer Engineering</Badge>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Specialization:
-                        </div>
-                        <Badge variant="outline">Neuromorphic Computing</Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Deadline:
-                        </div>
-                        <span className="text-sm font-medium">
-                          August 1, 2023
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Positions:
-                        </div>
-                        <span className="text-sm font-medium">2</span>
-                        <Users className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          5 applicants
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        Neuromorphic
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        AI Hardware
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        Computing Architecture
-                      </Badge>
-                    </div>
-                  </CardContent>
-                  <div className="bg-muted/50 px-6 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="bg-background flex items-center gap-1"
-                      >
-                        <Star className="h-3 w-3 fill-primary text-primary" />
-                        <span>85% match</span>
-                      </Badge>
-                      <Badge variant="secondary">New</Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
-                      <Button size="sm">Apply</Button>
-                    </div>
-                  </div>
-                </Card>
-              </TabsContent>
-              <TabsContent value="deadline" className="space-y-4 mt-4">
-                <Card className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle>Quantum Field Theory Applications</CardTitle>
-                        <CardDescription className="mt-1">
-                          Dr. Thomas Wilson • Princeton University
-                        </CardDescription>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <Bookmark className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pb-3">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Exploring applications of quantum field theory in
-                      condensed matter physics and high-energy experiments.
-                    </p>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Field:
-                        </div>
-                        <Badge variant="outline">Physics</Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Specialization:
-                        </div>
-                        <Badge variant="outline">Quantum Field Theory</Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Deadline:
-                        </div>
-                        <Badge variant="destructive" className="text-xs">
-                          Tomorrow
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Positions:
-                        </div>
-                        <span className="text-sm font-medium">2</span>
-                        <Users className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          14 applicants
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        Quantum Physics
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        Field Theory
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        Condensed Matter
-                      </Badge>
-                    </div>
-                  </CardContent>
-                  <div className="bg-muted/50 px-6 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="bg-background flex items-center gap-1"
-                      >
-                        <Star className="h-3 w-3 fill-primary text-primary" />
-                        <span>82% match</span>
-                      </Badge>
-                      <Badge variant="destructive">Urgent</Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
-                      <Button size="sm">Apply</Button>
-                    </div>
-                  </div>
-                </Card>
+                    </Card>
+                  ))
+                )}
               </TabsContent>
             </Tabs>
 
+            {/* Pagination Controls */}
             <div className="flex items-center justify-center space-x-2 pt-4">
-              <Button variant="outline" size="sm" disabled>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
                 Previous
               </Button>
-              <Button variant="outline" size="sm" className="px-4">
-                1
-              </Button>
-              <Button variant="outline" size="sm" className="px-4">
-                2
-              </Button>
-              <Button variant="outline" size="sm" className="px-4">
-                3
-              </Button>
-              <Button variant="outline" size="sm">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <Button
+                  key={i + 1}
+                  variant={currentPage === i + 1 ? "default" : "outline"}
+                  size="sm"
+                  className="px-4"
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+              >
                 Next
               </Button>
             </div>
