@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { getProjectByPid, updateProjectByPid } from "@/api/api";
 import { Badge } from "@/components/ui/badge";
@@ -36,12 +36,14 @@ type ProjectType = {
 export default function ProjectDetails() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
   const [project, setProject] = useState<ProjectType | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showInactiveConfirm, setShowInactiveConfirm] = useState(false);
   const [showActiveConfirm, setShowActiveConfirm] = useState(false); // NEW
   const [showUpdatedPopup, setShowUpdatedPopup] = useState(false);
+  const [showAuthPopup, setShowAuthPopup] = useState(false);
   const pid = params?.id as string;
 
   const fetchProject = async () => {
@@ -92,6 +94,9 @@ export default function ProjectDetails() {
       </div>
     );
   }
+  // Determine user type and route
+  const userType = project.user.type; // "stu" or "fac"
+  const isStudentRoute = pathname.startsWith("/student");
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-black">
@@ -193,28 +198,57 @@ export default function ProjectDetails() {
           </div>
         </div>
 
-        {/* Set Inactive Button at the end */}
-        <div className="flex justify-end mt-8">
-          {project.isActive === true ? (
+        {/* Set Active/Inactive Button (visible only to faculty and not on student route) */}
+        {userType === "fac" && !isStudentRoute ? (
+          <div className="flex justify-end mt-8">
+            {project.isActive === true ? (
+              <Button
+                onClick={() => setShowInactiveConfirm(true)}
+                disabled={updating}
+                variant="destructive"
+                className="bg-red-800 text-white px-8 py-2 rounded-lg shadow hover:bg-red-900"
+              >
+                Set Inactive
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setShowActiveConfirm(true)}
+                disabled={updating}
+                variant="default"
+                className="bg-black text-white px-8 py-2 rounded-lg shadow hover:bg-black/80"
+              >
+                {updating ? "Updating..." : "Set Active"}
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="flex justify-end mt-8">
             <Button
-              onClick={() => setShowInactiveConfirm(true)}
-              disabled={updating}
-              variant="destructive"
-              className="bg-red-800 text-white px-8 py-2 rounded-lg shadow hover:bg-red-900"
+              variant="outline"
+              className="border-yellow-500 text-yellow-900"
+              onClick={() => setShowAuthPopup(true)}
             >
-              Set Inactive
+              You are not authenticated to perform this action.
             </Button>
-          ) : (
-            <Button
-              onClick={() => setShowActiveConfirm(true)}
-              disabled={updating}
-              variant="default"
-              className="bg-black text-white px-8 py-2 rounded-lg shadow hover:bg-black/80"
+          </div>
+        )}
+
+        {/* Not Authenticated Popup */}
+        {showAuthPopup && (
+          <div className="fixed right-8 bottom-8 z-50 flex items-center gap-3 rounded-lg border border-yellow-500 bg-yellow-50 px-6 py-3 text-yellow-900 shadow-xl animate-fade-in">
+            <AlertTriangle className="h-6 w-6 text-yellow-900" />
+            <span className="font-semibold">
+              You are not authenticated to perform this action.
+            </span>
+            <button
+              className="ml-2 text-yellow-900 hover:text-yellow-600"
+              onClick={() => setShowAuthPopup(false)}
+              aria-label="Close"
             >
-              {updating ? "Updating..." : "Set Active"}
-            </Button>
-          )}
-        </div>
+              &times;
+            </button>
+          </div>
+        )}
 
         {/* Inactive Confirmation Pop-up (side/end) */}
         {showInactiveConfirm && (

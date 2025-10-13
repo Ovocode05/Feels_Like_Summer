@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { loginUser } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -38,6 +39,7 @@ type JWT = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -52,11 +54,15 @@ export default function LoginPage() {
     localStorage.setItem("token", res);
     const decoded: JWT = jwtDecode(res);
 
-    if (decoded.type === "stu") {
-      router.push("/student/dashboard");
-    } else if (decoded.type === "fac") {
-      router.push("/professor/dashboard");
-    }
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+      if (decoded.type === "stu") {
+        router.push("/student/dashboard");
+      } else if (decoded.type === "fac") {
+        router.push("/professor/dashboard");
+      }
+    }, 2000);
   };
 
   return (
@@ -127,6 +133,18 @@ export default function LoginPage() {
                 </Button>
               </form>
             </Form>
+            {showSuccess && (
+              <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-green-300 bg-green-50 px-6 py-3 text-green-800 shadow-xl animate-fade-in">
+                <span className="font-semibold">Login successful!</span>
+                <button
+                  className="ml-2 text-green-800 hover:text-green-600"
+                  onClick={() => setShowSuccess(false)}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col items-center space-y-2">
             <div className="text-sm text-muted-foreground">

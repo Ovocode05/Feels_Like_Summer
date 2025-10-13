@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { registerUser } from "@/api/api";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const registerFormSchema = z
   .object({
@@ -52,6 +53,8 @@ export default function RegisterPage() {
   const searchParams = useSearchParams();
   const defaultRole = searchParams.get("type") || "stu";
 
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const form = useForm<FormData>({
     resolver: zodResolver(registerFormSchema),
     defaultValues: {
@@ -64,14 +67,15 @@ export default function RegisterPage() {
   });
 
   async function onSubmit(values: FormData) {
-    console.log("Form submitted with values:", values);
     const { confirmPassword, ...rest } = values;
-    console.log(rest);
-
     if (confirmPassword == rest.password) {
       try {
         await registerUser(rest);
-        router.push("/login");
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          router.push("/login");
+        }, 2500);
       } catch (error) {
         console.error("Registration failed:", error);
       }
@@ -209,6 +213,18 @@ export default function RegisterPage() {
                 </Button>
               </form>
             </Form>
+            {showSuccess && (
+              <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-green-300 bg-green-50 px-6 py-3 text-green-800 shadow-xl animate-fade-in">
+                <span className="font-semibold">Registration successful!</span>
+                <button
+                  className="ml-2 text-green-800 hover:text-green-600"
+                  onClick={() => setShowSuccess(false)}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col items-center space-y-2">
             <div className="text-sm text-muted-foreground">

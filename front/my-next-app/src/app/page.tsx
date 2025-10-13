@@ -57,8 +57,8 @@ export default function Home() {
                   <Image
                     src="/image3.png"
                     alt="Research collaboration"
-                    width={520}
-                    height={360}
+                    width={320}
+                    height={160}
                     className="overflow-hidden rounded-xl object-cover"
                   />
                 </div>
@@ -176,6 +176,8 @@ export default function Home() {
                 <div className="w-full h-[400px] bg-muted rounded-xl flex items-center justify-center overflow-hidden">
                   <Image
                     src="/image.png"
+                    width={600}
+                    height={400}
                     alt="Platform workflow"
                     className="object-cover h-full w-full"
                   />
