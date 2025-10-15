@@ -27,8 +27,30 @@ import {
   Star,
 } from "lucide-react";
 import MenubarStudent from "@/components/ui/menubar_student";
+import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from "react";
 
 export default function StudentDashboard() {
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    const decoded = jwtDecode(token) as { type: string };
+    if (decoded.type !== "stu") {
+      window.location.href = "/login";
+      return;
+    }
+    setIsAuth(true);
+  }, []);
+
+  if (!isAuth) {
+    // Optionally show a loading spinner here
+    return null;
+  }
   return (
     <div className="flex min-h-screen flex-col">
       <MenubarStudent />

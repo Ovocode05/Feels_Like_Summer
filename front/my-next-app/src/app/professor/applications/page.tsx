@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,7 @@ import {
   FileText,
 } from "lucide-react";
 import Header from "@/components/ui/manual_navbar_prof";
+import { jwtDecode } from "jwt-decode";
 
 type ApplicationType = {
   id: number;
@@ -256,6 +257,27 @@ export default function ProfessorApplicationsPage() {
       cv: "/path/to/cv.pdf",
     },
   ]);
+
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    const decoded = jwtDecode(token) as { type: string };
+    if (decoded.type !== "fac") {
+      window.location.href = "/login";
+      return;
+    }
+    setIsAuth(true);
+  }, []);
+
+  if (!isAuth) {
+    // Optionally show a loading spinner here
+    return null;
+  }
 
   const updateApplicationStatus = (id: number, status: string) => {
     setApplications(

@@ -14,6 +14,7 @@ import { Users, ClipboardList, FileText } from "lucide-react";
 import Header from "@/components/ui/manual_navbar_prof";
 import { useEffect, useState } from "react";
 import { fetchProjects_active_my } from "@/api/api";
+import { jwtDecode } from "jwt-decode";
 
 export default function ProfessorDashboard() {
   const [activeProjectsCount, setActiveProjectsCount] = useState<number>(0);
@@ -36,6 +37,26 @@ export default function ProfessorDashboard() {
     return () => window.removeEventListener("focus", onFocus);
   }, []);
 
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    const decoded = jwtDecode(token) as { type: string };
+    if (decoded.type !== "fac") {
+      window.location.href = "/login";
+      return;
+    }
+    setIsAuth(true);
+  }, []);
+
+  if (!isAuth) {
+    // Optionally show a loading spinner here
+    return null;
+  }
   return (
     <div className="flex min-h-screen flex-col">
       <Header />

@@ -37,6 +37,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import MenubarStudent from "@/components/ui/menubar_student";
+import { jwtDecode } from "jwt-decode";
 
 const cvFormSchema = z.object({
   personalInfo: z.object({
@@ -176,6 +177,27 @@ export default function CVBuilderPage() {
         "Computer Science student at MIT with a focus on machine learning and artificial intelligence. Experienced in research methodology and data analysis. Seeking research opportunities in AI and computational methods.",
     },
   });
+
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    const decoded = jwtDecode(token) as { type: string };
+    if (decoded.type !== "stu") {
+      window.location.href = "/login";
+      return;
+    }
+    setIsAuth(true);
+  }, []);
+
+  if (!isAuth) {
+    // Optionally show a loading spinner here
+    return null;
+  }
 
   function onSubmit(values: z.infer<typeof cvFormSchema>) {
     console.log(values);

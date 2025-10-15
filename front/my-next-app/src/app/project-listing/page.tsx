@@ -22,8 +22,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BookOpen, Bookmark, Filter, Search, Star, Users } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from "react";
 
 export default function ProfessorProjectsPage() {
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    const decoded = jwtDecode(token) as { type: string };
+    if (decoded.type !== "stu") {
+      window.location.href = "/login";
+      return;
+    }
+    setIsAuth(true);
+  }, []);
+
+  if (!isAuth) {
+    window.location.href = "/login";
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">

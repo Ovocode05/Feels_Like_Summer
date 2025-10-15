@@ -42,6 +42,7 @@ import {
   deleteProject,
   fetchProjects_active_my,
 } from "@/api/api";
+import { jwtDecode } from "jwt-decode";
 
 const projectFormSchema = z.object({
   name: z.string().min(1, { message: "Project name is required" }),
@@ -99,6 +100,27 @@ export default function ProfessorProjectsPage() {
       working_users: [],
     },
   });
+
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    const decoded = jwtDecode(token) as { type: string };
+    if (decoded.type !== "fac") {
+      window.location.href = "/login";
+      return;
+    }
+    setIsAuth(true);
+  }, []);
+
+  if (!isAuth) {
+    // Optionally show a loading spinner here
+    return null;
+  }
 
   function handleAddTag(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" || e.key === ",") {

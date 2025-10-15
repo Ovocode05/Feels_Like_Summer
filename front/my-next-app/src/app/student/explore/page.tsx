@@ -41,6 +41,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import MenubarStudent from "@/components/ui/menubar_student";
 import { fetchProjects_active } from "@/api/api";
+import { jwtDecode } from "jwt-decode";
 
 type ProjectType = {
   ID: number;
@@ -84,6 +85,27 @@ export default function ExplorePage() {
 
     fetchAllProjects();
   }, []);
+
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    const decoded = jwtDecode(token) as { type: string };
+    if (decoded.type !== "stu") {
+      window.location.href = "/login";
+      return;
+    }
+    setIsAuth(true);
+  }, []);
+
+  if (!isAuth) {
+    // Optionally show a loading spinner here
+    return null;
+  }
 
   const toggleSaveProject = (id: number) => {
     if (savedProjects.includes(id)) {

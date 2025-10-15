@@ -14,7 +14,9 @@ import {
   BookOpen,
   ChevronLeft,
   FileText,
+  LogOut,
 } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 
 type ProjectType = {
   ID: number;
@@ -44,6 +46,9 @@ export default function ProjectDetails() {
   const [showActiveConfirm, setShowActiveConfirm] = useState(false); // NEW
   const [showUpdatedPopup, setShowUpdatedPopup] = useState(false);
   const [showAuthPopup, setShowAuthPopup] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
+  const [isStudent, setIsStudent] = useState(false);
+
   const pid = params?.id as string;
 
   const fetchProject = async () => {
@@ -63,6 +68,25 @@ export default function ProjectDetails() {
     if (pid) fetchProject();
   }, [pid]);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    const decoded = jwtDecode(token) as { type: "fac" | "stu" };
+    if (decoded.type === "stu") {
+      setIsStudent(true);
+    } else {
+      setIsStudent(false);
+    }
+    setIsAuth(true);
+  }, []);
+
+  if (!isAuth) {
+    return null;
+  }
+
   // Handle update active status
   const handleUpdateActive = async () => {
     if (!project) return;
@@ -80,6 +104,11 @@ export default function ProjectDetails() {
     setUpdating(false);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-white text-black">
@@ -87,6 +116,7 @@ export default function ProjectDetails() {
       </div>
     );
   }
+
   if (!project) {
     return (
       <div className="flex items-center justify-center h-screen bg-white text-black">
@@ -94,9 +124,6 @@ export default function ProjectDetails() {
       </div>
     );
   }
-  // Determine user type and route
-  const userType = project.user.type; // "stu" or "fac"
-  const isStudentRoute = pathname.startsWith("/student");
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-black">
@@ -117,6 +144,16 @@ export default function ProjectDetails() {
             </Button>
           </Link>
         </div>
+        <div className="ml-2">
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 text-black border-black"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" />
+            Log out
+          </Button>
+        </div>
       </header>
       <main className="flex-1 space-y-6 p-4 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -131,7 +168,6 @@ export default function ProjectDetails() {
             </Button>
           </div>
         </div>
-
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Project Info */}
           <div className="space-y-6 lg:col-span-2">
@@ -198,42 +234,28 @@ export default function ProjectDetails() {
           </div>
         </div>
 
-        {/* Set Active/Inactive Button (visible only to faculty and not on student route) */}
-        {userType === "fac" && !isStudentRoute ? (
-          <div className="flex justify-end mt-8">
-            {project.isActive === true ? (
-              <Button
-                onClick={() => setShowInactiveConfirm(true)}
-                disabled={updating}
-                variant="destructive"
-                className="bg-red-800 text-white px-8 py-2 rounded-lg shadow hover:bg-red-900"
-              >
-                Set Inactive
-              </Button>
-            ) : (
-              <Button
-                onClick={() => setShowActiveConfirm(true)}
-                disabled={updating}
-                variant="default"
-                className="bg-black text-white px-8 py-2 rounded-lg shadow hover:bg-black/80"
-              >
-                {updating ? "Updating..." : "Set Active"}
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="flex justify-end mt-8">
+        <div className="flex justify-end mt-8">
+          {project.isActive === true ? (
             <Button
-              variant="outline"
-              className="border-yellow-500 text-yellow-900"
-              onClick={() => setShowAuthPopup(true)}
+              onClick={() => setShowInactiveConfirm(true)}
+              disabled={updating || isStudent}
+              variant="destructive"
+              className="bg-red-800 text-white px-8 py-2 rounded-lg shadow hover:bg-red-900"
             >
-              You are not authenticated to perform this action.
+              Set Inactive
             </Button>
-          </div>
-        )}
+          ) : (
+            <Button
+              onClick={() => setShowActiveConfirm(true)}
+              disabled={updating || isStudent}
+              variant="default"
+              className="bg-black text-white px-8 py-2 rounded-lg shadow hover:bg-black/80"
+            >
+              {updating ? "Updating..." : "Set Active"}
+            </Button>
+          )}
+        </div>
 
-        {/* Not Authenticated Popup */}
         {showAuthPopup && (
           <div className="fixed right-8 bottom-8 z-50 flex items-center gap-3 rounded-lg border border-yellow-500 bg-yellow-50 px-6 py-3 text-yellow-900 shadow-xl animate-fade-in">
             <AlertTriangle className="h-6 w-6 text-yellow-900" />
@@ -249,7 +271,6 @@ export default function ProjectDetails() {
             </button>
           </div>
         )}
-
         {/* Inactive Confirmation Pop-up (side/end) */}
         {showInactiveConfirm && (
           <div className="fixed right-8 bottom-8 z-50 flex flex-col items-end">
@@ -288,7 +309,6 @@ export default function ProjectDetails() {
             </div>
           </div>
         )}
-
         {/* Active Confirmation Pop-up (side/end) */}
         {showActiveConfirm && (
           <div className="fixed right-8 bottom-8 z-50 flex flex-col items-end">
@@ -327,7 +347,6 @@ export default function ProjectDetails() {
             </div>
           </div>
         )}
-
         {/* Updated Popup */}
         {showUpdatedPopup && (
           <div className="fixed right-8 bottom-24 z-50 flex items-center gap-3 rounded-lg border border-black bg-white px-6 py-3 text-black shadow-xl animate-fade-in">
