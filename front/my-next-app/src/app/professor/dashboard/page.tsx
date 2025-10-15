@@ -15,8 +15,10 @@ import Header from "@/components/ui/manual_navbar_prof";
 import { useEffect, useState } from "react";
 import { fetchProjects_active_my } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
 
 export default function ProfessorDashboard() {
+  const router = useRouter();
   const [activeProjectsCount, setActiveProjectsCount] = useState<number>(0);
 
   useEffect(() => {
@@ -42,12 +44,12 @@ export default function ProfessorDashboard() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "fac") {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     setIsAuth(true);

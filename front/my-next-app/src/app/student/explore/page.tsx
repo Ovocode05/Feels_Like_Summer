@@ -42,6 +42,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import MenubarStudent from "@/components/ui/menubar_student";
 import { fetchProjects_active } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
 
 type ProjectType = {
   ID: number;
@@ -60,6 +61,7 @@ type ProjectType = {
 };
 
 export default function ExplorePage() {
+  const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [savedProjects, setSavedProjects] = useState<number[]>([]);
   const [projects, setProjects] = useState<ProjectType[]>([]);
@@ -91,12 +93,12 @@ export default function ExplorePage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "stu") {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     setIsAuth(true);

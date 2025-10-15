@@ -29,19 +29,21 @@ import {
 import MenubarStudent from "@/components/ui/menubar_student";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function StudentDashboard() {
+  const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "stu") {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     setIsAuth(true);

@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/ui/manual_navbar_prof";
 import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
 
 type ApplicationType = {
   id: number;
@@ -65,6 +66,7 @@ type ApplicationType = {
 };
 
 export default function ProfessorApplicationsPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("all");
   const [selectedApplication, setSelectedApplication] =
     useState<ApplicationType | null>(null);
@@ -263,12 +265,12 @@ export default function ProfessorApplicationsPage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "fac") {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     setIsAuth(true);

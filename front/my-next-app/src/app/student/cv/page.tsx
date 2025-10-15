@@ -38,6 +38,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import MenubarStudent from "@/components/ui/menubar_student";
 import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
 
 const cvFormSchema = z.object({
   personalInfo: z.object({
@@ -100,6 +101,7 @@ const cvFormSchema = z.object({
 });
 
 export default function CVBuilderPage() {
+  const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   // const { loading, authorized } = useAuth("student");
   const [activeTab, setActiveTab] = useState("edit");
@@ -183,12 +185,12 @@ export default function CVBuilderPage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "stu") {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     setIsAuth(true);

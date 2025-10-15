@@ -106,12 +106,12 @@ export default function ProfessorProjectsPage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "fac") {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     setIsAuth(true);

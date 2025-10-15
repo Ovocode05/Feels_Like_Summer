@@ -71,7 +71,7 @@ export default function ProjectDetails() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/login";
+      router.push("/login");
       return;
     }
     const decoded = jwtDecode(token) as { type: "fac" | "stu" };
@@ -235,24 +235,28 @@ export default function ProjectDetails() {
         </div>
 
         <div className="flex justify-end mt-8">
-          {project.isActive === true ? (
-            <Button
-              onClick={() => setShowInactiveConfirm(true)}
-              disabled={updating || isStudent}
-              variant="destructive"
-              className="bg-red-800 text-white px-8 py-2 rounded-lg shadow hover:bg-red-900"
-            >
-              Set Inactive
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setShowActiveConfirm(true)}
-              disabled={updating || isStudent}
-              variant="default"
-              className="bg-black text-white px-8 py-2 rounded-lg shadow hover:bg-black/80"
-            >
-              {updating ? "Updating..." : "Set Active"}
-            </Button>
+          {!isStudent && (
+            <>
+              {project.isActive === true ? (
+                <Button
+                  onClick={() => setShowInactiveConfirm(true)}
+                  // disabled={updating || isStudent}
+                  variant="destructive"
+                  className="bg-red-800 text-white px-8 py-2 rounded-lg shadow hover:bg-red-900"
+                >
+                  Set Inactive
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setShowActiveConfirm(true)}
+                  disabled={updating || isStudent}
+                  variant="default"
+                  className="bg-black text-white px-8 py-2 rounded-lg shadow hover:bg-black/80"
+                >
+                  {updating ? "Updating..." : "Set Active"}
+                </Button>
+              )}
+            </>
           )}
         </div>
 
