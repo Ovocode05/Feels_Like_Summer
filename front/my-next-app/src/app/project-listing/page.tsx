@@ -45,7 +45,8 @@ export default function ProfessorProjectsPage() {
   }, []);
 
   if (!isAuth) {
-    window.location.href = "/login";
+    router.push("/login");
+    return null;
   }
 
   return (
