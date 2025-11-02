@@ -110,7 +110,7 @@ export default function ProjectDetails() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "/login";
+    router.push("/login");
   };
 
   const handleApplicationSuccess = () => {
