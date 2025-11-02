@@ -89,11 +89,23 @@ export default function StudentDashboard() {
   const [isAuth, setIsAuth] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("token") || "";
-  const decode = jwtDecode(token) as DecodedToken;
-  console.log(decode.name);
+  // moved decode to client-only state to avoid server-side localStorage access
+  const [decode, setDecode] = useState<DecodedToken | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("token") || "";
+    if (!token) return;
+    try {
+      setDecode(jwtDecode(token) as DecodedToken);
+    } catch (e) {
+      console.error("Invalid token decode", e);
+      setDecode(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token") || "";
     if (!token) {
       router.push("/login");
       return;

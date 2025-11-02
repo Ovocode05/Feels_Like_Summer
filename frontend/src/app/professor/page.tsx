@@ -36,7 +36,20 @@ export default function ProfessorDashboard() {
   const router = useRouter();
   const [activeProjectsCount, setActiveProjectsCount] = useState<number>(0);
   const [totalApplications, setTotalApplications] = useState<number>(0); // added
-  const decode = jwtDecode(localStorage.getItem("token") || "") as DecodedToken;
+  // moved decode to client-only state to avoid server-side localStorage access
+  const [decode, setDecode] = useState<DecodedToken | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("token") || "";
+    if (!token) return;
+    try {
+      setDecode(jwtDecode(token) as DecodedToken);
+    } catch (e) {
+      console.error("Invalid token decode", e);
+      setDecode(null);
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchAndCountProjects() {
