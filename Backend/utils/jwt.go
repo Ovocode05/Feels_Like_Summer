@@ -14,6 +14,7 @@ import (
 type JWTClaims struct {
 	UserID string          `json:"userId"`
 	Email  string          `json:"email"`
+	Name   string          `json:"name"`
 	Type   models.UserType `json:"type"`
 	jwt.RegisteredClaims
 }
@@ -37,6 +38,7 @@ func GenerateJWT(user *models.User) (string, error) {
 	claims := JWTClaims{
 		UserID: user.Uid,
 		Email:  user.Email,
+		Name:   user.Name,
 		Type:   user.Type,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // Token expires in 24 hours
