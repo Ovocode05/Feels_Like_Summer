@@ -469,3 +469,102 @@ export const updateApplicationStatus = async (
     throw error;
   }
 };
+
+// Roadmap APIs
+export type ResearchPreferences = {
+  field_of_study: string;
+  experience_level: string;
+  current_year: number;
+  goals: string;
+  time_commitment: number;
+  interest_areas: string;
+  prior_experience?: string;
+};
+
+export type RoadmapNode = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  duration: string;
+  resources: string[];
+  skills: string[];
+  next_nodes: string[];
+};
+
+export type RoadmapStructure = {
+  title: string;
+  description: string;
+  total_time: string;
+  nodes: RoadmapNode[];
+};
+
+export const savePreferences = async (
+  preferences: ResearchPreferences,
+  token: string
+) => {
+  try {
+    console.log("API call - savePreferences payload:", preferences);
+    const response = await axios.post(`${url}/roadmap/preferences`, preferences, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error saving preferences:", error);
+    throw error;
+  }
+};
+
+export const getPreferences = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/roadmap/preferences`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching preferences:", error);
+    throw error;
+  }
+};
+
+export const generateRoadmap = async (token: string) => {
+  try {
+    const response = await axios.post(
+      `${url}/roadmap/generate`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error generating roadmap:", error);
+    throw error;
+  }
+};
+
+export const getRoadmapHistory = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/roadmap/history`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching roadmap history:", error);
+    throw error;
+  }
+};

@@ -22,4 +22,7 @@ func SetupRoutes(e *echo.Echo) {
 
 	// Problem Statement routes
 	RegisterProblemStatementRoutes(api)
+
+	// Roadmap routes
+	SetupRoadmapRoutes(api)
 }

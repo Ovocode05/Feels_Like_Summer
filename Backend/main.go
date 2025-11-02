@@ -21,7 +21,17 @@ func main() {
 
 	// Initialize Database
 	config.InitDB()
-	config.DB.AutoMigrate(&models.User{}, &models.Projects{}, &models.PasswordReset{}, &models.ProjRequests{}, &models.EmailVerification{}, &models.Students{})
+	config.DB.AutoMigrate(
+		&models.User{},
+		&models.Projects{},
+		&models.PasswordReset{},
+		&models.ProjRequests{},
+		&models.EmailVerification{},
+		&models.Students{},
+		&models.ResearchPreference{},
+		&models.Roadmap{},
+		&models.RoadmapCache{},
+	)
 
 	// Initialize Echo
 	e := echo.New()

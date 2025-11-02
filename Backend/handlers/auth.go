@@ -47,12 +47,12 @@ func Signup(c echo.Context) error {
 			return c.JSON(http.StatusConflict, echo.Map{"error": "User already exists"})
 		}
 		// User registered but not verified - allow re-registration
-		// Delete the unverified user and their verification codes within transaction
-		if err := tx.Delete(&existing).Error; err != nil {
+		// Permanently delete the unverified user and their verification codes using Unscoped()
+		if err := tx.Unscoped().Delete(&existing).Error; err != nil {
 			tx.Rollback()
 			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to clean up unverified user"})
 		}
-		if err := tx.Where("email = ?", signupReq.Email).Delete(&models.EmailVerification{}).Error; err != nil {
+		if err := tx.Unscoped().Where("email = ?", signupReq.Email).Delete(&models.EmailVerification{}).Error; err != nil {
 			tx.Rollback()
 			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to clean up verification records"})
 		}
@@ -108,60 +108,76 @@ func Signup(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save user"})
 	}
 
+	// Delete any existing verification codes for this email before creating a new one
+	if err := config.DB.Unscoped().Where("email = ?", user.Email).Delete(&models.EmailVerification{}).Error; err != nil {
+		log.Printf("Warning: Failed to clean up old verification codes for %s: %v", user.Email, err)
+	}
+
 	// Generate verification code
 	code, err := utils.GenerateVerificationCode()
 	if err != nil {
 		log.Printf("Failed to generate verification code for %s: %v", user.Email, err)
-	} else {
-		// Save verification code to database
-		emailVerification := models.EmailVerification{
-			Email:     user.Email,
-			Code:      code,
-			ExpiresAt: time.Now().Add(10 * time.Minute),
-			Used:      false,
-		}
-
-		if err := config.DB.Create(&emailVerification).Error; err != nil {
-			log.Printf("Failed to save verification code for %s: %v", user.Email, err)
-		} else {
-			// Send verification email
-			emailConfig := utils.LoadEmailConfig()
-			emailMessage := &utils.EmailMessage{
-				To:      []string{user.Email},
-				Subject: "Verify Your Email Address",
-				Body: fmt.Sprintf(`
-					<html>
-					<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-						<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-							<h2 style="color: #4CAF50;">Welcome to Feels Like Summer!</h2>
-							<p>Hi %s,</p>
-							<p>Thank you for signing up! Please verify your email address using the code below:</p>
-							<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-								%s
-							</div>
-							<p>This code will expire in 10 minutes.</p>
-							<p>If you didn't create an account, please ignore this email.</p>
-							<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-							<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
-						</div>
-					</body>
-					</html>
-				`, user.Name, code),
-				IsHTML: true,
-			}
-
-			if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
-				log.Printf("Failed to send verification email to %s: %v", user.Email, err)
-			}
-		}
+		return c.JSON(http.StatusCreated, echo.Map{
+			"message": "User created but failed to send verification email. Please request a new code.",
+			"user":    user,
+		})
 	}
+
+	log.Printf("Generated verification code for %s: %s", user.Email, code) // DEBUG LOG
+
+	// Save verification code to database
+	emailVerification := models.EmailVerification{
+		Email:     user.Email,
+		Code:      code,
+		ExpiresAt: time.Now().Add(10 * time.Minute),
+		Used:      false,
+	}
+
+	if err := config.DB.Create(&emailVerification).Error; err != nil {
+		log.Printf("Failed to save verification code for %s: %v", user.Email, err)
+		return c.JSON(http.StatusCreated, echo.Map{
+			"message": "User created but failed to send verification email. Please request a new code.",
+			"user":    user,
+		})
+	}
+
+	// Send verification email
+	emailConfig := utils.LoadEmailConfig()
+	emailMessage := &utils.EmailMessage{
+		To:      []string{user.Email},
+		Subject: "Verify Your Email Address",
+		Body: fmt.Sprintf(`
+			<html>
+			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+				<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+					<h2 style="color: #4CAF50;">Welcome to Feels Like Summer!</h2>
+					<p>Hi %s,</p>
+					<p>Thank you for signing up! Please verify your email address using the code below:</p>
+					<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+						%s
+					</div>
+					<p>This code will expire in 10 minutes.</p>
+					<p>If you didn't create an account, please ignore this email.</p>
+					<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+					<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+				</div>
+			</body>
+			</html>
+		`, user.Name, code),
+		IsHTML: true,
+	}
+
+	if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
+		log.Printf("Failed to send verification email to %s: %v", user.Email, err)
+		return c.JSON(http.StatusCreated, echo.Map{
+			"message": "User created but failed to send verification email. Please request a new code.",
+			"user":    user,
+		})
+	}
+
+	log.Printf("Successfully sent verification email with code %s to %s", code, user.Email) // DEBUG LOG
 
 	user.Password = "" // hide password in response
-	emailConfig := utils.LoadEmailConfig()
-	if err := utils.SendWelcomeEmail(emailConfig, user.Email, user.Name); err != nil {
-		log.Printf("Register Email sent to user %s: %v", user.Email, err)
-		// Don't fail the request - for security, always return success
-	}
 	return c.JSON(http.StatusCreated, echo.Map{
 		"message": "User created successfully. Please verify your email.",
 		"user":    user,
@@ -290,8 +306,11 @@ func ForgotPassword(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate reset token"})
 	}
 
-	// Delete any existing unused reset tokens for this email
-	tx.Where("email = ? AND used = ?", req.Email, false).Delete(&models.PasswordReset{})
+	// Delete any existing unused reset tokens for this email (permanently)
+	if err := tx.Unscoped().Where("email = ? AND used = ?", req.Email, false).Delete(&models.PasswordReset{}).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to clean up old reset tokens"})
+	}
 
 	// Create password reset record
 	passwordReset := models.PasswordReset{
@@ -518,8 +537,11 @@ func SendVerificationCode(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate verification code"})
 	}
 
-	// Delete any existing unused verification codes for this email
-	tx.Where("email = ? AND used = ?", req.Email, false).Delete(&models.EmailVerification{})
+	// Delete any existing unused verification codes for this email (permanently)
+	if err := tx.Unscoped().Where("email = ? AND used = ?", req.Email, false).Delete(&models.EmailVerification{}).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to clean up old verification codes"})
+	}
 
 	// Create new email verification record
 	emailVerification := models.EmailVerification{
@@ -779,8 +801,11 @@ func ResendVerification(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to generate verification code"})
 	}
 
-	// Delete any existing unused verification codes for this email
-	tx.Where("email = ? AND used = ?", req.Email, false).Delete(&models.EmailVerification{})
+	// Delete any existing unused verification codes for this email (permanently)
+	if err := tx.Unscoped().Where("email = ? AND used = ?", req.Email, false).Delete(&models.EmailVerification{}).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to clean up old verification codes"})
+	}
 
 	// Create new email verification record
 	emailVerification := models.EmailVerification{
