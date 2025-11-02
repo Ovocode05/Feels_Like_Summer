@@ -103,14 +103,14 @@ export default function LoginPage() {
       <header className="flex h-16 items-center border-b px-4 lg:px-6">
         <Link href="/" className="flex items-center gap-2">
           <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">ResearchConnect</span>
+          <span className="text-xl font-bold">FLS</span>
         </Link>
       </header>
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
         <Card className="mx-auto max-w-md w-full">
           <CardHeader>
             <CardTitle>Log in to your account</CardTitle>
-            <CardDescription>Welcome back to ResearchConnect.</CardDescription>
+            <CardDescription>Welcome back to FLS.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>

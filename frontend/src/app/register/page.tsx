@@ -217,7 +217,7 @@ export default function RegisterPage() {
       <header className="flex h-16 items-center border-b px-4 lg:px-6">
         <Link href="/" className="flex items-center gap-2">
           <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">ResearchConnect</span>
+          <span className="text-xl font-bold">FLS</span>
         </Link>
       </header>
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
@@ -228,7 +228,7 @@ export default function RegisterPage() {
             </CardTitle>
             <CardDescription className="pt-2">
               {step === "register"
-                ? "Join ResearchConnect to find research opportunities and collaborators."
+                ? "Join FLS to find research opportunities and collaborators."
                 : `Enter the 6-digit code sent to ${registeredEmail}`}
             </CardDescription>
           </CardHeader>
