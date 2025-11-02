@@ -32,6 +32,7 @@ import {
 } from "@/api/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnyCnameRecord } from "node:dns";
 
 const LANG_OPTS = [
   "JavaScript",

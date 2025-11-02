@@ -2,7 +2,9 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Bell, BookOpen, MessageSquare, LogOut } from "lucide-react";
+// import { Bell, BookOpen, MessageSquare, LogOut } from "lucide-react";
+import { BookOpen, LogOut } from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { useRouter } from "next/navigation";
 

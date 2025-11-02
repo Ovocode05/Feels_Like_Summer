@@ -1,7 +1,9 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Bell, BookOpen, LogOut, MessageSquare } from "lucide-react";
+// import { Bell, BookOpen, LogOut, MessageSquare } from "lucide-react";
+import { BookOpen, LogOut  } from "lucide-react";
+
 import { Button } from "./button";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { useRouter } from "next/navigation"; // <-- Use next/navigation for app router
