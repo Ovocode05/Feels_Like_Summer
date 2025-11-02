@@ -70,9 +70,9 @@ export default function LoginPage() {
       setTimeout(() => {
         setShowSuccess(false);
         if (decoded.type === "stu") {
-          router.push("/student/dashboard");
+          router.push("/student/");
         } else if (decoded.type === "fac") {
-          router.push("/professor/dashboard");
+          router.push("/professor/");
         }
       }, 2000);
     } catch (error: any) {

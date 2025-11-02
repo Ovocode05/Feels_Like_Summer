@@ -235,7 +235,7 @@ export default function ProfessorApplicationsPage() {
   // Filter applications based on active tab and search query
   const filteredProjects = projectsWithApplications
     .map((project) => {
-      const filteredApps = project.applications.filter((app) => {
+      const filteredApps = (project.applications || []).filter((app) => {
         const matchesTab =
           activeTab === "all" || app.status === activeTab;
         const matchesSearch =

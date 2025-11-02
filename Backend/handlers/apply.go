@@ -3,7 +3,9 @@ package handlers
 import (
 	"backend/config"
 	"backend/models"
+	"backend/utils"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -81,6 +83,29 @@ func ApplyToProject(c echo.Context) error {
 	if err := tx.Commit().Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save application"})
 	}
+
+	// Send email notification to the professor
+	go func() {
+		// Fetch professor details
+		var professor models.User
+		if err := config.DB.Where("uid = ?", project.CreatorID).First(&professor).Error; err != nil {
+			log.Printf("Failed to fetch professor for email notification: %v", err)
+			return
+		}
+
+		// Fetch student details
+		var student models.User
+		if err := config.DB.Where("uid = ?", userData.GetUID()).First(&student).Error; err != nil {
+			log.Printf("Failed to fetch student for email notification: %v", err)
+			return
+		}
+
+		// Send email to professor
+		emailConfig := utils.LoadEmailConfig()
+		if err := utils.SendProjectApplicationEmail(emailConfig, professor.Email, project.Name, student.Name); err != nil {
+			log.Printf("Failed to send application email to professor %s: %v", professor.Email, err)
+		}
+	}()
 
 	return c.JSON(http.StatusCreated, echo.Map{
 		"message":     "Application submitted successfully",
@@ -271,6 +296,119 @@ func UpdateApplicationStatus(c echo.Context) error {
 	if err := tx.Commit().Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save changes"})
 	}
+
+	// Send email notification to the student about status update
+	go func() {
+		// Fetch student details
+		var student models.User
+		if err := config.DB.Where("uid = ?", application.UID).First(&student).Error; err != nil {
+			log.Printf("Failed to fetch student for status update email: %v", err)
+			return
+		}
+
+		// Send appropriate email based on status
+		emailConfig := utils.LoadEmailConfig()
+		var emailBody string
+		var subject string
+
+		switch requestBody.Status {
+		case "accepted", "approved":
+			subject = fmt.Sprintf("Congratulations! Application Accepted for %s", project.Name)
+			emailBody = fmt.Sprintf(`
+				<html>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+						<h2 style="color: #4CAF50;">Application Accepted!</h2>
+						<p>Hi %s,</p>
+						<p>Great news! Your application for <strong>%s</strong> has been accepted.</p>
+						<p>The project lead will contact you shortly with next steps.</p>
+						<p>Log in to your dashboard to view more details.</p>
+						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+					</div>
+				</body>
+				</html>
+			`, student.Name, project.Name)
+		case "rejected":
+			subject = fmt.Sprintf("Application Update for %s", project.Name)
+			emailBody = fmt.Sprintf(`
+				<html>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+						<h2 style="color: #333;">Application Update</h2>
+						<p>Hi %s,</p>
+						<p>Thank you for your interest in <strong>%s</strong>.</p>
+						<p>Unfortunately, we are unable to move forward with your application at this time.</p>
+						<p>We encourage you to explore other exciting projects on our platform.</p>
+						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+					</div>
+				</body>
+				</html>
+			`, student.Name, project.Name)
+		case "interview":
+			subject = fmt.Sprintf("Interview Request for %s", project.Name)
+			emailBody = fmt.Sprintf(`
+				<html>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+						<h2 style="color: #2196F3;">Interview Request</h2>
+						<p>Hi %s,</p>
+						<p>Your application for <strong>%s</strong> has been reviewed and the project lead would like to interview you.</p>
+						<p>Please check your dashboard for more details and contact information.</p>
+						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+					</div>
+				</body>
+				</html>
+			`, student.Name, project.Name)
+		case "waitlisted":
+			subject = fmt.Sprintf("Application Waitlisted for %s", project.Name)
+			emailBody = fmt.Sprintf(`
+				<html>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+						<h2 style="color: #FF9800;">Application Waitlisted</h2>
+						<p>Hi %s,</p>
+						<p>Your application for <strong>%s</strong> has been placed on the waitlist.</p>
+						<p>We'll notify you if a position becomes available.</p>
+						<p>Thank you for your patience!</p>
+						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+					</div>
+				</body>
+				</html>
+			`, student.Name, project.Name)
+		default:
+			// For other statuses, send a generic update
+			subject = fmt.Sprintf("Application Status Update for %s", project.Name)
+			emailBody = fmt.Sprintf(`
+				<html>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+						<h2 style="color: #333;">Application Status Update</h2>
+						<p>Hi %s,</p>
+						<p>Your application status for <strong>%s</strong> has been updated to: <strong>%s</strong></p>
+						<p>Log in to your dashboard to view more details.</p>
+						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+					</div>
+				</body>
+				</html>
+			`, student.Name, project.Name, requestBody.Status)
+		}
+
+		emailMessage := &utils.EmailMessage{
+			To:      []string{student.Email},
+			Subject: subject,
+			Body:    emailBody,
+			IsHTML:  true,
+		}
+
+		if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
+			log.Printf("Failed to send status update email to student %s: %v", student.Email, err)
+		}
+	}()
 
 	// Fetch updated application
 	if err := config.DB.Where("id = ?", applicationID).First(&application).Error; err != nil {

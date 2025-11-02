@@ -26,7 +26,7 @@ function Header() {
       <nav className="hidden flex-1 items-center justify-center lg:flex">
         <div className="flex gap-6">
           <Link
-            href="/professor/dashboard"
+            href="/professor"
             className="text-sm font-medium text-primary underline-offset-4 hover:underline"
           >
             Dashboard

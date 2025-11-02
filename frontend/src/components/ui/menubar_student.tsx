@@ -26,7 +26,7 @@ function MenubarStudent() {
       <nav className="hidden flex-1 items-center justify-center lg:flex">
         <div className="flex gap-6">
           <Link
-            href="/student/dashboard"
+            href="/student/"
             className="text-sm font-medium underline-offset-4 hover:underline"
           >
             Dashboard
