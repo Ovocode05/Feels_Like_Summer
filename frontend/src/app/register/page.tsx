@@ -229,7 +229,7 @@ export default function RegisterPage() {
             <CardDescription className="pt-2">
               {step === "register"
                 ? "Join FLS to find research opportunities and collaborators."
-                : `Enter the 6-digit code sent to ${registeredEmail}`}
+                : `We've sent a 6-digit verification code to ${registeredEmail}. Please check your email.`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -269,7 +269,7 @@ export default function RegisterPage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          We will send a verification code to this email.
+                          You will receive a verification code shortly after registration.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -429,7 +429,7 @@ export default function RegisterPage() {
                       ? "Sending..."
                       : countdown > 0
                       ? `Resend (${countdown}s)`
-                      : "Resend"}
+                      : "Resend code (will be sent shortly)"}
                   </button>
                 </div>
 

@@ -149,7 +149,7 @@ export default function VerifyEmailPage() {
           <p className="text-muted-foreground mt-2">
             {token
               ? "Verifying your email address..."
-              : "Enter your email to resend verification link"}
+              : "Enter your email to receive a verification code shortly"}
           </p>
         </div>
 
@@ -224,7 +224,7 @@ export default function VerifyEmailPage() {
                   Sending...
                 </>
               ) : (
-                "Resend Verification Email"
+                "Resend Verification Code (will arrive shortly)"
               )}
             </Button>
 
@@ -245,7 +245,7 @@ export default function VerifyEmailPage() {
         {error && token && !isLoading && !isVerified && (
           <div className="mt-6 p-4 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground text-center mb-4">
-              Need a new verification link?
+              Need a new verification code? It will be sent to your email shortly.
             </p>
             <form onSubmit={handleResendVerification} className="space-y-4">
               <div>
@@ -271,7 +271,7 @@ export default function VerifyEmailPage() {
                     Sending...
                   </>
                 ) : (
-                  "Resend Verification Email"
+                  "Resend Verification Code"
                 )}
               </Button>
             </form>
