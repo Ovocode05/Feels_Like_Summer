@@ -194,7 +194,7 @@ export default function CVBuilderPage() {
       return;
     }
     setIsAuth(true);
-  }, []);
+  }, [router]);
 
   if (!isAuth) {
     // Optionally show a loading spinner here

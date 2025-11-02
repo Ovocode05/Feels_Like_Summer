@@ -1,91 +1,138 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
-import { AlertCircle, CheckCircle2, Loader2, Mail } from "lucide-react"
-import { verifyEmail, resendVerification } from "@/api/api"
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { AlertCircle, CheckCircle2, Loader2, Mail } from "lucide-react";
+import { verifyEmail, resendVerification } from "@/api/api";
+
+// small helper to extract error messages without using `any`
+const extractErrorMessage = (err: unknown, fallback = "An error occurred") => {
+  if (!err || typeof err !== "object") return fallback;
+  const maybe = err as Record<string, unknown>;
+  if (
+    "response" in maybe &&
+    typeof maybe.response === "object" &&
+    maybe.response !== null
+  ) {
+    const resp = maybe.response as Record<string, unknown>;
+    if ("data" in resp && typeof resp.data === "object" && resp.data !== null) {
+      const data = resp.data as Record<string, unknown>;
+      if ("error" in data && typeof data.error === "string") return data.error;
+      if ("message" in data && typeof data.message === "string")
+        return data.message;
+    }
+  }
+  if ("message" in maybe && typeof maybe.message === "string")
+    return maybe.message;
+  return fallback;
+};
+
+// helper to safely read `message` from unknown API responses (avoids `any`)
+const getMessageFromResponse = (resp: unknown): string | undefined => {
+  if (!resp || typeof resp !== "object") return undefined;
+  const obj = resp as Record<string, unknown>;
+  if ("message" in obj && typeof obj.message === "string") return obj.message;
+  if ("data" in obj && typeof obj.data === "object" && obj.data !== null) {
+    const data = obj.data as Record<string, unknown>;
+    if ("message" in data && typeof data.message === "string")
+      return data.message;
+  }
+  return undefined;
+};
 
 export default function VerifyEmailPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get("token")
-  
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [isVerified, setIsVerified] = useState(false)
-  const [email, setEmail] = useState("")
-  const [isResending, setIsResending] = useState(false)
-  const { toast } = useToast()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const { toast } = useToast();
+
+  // make handleVerification stable so it can be used in useEffect deps
+  const handleVerification = useCallback(
+    async (verificationToken: string) => {
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const response = await verifyEmail(verificationToken);
+        setIsVerified(true);
+        toast({
+          title: "Success",
+          description:
+            getMessageFromResponse(response) ?? "Email verified successfully!",
+        });
+
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          router.push("/login");
+        }, 3000);
+      } catch (err: unknown) {
+        const errorMsg = extractErrorMessage(
+          err,
+          "Verification failed. The token may be invalid or expired."
+        );
+        setError(errorMsg);
+        toast({
+          title: "Verification Failed",
+          description: errorMsg,
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [router, toast]
+  );
 
   useEffect(() => {
     if (token) {
-      handleVerification(token)
+      handleVerification(token);
     }
-  }, [token])
-
-  const handleVerification = async (verificationToken: string) => {
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const response = await verifyEmail(verificationToken)
-      setIsVerified(true)
-      toast({
-        title: "Success",
-        description: response.message || "Email verified successfully!",
-      })
-      
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        router.push("/login")
-      }, 3000)
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.error || err.message || "Verification failed. The token may be invalid or expired."
-      setError(errorMsg)
-      toast({
-        title: "Verification Failed",
-        description: errorMsg,
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  }, [token, handleVerification]);
 
   const handleResendVerification = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!email) {
       toast({
         title: "Error",
         description: "Please enter your email address",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsResending(true)
+    setIsResending(true);
     try {
-      const response = await resendVerification(email)
+      const response = await resendVerification(email);
       toast({
         title: "Success",
-        description: response.message || "Verification email sent!",
-      })
-      setError("")
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.error || err.message || "Failed to resend verification email"
+        description:
+          getMessageFromResponse(response) ?? "Verification email sent!",
+      });
+      setError("");
+    } catch (err: unknown) {
+      const errorMsg = extractErrorMessage(
+        err,
+        "Failed to resend verification email"
+      );
       toast({
         title: "Error",
         description: errorMsg,
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsResending(false)
+      setIsResending(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary to-background px-4">
@@ -100,7 +147,9 @@ export default function VerifyEmailPage() {
           </div>
           <h1 className="text-3xl font-bold">Verify Email</h1>
           <p className="text-muted-foreground mt-2">
-            {token ? "Verifying your email address..." : "Enter your email to resend verification link"}
+            {token
+              ? "Verifying your email address..."
+              : "Enter your email to resend verification link"}
           </p>
         </div>
 
@@ -117,15 +166,15 @@ export default function VerifyEmailPage() {
           <div className="flex flex-col items-center gap-4 p-8 bg-green-50 border border-green-300 rounded-lg">
             <CheckCircle2 className="h-16 w-16 text-green-600" />
             <div className="text-center">
-              <p className="font-semibold text-green-800 text-lg">Email Verified!</p>
+              <p className="font-semibold text-green-800 text-lg">
+                Email Verified!
+              </p>
               <p className="text-sm text-green-700 mt-2">
-                Your email has been successfully verified. Redirecting to login...
+                Your email has been successfully verified. Redirecting to
+                login...
               </p>
             </div>
-            <Button
-              onClick={() => router.push("/login")}
-              className="mt-2"
-            >
+            <Button onClick={() => router.push("/login")} className="mt-2">
               Go to Login
             </Button>
           </div>
@@ -137,7 +186,9 @@ export default function VerifyEmailPage() {
             <div className="flex gap-3">
               <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-destructive">Verification Failed</p>
+                <p className="font-medium text-destructive">
+                  Verification Failed
+                </p>
                 <p className="text-sm text-destructive/80 mt-1">{error}</p>
               </div>
             </div>
@@ -166,11 +217,7 @@ export default function VerifyEmailPage() {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isResending}
-            >
+            <Button type="submit" className="w-full" disabled={isResending}>
               {isResending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -212,9 +259,9 @@ export default function VerifyEmailPage() {
                   required
                 />
               </div>
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 variant="outline"
                 disabled={isResending}
               >
@@ -232,5 +279,5 @@ export default function VerifyEmailPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

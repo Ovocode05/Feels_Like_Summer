@@ -55,7 +55,7 @@ export default function ResourcesPage() {
       return;
     }
     setIsAuth(true);
-  }, []);
+  }, [router]);
 
   if (!isAuth) {
     // Optionally show a loading spinner here

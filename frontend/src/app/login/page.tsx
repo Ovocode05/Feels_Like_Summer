@@ -30,7 +30,9 @@ import { useState, useEffect } from "react";
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(1, { message: "Password is required." }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long." }),
 });
 
 type JWT = {
@@ -75,13 +77,21 @@ export default function LoginPage() {
           router.push("/professor/");
         }
       }, 2000);
-    } catch (error: any) {
-      if (error.response?.status === 403 && error.response?.data?.email_verified === false) {
-        setErrorMessage("Please verify your email before logging in. Check your inbox for the verification link.");
+    } catch (error) {
+      if (
+        error.response?.status === 403 &&
+        error.response?.data?.email_verified === false
+      ) {
+        setErrorMessage(
+          "Please verify your email before logging in. Check your inbox for the verification link."
+        );
         setShowError(true);
         setTimeout(() => setShowError(false), 5000);
       } else {
-        setErrorMessage(error.response?.data?.error || "Login failed. Please check your credentials.");
+        setErrorMessage(
+          error.response?.data?.error ||
+            "Login failed. Please check your credentials."
+        );
         setShowError(true);
         setTimeout(() => setShowError(false), 5000);
       }
@@ -182,7 +192,9 @@ export default function LoginPage() {
             )}
             {showVerifiedMessage && (
               <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-green-300 bg-green-50 px-6 py-3 text-green-800 shadow-xl animate-fade-in max-w-md">
-                <span className="font-semibold">✓ Email verified successfully! You can now log in.</span>
+                <span className="font-semibold">
+                  ✓ Email verified successfully! You can now log in.
+                </span>
                 <button
                   className="ml-2 text-green-800 hover:text-green-600"
                   onClick={() => setShowVerifiedMessage(false)}

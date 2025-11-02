@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter, usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getProjectByPid, updateProjectByPid } from "@/api/api";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +40,6 @@ type ProjectType = {
 export default function ProjectDetails() {
   const params = useParams();
   const router = useRouter();
-  const pathname = usePathname();
   const { toast } = useToast();
   const [project, setProject] = useState<ProjectType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +54,7 @@ export default function ProjectDetails() {
 
   const pid = params?.id as string;
 
-  const fetchProject = async () => {
+  const fetchProject = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token") || "";
@@ -64,13 +63,14 @@ export default function ProjectDetails() {
     } catch (error) {
       console.error("Error fetching project:", error);
       setProject(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, [pid]);
 
   useEffect(() => {
     if (pid) fetchProject();
-  }, [pid]);
+  }, [pid, fetchProject]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -85,7 +85,7 @@ export default function ProjectDetails() {
       setIsStudent(false);
     }
     setIsAuth(true);
-  }, []);
+  }, [router]);
 
   if (!isAuth) {
     return null;
@@ -138,27 +138,15 @@ export default function ProjectDetails() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-black">
-      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-black/10 bg-white px-4 md:px-6">
+      <header className="sticky top-0 z-50 flex h-16 justify-between gap-4 border-b border-black/10 bg-white px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
           <BookOpen className="h-6 w-6 text-black" />
           <span className="text-xl font-bold text-black">ResearchConnect</span>
         </Link>
-        <div className="ml-auto flex items-center gap-4">
-          <Link href="/login">
-            <Button variant="ghost" className="text-black hover:bg-black/10">
-              Log in
-            </Button>
-          </Link>
-          <Link href="/register">
-            <Button className="bg-black text-white hover:bg-black/80">
-              Sign up
-            </Button>
-          </Link>
-        </div>
         <div className="ml-2">
           <Button
             variant="outline"
-            className="flex items-center gap-2 text-black border-black"
+            className="flex mt-4 items-center gap-2 text-black border-black"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" />
@@ -258,15 +246,10 @@ export default function ProjectDetails() {
                 </p>
               </div>
             )}
-            
+
             {isStudent && !project.isActive && (
               <div className="rounded-xl bg-white shadow border border-black/10 p-6">
-                <Button
-                  disabled
-                  className="w-full"
-                  size="lg"
-                  variant="outline"
-                >
+                <Button disabled className="w-full" size="lg" variant="outline">
                   Project Inactive
                 </Button>
                 <p className="text-xs text-black/60 text-center mt-3">

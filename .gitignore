@@ -1,1 +1,8 @@
 **/.env
+/.front/my-next-app
+/.front/my-next-app/
+
+node_modules
+.next 
+next-env.d.ts
+.DS_Store

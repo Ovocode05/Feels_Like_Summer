@@ -90,7 +90,7 @@ export default function StudentDashboard() {
       return;
     }
     setIsAuth(true);
-    
+
     // Fetch applications
     const fetchApplications = async () => {
       try {
@@ -246,7 +246,9 @@ export default function StudentDashboard() {
             <CardContent>
               <div className="space-y-6">
                 {loading ? (
-                  <div className="text-center py-4">Loading applications...</div>
+                  <div className="text-center py-4">
+                    Loading applications...
+                  </div>
                 ) : applications.length === 0 ? (
                   <div className="text-center py-4 text-muted-foreground">
                     You haven&apos;t applied to any projects yet.
@@ -269,7 +271,8 @@ export default function StudentDashboard() {
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium leading-none">
-                            {application.Project?.project_name || "Unknown Project"}
+                            {application.Project?.project_name ||
+                              "Unknown Project"}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {application.User?.name || "Unknown Professor"}
@@ -410,7 +413,7 @@ export default function StudentDashboard() {
               ))}
             </CardContent>
             <CardFooter>
-              <Link href="/student/explore">
+              <Link href="/student/projects">
                 <Button variant="outline" className="w-full">
                   Browse More Projects
                 </Button>

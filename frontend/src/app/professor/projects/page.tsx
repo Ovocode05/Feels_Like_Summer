@@ -115,7 +115,7 @@ export default function ProfessorProjectsPage() {
       return;
     }
     setIsAuth(true);
-  }, []);
+  }, [router]);
 
   if (!isAuth) {
     // Optionally show a loading spinner here
@@ -146,7 +146,14 @@ export default function ProfessorProjectsPage() {
     const token = localStorage.getItem("token") || "";
     console.log("Creating project:", values);
     const res = await createProject(
-      { ...values, tags: values.tags ?? [] },
+      {
+        name: values.name,
+        sdesc: values.sdesc,
+        ldesc: values.ldesc,
+        isActive: values.isActive,
+        tags: values.tags ?? [],
+        working_users: values.working_users ?? [],
+      },
       token
     );
     console.log(res);

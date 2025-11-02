@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -28,11 +28,9 @@ import {
   Calendar,
   Check,
   Clock,
-  Download,
   ExternalLink,
   Eye,
   Filter,
-  GraduationCap,
   MessageSquare,
   Search,
   ThumbsDown,
@@ -111,7 +109,28 @@ export default function ProfessorApplicationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [isAuth, setIsAuth] = useState(false);
+  // const [isAuth, setIsAuth] = useState(false);
+
+  // replace fetchApplications with a stable useCallback so it can be added to useEffect deps
+  const fetchApplications = useCallback(
+    async (token: string) => {
+      try {
+        setIsLoading(true);
+        const response = await getAllMyProjectApplications(token);
+        setProjectsWithApplications(response.projects || []);
+      } catch (error) {
+        console.error("Error fetching applications:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch applications",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [toast]
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -124,30 +143,9 @@ export default function ProfessorApplicationsPage() {
       router.push("/login");
       return;
     }
-    setIsAuth(true);
+    // setIsAuth(true);
     fetchApplications(token);
-  }, []);
-
-  const fetchApplications = async (token: string) => {
-    try {
-      setIsLoading(true);
-      const response = await getAllMyProjectApplications(token);
-      setProjectsWithApplications(response.projects || []);
-    } catch (error) {
-      console.error("Error fetching applications:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch applications",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!isAuth) {
-    return null;
-  }
+  }, [fetchApplications, router]);
 
   const updateStatus = async (
     projectId: string,
@@ -211,13 +209,24 @@ export default function ProfessorApplicationsPage() {
       case "interview":
         return <Badge variant="secondary">Interview Scheduled</Badge>;
       case "accepted":
-        return <Badge className="bg-green-500 hover:bg-green-600">Accepted</Badge>;
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">Accepted</Badge>
+        );
       case "rejected":
         return <Badge variant="destructive">Rejected</Badge>;
       case "waitlisted":
-        return <Badge variant="outline" className="border-yellow-500 text-yellow-600">Waitlisted</Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="border-yellow-500 text-yellow-600"
+          >
+            Waitlisted
+          </Badge>
+        );
       case "approved":
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Approved</Badge>;
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600">Approved</Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -236,13 +245,14 @@ export default function ProfessorApplicationsPage() {
   const filteredProjects = projectsWithApplications
     .map((project) => {
       const filteredApps = (project.applications || []).filter((app) => {
-        const matchesTab =
-          activeTab === "all" || app.status === activeTab;
+        const matchesTab = activeTab === "all" || app.status === activeTab;
         const matchesSearch =
           searchQuery === "" ||
           app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           app.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          project.project.name.toLowerCase().includes(searchQuery.toLowerCase());
+          project.project.name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
         return matchesTab && matchesSearch;
       });
 
@@ -385,8 +395,7 @@ export default function ProfessorApplicationsPage() {
                               <div className="flex items-center gap-2 mt-1">
                                 <Clock className="h-3 w-3 text-muted-foreground" />
                                 <span className="text-xs text-muted-foreground">
-                                  Applied{" "}
-                                  {formatDate(application.timeCreated)}
+                                  Applied {formatDate(application.timeCreated)}
                                 </span>
                               </div>
                             </div>
@@ -513,7 +522,10 @@ export default function ProfessorApplicationsPage() {
                 <p className="mb-4 mt-2 text-sm text-muted-foreground">
                   {activeTab === "all"
                     ? "You don't have any applications yet."
-                    : `You don't have any ${activeTab.replace("_", " ")} applications.`}
+                    : `You don't have any ${activeTab.replace(
+                        "_",
+                        " "
+                      )} applications.`}
                 </p>
                 <Link href="/professor/projects">
                   <Button>View My Projects</Button>
@@ -604,29 +616,34 @@ export default function ProfessorApplicationsPage() {
                   {selectedApplication.location && (
                     <div className="space-y-1">
                       <div className="text-sm font-medium">Location</div>
-                      <div className="text-sm">{selectedApplication.location}</div>
+                      <div className="text-sm">
+                        {selectedApplication.location}
+                      </div>
                     </div>
                   )}
                   {selectedApplication.workEx && (
                     <div className="space-y-1">
                       <div className="text-sm font-medium">Work Experience</div>
-                      <div className="text-sm">{selectedApplication.workEx}</div>
+                      <div className="text-sm">
+                        {selectedApplication.workEx}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {selectedApplication.skills && selectedApplication.skills.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Skills</div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedApplication.skills.map((skill, idx) => (
-                        <Badge key={idx} variant="secondary">
-                          {skill}
-                        </Badge>
-                      ))}
+                {selectedApplication.skills &&
+                  selectedApplication.skills.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium">Skills</div>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedApplication.skills.map((skill, idx) => (
+                          <Badge key={idx} variant="secondary">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {selectedApplication.researchInterest && (
                   <div className="space-y-1">
@@ -792,7 +809,9 @@ export default function ProfessorApplicationsPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium">{selectedApplication.name}</div>
+                    <div className="font-medium">
+                      {selectedApplication.name}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       Application for {selectedProject.name}
                     </div>

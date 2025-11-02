@@ -32,7 +32,6 @@ import {
 } from "@/api/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AnyCnameRecord } from "node:dns";
 
 const LANG_OPTS = [
   "JavaScript",
@@ -71,6 +70,48 @@ interface ApplyModalProps {
   projectName: string;
   onSuccess?: () => void;
 }
+
+// safe helpers to avoid `any`
+const extractErrorMessage = (err: unknown, fallback = "An error occurred") => {
+  if (!err || typeof err !== "object") return fallback;
+  const maybe = err as Record<string, unknown>;
+  if (
+    "response" in maybe &&
+    typeof maybe.response === "object" &&
+    maybe.response !== null
+  ) {
+    const resp = maybe.response as Record<string, unknown>;
+    if ("data" in resp && typeof resp.data === "object" && resp.data !== null) {
+      const data = resp.data as Record<string, unknown>;
+      if ("error" in data && typeof data.error === "string") return data.error;
+      if ("message" in data && typeof data.message === "string")
+        return data.message;
+    }
+    if ("status" in resp && typeof resp.status === "number") {
+      // optional: include status in fallback message for debugging
+      const status = resp.status as number;
+      return `${fallback} (status ${status})`;
+    }
+  }
+  if ("message" in maybe && typeof maybe.message === "string")
+    return maybe.message;
+  return fallback;
+};
+
+const getStatusFromError = (err: unknown): number | undefined => {
+  if (!err || typeof err !== "object") return undefined;
+  const maybe = err as Record<string, unknown>;
+  if (
+    "response" in maybe &&
+    typeof maybe.response === "object" &&
+    maybe.response !== null
+  ) {
+    const resp = maybe.response as Record<string, unknown>;
+    if ("status" in resp && typeof resp.status === "number")
+      return resp.status as number;
+  }
+  return undefined;
+};
 
 export function ApplyModal({
   isOpen,
@@ -144,14 +185,13 @@ export function ApplyModal({
           publicationsLink: response.student.publicationsLink || "",
         }));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching profile:", err);
-      // If profile doesn't exist (404), that's okay - they can fill it in
-      // We'll create it when they save
-      if (err.response?.status === 404) {
+      const status = getStatusFromError(err);
+      if (status === 404) {
         console.log("No existing profile found, will create new one on save");
       } else {
-        setError("Failed to load profile data");
+        setError(extractErrorMessage(err, "Failed to load profile data"));
       }
     } finally {
       setProfileLoading(false);
@@ -164,24 +204,21 @@ export function ApplyModal({
     try {
       const token = localStorage.getItem("token") || "";
       const response = await updateStudentProfile(profile, token);
-      
+
       console.log("Profile update response:", response);
-      
+
       // Update application links from profile after saving
       setApplication((prev) => ({
         ...prev,
         cvLink: profile.resumeLink || "",
         publicationsLink: profile.publicationsLink || "",
       }));
-      
+
       // Move to application tab
       setCurrentTab("application");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error updating profile:", err);
-      console.error("Error response:", err.response);
-      
-      const errorMessage = err.response?.data?.error || err.message || "Failed to update profile";
-      setError(errorMessage);
+      setError(extractErrorMessage(err, "Failed to update profile"));
     } finally {
       setLoading(false);
     }
@@ -198,26 +235,24 @@ export function ApplyModal({
     setError(null);
     try {
       const token = localStorage.getItem("token") || "";
-      
+
       // Use CV and publications from profile
       const applicationData = {
         ...application,
         cvLink: profile.resumeLink || "",
         publicationsLink: profile.publicationsLink || "",
       };
-      
+
       // Submit application with profile data
       await applyToProject(projectId, applicationData, token);
-      
+
       if (onSuccess) {
         onSuccess();
       }
       handleClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error submitting application:", err);
-      setError(
-        err.response?.data?.error || "Failed to submit application"
-      );
+      setError(extractErrorMessage(err, "Failed to submit application"));
     } finally {
       setLoading(false);
     }
@@ -462,6 +497,7 @@ export function ApplyModal({
                       setProfile({ ...profile, resumeLink: e.target.value })
                     }
                     placeholder="https://drive.google.com/..."
+                    disabled={loading}
                   />
                 </div>
                 <div>
@@ -479,6 +515,7 @@ export function ApplyModal({
                       })
                     }
                     placeholder="https://scholar.google.com/..."
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -560,36 +597,42 @@ export function ApplyModal({
 
                 {/* Display CV and Publications from profile */}
                 <div className="rounded-md border border-muted p-4 space-y-2 bg-muted/30">
-                  <h4 className="text-sm font-semibold mb-2">Documents from your profile:</h4>
+                  <h4 className="text-sm font-semibold mb-2">
+                    Documents from your profile:
+                  </h4>
                   <div className="space-y-1 text-sm">
                     <div>
                       <span className="font-medium">CV/Resume:</span>{" "}
                       {profile.resumeLink ? (
-                        <a 
-                          href={profile.resumeLink} 
-                          target="_blank" 
+                        <a
+                          href={profile.resumeLink}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary hover:underline"
                         >
                           {profile.resumeLink}
                         </a>
                       ) : (
-                        <span className="text-muted-foreground italic">Not provided</span>
+                        <span className="text-muted-foreground italic">
+                          Not provided
+                        </span>
                       )}
                     </div>
                     <div>
                       <span className="font-medium">Publications:</span>{" "}
                       {profile.publicationsLink ? (
-                        <a 
-                          href={profile.publicationsLink} 
-                          target="_blank" 
+                        <a
+                          href={profile.publicationsLink}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary hover:underline"
                         >
                           {profile.publicationsLink}
                         </a>
                       ) : (
-                        <span className="text-muted-foreground italic">Not provided</span>
+                        <span className="text-muted-foreground italic">
+                          Not provided
+                        </span>
                       )}
                     </div>
                   </div>
@@ -600,7 +643,10 @@ export function ApplyModal({
               </div>
 
               <DialogFooter className="pt-4">
-                <Button variant="outline" onClick={() => setCurrentTab("profile")}>
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentTab("profile")}
+                >
                   Back to Profile
                 </Button>
                 <Button onClick={handleSubmitApplication} disabled={loading}>

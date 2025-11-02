@@ -55,7 +55,14 @@ export default function RegisterPage() {
 
   const [step, setStep] = useState<"register" | "verify">("register");
   const [registeredEmail, setRegisteredEmail] = useState("");
-  const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
+  const [verificationCode, setVerificationCode] = useState([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -74,24 +81,33 @@ export default function RegisterPage() {
   });
 
   async function onSubmit(values: FormData) {
-    const { confirmPassword, ...rest } = values;
+    // Build a payload with explicit required properties to satisfy the API type
+    const payload = {
+      name: values.name,
+      email: values.email,
+      password: values.password,
+      type: values.type,
+    };
+
     setIsSubmitting(true);
     setError("");
 
     try {
       // Step 1: Register the user
-      await registerUser(rest);
-      setRegisteredEmail(rest.email);
-      
+      await registerUser(payload);
+      setRegisteredEmail(payload.email);
+
       // Step 2: Send verification code
-      await sendVerificationCode(rest.email);
-      
+      await sendVerificationCode(payload.email);
+
       // Move to verification step
       setStep("verify");
       startCountdown();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Registration failed:", error);
-      setError(error.response?.data?.error || "Registration failed. Please try again.");
+      setError(
+        error.response?.data?.error || "Registration failed. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -132,15 +148,18 @@ export default function RegisterPage() {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    
+    const pastedData = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
+
     if (pastedData.length > 0) {
       const newCode = [...verificationCode];
       for (let i = 0; i < pastedData.length && i < 6; i++) {
         newCode[i] = pastedData[i];
       }
       setVerificationCode(newCode);
-      
+
       // Focus on the next empty input or the last input
       const nextIndex = Math.min(pastedData.length, 5);
       document.getElementById(`code-${nextIndex}`)?.focus();
@@ -161,9 +180,12 @@ export default function RegisterPage() {
       await verifyCode(registeredEmail, code);
       // Show success and redirect to login
       router.push("/login?verified=true");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Verification failed:", error);
-      setError(error.response?.data?.error || "Invalid verification code. Please try again.");
+      setError(
+        error.response?.data?.error ||
+          "Invalid verification code. Please try again."
+      );
     } finally {
       setIsVerifying(false);
     }
@@ -171,7 +193,7 @@ export default function RegisterPage() {
 
   const handleResendCode = async () => {
     if (countdown > 0) return;
-    
+
     setIsSendingCode(true);
     setError("");
 
@@ -179,9 +201,12 @@ export default function RegisterPage() {
       await sendVerificationCode(registeredEmail);
       setVerificationCode(["", "", "", "", "", ""]);
       startCountdown();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to resend code:", error);
-      setError(error.response?.data?.error || "Failed to resend code. Please try again.");
+      setError(
+        error.response?.data?.error ||
+          "Failed to resend code. Please try again."
+      );
     } finally {
       setIsSendingCode(false);
     }
@@ -202,10 +227,9 @@ export default function RegisterPage() {
               {step === "register" ? "Create an account" : "Verify your email"}
             </CardTitle>
             <CardDescription className="pt-2">
-              {step === "register" 
+              {step === "register"
                 ? "Join ResearchConnect to find research opportunities and collaborators."
-                : `Enter the 6-digit code sent to ${registeredEmail}`
-              }
+                : `Enter the 6-digit code sent to ${registeredEmail}`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -222,7 +246,10 @@ export default function RegisterPage() {
                       <FormItem>
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your full name" {...field} />
+                          <Input
+                            placeholder="Enter your full name"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -323,7 +350,11 @@ export default function RegisterPage() {
                       {error}
                     </div>
                   )}
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -349,7 +380,9 @@ export default function RegisterPage() {
                         type="text"
                         inputMode="numeric"
                         value={digit}
-                        onChange={(e) => handleCodeChange(index, e.target.value)}
+                        onChange={(e) =>
+                          handleCodeChange(index, e.target.value)
+                        }
                         onKeyDown={(e) => handleKeyDown(index, e)}
                         onPaste={handlePaste}
                         maxLength={1}

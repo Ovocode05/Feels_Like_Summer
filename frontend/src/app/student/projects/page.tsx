@@ -24,14 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import {
-  Bookmark,
-  BookmarkCheck,
-  ChevronDown,
-  Search,
-  SlidersHorizontal,
-  Star,
-} from "lucide-react";
+import { ChevronDown, Search, Star } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -43,7 +36,6 @@ import MenubarStudent from "@/components/ui/menubar_student";
 import { fetchProjects_active } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
 
 type ProjectType = {
   ID: number;
@@ -64,7 +56,6 @@ type ProjectType = {
 export default function ExplorePage() {
   const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [savedProjects, setSavedProjects] = useState<number[]>([]);
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -103,20 +94,20 @@ export default function ExplorePage() {
       return;
     }
     setIsAuth(true);
-  }, []);
+  }, [router]);
 
   if (!isAuth) {
     // Optionally show a loading spinner here
     return null;
   }
 
-  const toggleSaveProject = (id: number) => {
-    if (savedProjects.includes(id)) {
-      setSavedProjects(savedProjects.filter((projectId) => projectId !== id));
-    } else {
-      setSavedProjects([...savedProjects, id]);
-    }
-  };
+  // const toggleSaveProject = (id: number) => {
+  //   if (savedProjects.includes(id)) {
+  //     setSavedProjects(savedProjects.filter((projectId) => projectId !== id));
+  //   } else {
+  //     setSavedProjects([...savedProjects, id]);
+  //   }
+  // };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -132,7 +123,7 @@ export default function ExplorePage() {
               qualifications.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Link href="/student/explore/saved">
               <Button
                 variant="outline"
@@ -154,7 +145,7 @@ export default function ExplorePage() {
               <span className="hidden sm:inline">Advanced Filters</span>
               <span className="inline sm:hidden">Filters</span>
             </Button>
-          </div>
+          </div> */}
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
@@ -428,7 +419,7 @@ export default function ExplorePage() {
                               {project.user?.name || "Unknown Professor"}
                             </CardDescription>
                           </div>
-                          <Button
+                          {/* <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => toggleSaveProject(project.ID)}
@@ -439,7 +430,7 @@ export default function ExplorePage() {
                             ) : (
                               <Bookmark className="h-5 w-5" />
                             )}
-                          </Button>
+                          </Button> */}
                         </div>
                       </CardHeader>
                       <CardContent className="pb-3">
@@ -501,9 +492,7 @@ export default function ExplorePage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Link href={`/project/${project.pid}`}>
-                            <Button size="sm">
-                              View Details
-                            </Button>
+                            <Button size="sm">View Details</Button>
                           </Link>
                         </div>
                       </div>

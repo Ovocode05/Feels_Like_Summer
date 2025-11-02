@@ -42,7 +42,7 @@ export default function ProfessorProjectsPage() {
       return;
     }
     setIsAuth(true);
-  }, []);
+  }, [router]);
 
   if (!isAuth) {
     router.push("/login");
