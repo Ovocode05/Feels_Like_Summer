@@ -41,15 +41,21 @@ func Signup(c echo.Context) error {
 	var existing models.User
 	result := tx.Where("email = ?", signupReq.Email).First(&existing)
 	if result.Error == nil {
-		tx.Rollback()
 		// Check if user has verified their email
 		if existing.EmailVerified {
+			tx.Rollback()
 			return c.JSON(http.StatusConflict, echo.Map{"error": "User already exists"})
 		}
 		// User registered but not verified - allow re-registration
-		// Delete the unverified user and their verification codes
-		tx.Delete(&existing)
-		tx.Where("email = ?", signupReq.Email).Delete(&models.EmailVerification{})
+		// Delete the unverified user and their verification codes within transaction
+		if err := tx.Delete(&existing).Error; err != nil {
+			tx.Rollback()
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to clean up unverified user"})
+		}
+		if err := tx.Where("email = ?", signupReq.Email).Delete(&models.EmailVerification{}).Error; err != nil {
+			tx.Rollback()
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to clean up verification records"})
+		}
 	}
 
 	// Generate unique uid with retry logic
