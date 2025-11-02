@@ -141,45 +141,43 @@ func Signup(c echo.Context) error {
 		})
 	}
 
-	// Send verification email
-	emailConfig := utils.LoadEmailConfig()
-	emailMessage := &utils.EmailMessage{
-		To:      []string{user.Email},
-		Subject: "Verify Your Email Address",
-		Body: fmt.Sprintf(`
-			<html>
-			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-				<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-					<h2 style="color: #4CAF50;">Welcome to Feels Like Summer!</h2>
-					<p>Hi %s,</p>
-					<p>Thank you for signing up! Please verify your email address using the code below:</p>
-					<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-						%s
+	// Send verification email asynchronously
+	go func(email, name, verificationCode string) {
+		emailConfig := utils.LoadEmailConfig()
+		emailMessage := &utils.EmailMessage{
+			To:      []string{email},
+			Subject: "Verify Your Email Address",
+			Body: fmt.Sprintf(`
+				<html>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+						<h2 style="color: #4CAF50;">Welcome to Feels Like Summer!</h2>
+						<p>Hi %s,</p>
+						<p>Thank you for signing up! Please verify your email address using the code below:</p>
+						<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+							%s
+						</div>
+						<p>This code will expire in 10 minutes.</p>
+						<p>If you didn't create an account, please ignore this email.</p>
+						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
 					</div>
-					<p>This code will expire in 10 minutes.</p>
-					<p>If you didn't create an account, please ignore this email.</p>
-					<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-					<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
-				</div>
-			</body>
-			</html>
-		`, user.Name, code),
-		IsHTML: true,
-	}
+				</body>
+				</html>
+			`, name, verificationCode),
+			IsHTML: true,
+		}
 
-	if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
-		log.Printf("Failed to send verification email to %s: %v", user.Email, err)
-		return c.JSON(http.StatusCreated, echo.Map{
-			"message": "User created but failed to send verification email. Please request a new code.",
-			"user":    user,
-		})
-	}
-
-	log.Printf("Successfully sent verification email with code %s to %s", code, user.Email) // DEBUG LOG
+		if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
+			log.Printf("Failed to send verification email to %s: %v", email, err)
+		} else {
+			log.Printf("Successfully sent verification email with code %s to %s", verificationCode, email)
+		}
+	}(user.Email, user.Name, code)
 
 	user.Password = "" // hide password in response
 	return c.JSON(http.StatusCreated, echo.Map{
-		"message": "User created successfully. Please verify your email.",
+		"message": "User created successfully. A verification code will be sent to your email shortly.",
 		"user":    user,
 	})
 }
@@ -330,15 +328,16 @@ func ForgotPassword(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Database error"})
 	}
 
-	// Send password reset email
-	emailConfig := utils.LoadEmailConfig()
-	if err := utils.SendPasswordResetEmail(emailConfig, req.Email, token); err != nil {
-		log.Printf("Failed to send password reset email to %s: %v", req.Email, err)
-		// Don't fail the request - for security, always return success
-	}
+	// Send password reset email asynchronously
+	go func(email, resetToken string) {
+		emailConfig := utils.LoadEmailConfig()
+		if err := utils.SendPasswordResetEmail(emailConfig, email, resetToken); err != nil {
+			log.Printf("Failed to send password reset email to %s: %v", email, err)
+		}
+	}(req.Email, token)
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"message": "If an account with that email exists, a password reset link has been sent",
+		"message": "If an account with that email exists, a password reset link will be sent shortly",
 	})
 }
 
@@ -460,40 +459,42 @@ func ResetPassword(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Database error"})
 	}
 
-	// Send password reset confirmation email
-	emailConfig := utils.LoadEmailConfig()
-	emailMessage := &utils.EmailMessage{
-		To:      []string{user.Email},
-		Subject: "Password Reset Successful",
-		Body: fmt.Sprintf(`
-			<html>
-			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-				<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-					<h2 style="color: #4CAF50;">Password Reset Successful</h2>
-					<p>Hi %s,</p>
-					<p>Your password has been successfully reset.</p>
-					<p>If you did not make this change, please contact our support team immediately.</p>
-					<p>For security, we recommend:</p>
-					<ul>
-						<li>Using a strong, unique password</li>
-						<li>Enabling two-factor authentication if available</li>
-						<li>Not sharing your password with anyone</li>
-					</ul>
-					<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-					<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
-				</div>
-			</body>
-			</html>
-		`, user.Name),
-		IsHTML: true,
-	}
+	// Send password reset confirmation email asynchronously
+	go func(email, name string) {
+		emailConfig := utils.LoadEmailConfig()
+		emailMessage := &utils.EmailMessage{
+			To:      []string{email},
+			Subject: "Password Reset Successful",
+			Body: fmt.Sprintf(`
+				<html>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+						<h2 style="color: #4CAF50;">Password Reset Successful</h2>
+						<p>Hi %s,</p>
+						<p>Your password has been successfully reset.</p>
+						<p>If you did not make this change, please contact our support team immediately.</p>
+						<p>For security, we recommend:</p>
+						<ul>
+							<li>Using a strong, unique password</li>
+							<li>Enabling two-factor authentication if available</li>
+							<li>Not sharing your password with anyone</li>
+						</ul>
+						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+					</div>
+				</body>
+				</html>
+			`, name),
+			IsHTML: true,
+		}
 
-	if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
-		log.Printf("Failed to send password reset confirmation email to %s: %v", user.Email, err)
-	}
+		if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
+			log.Printf("Failed to send password reset confirmation email to %s: %v", email, err)
+		}
+	}(user.Email, user.Name)
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"message": "Password has been reset successfully",
+		"message": "Password has been reset successfully. A confirmation email will be sent shortly.",
 	})
 }
 
@@ -561,39 +562,40 @@ func SendVerificationCode(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Database error"})
 	}
 
-	// Send verification email
-	emailConfig := utils.LoadEmailConfig()
-	emailMessage := &utils.EmailMessage{
-		To:      []string{req.Email},
-		Subject: "Your Verification Code",
-		Body: fmt.Sprintf(`
-			<html>
-			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-				<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-					<h2 style="color: #4CAF50;">Email Verification</h2>
-					<p>Hi %s,</p>
-					<p>Your verification code is:</p>
-					<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-						%s
+	// Send verification email asynchronously
+	go func(email, name, verificationCode string) {
+		emailConfig := utils.LoadEmailConfig()
+		emailMessage := &utils.EmailMessage{
+			To:      []string{email},
+			Subject: "Your Verification Code",
+			Body: fmt.Sprintf(`
+				<html>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+						<h2 style="color: #4CAF50;">Email Verification</h2>
+						<p>Hi %s,</p>
+						<p>Your verification code is:</p>
+						<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+							%s
+						</div>
+						<p>This code will expire in 10 minutes.</p>
+						<p>If you didn't request this code, please ignore this email.</p>
+						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
 					</div>
-					<p>This code will expire in 10 minutes.</p>
-					<p>If you didn't request this code, please ignore this email.</p>
-					<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-					<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
-				</div>
-			</body>
-			</html>
-		`, user.Name, code),
-		IsHTML: true,
-	}
+				</body>
+				</html>
+			`, name, verificationCode),
+			IsHTML: true,
+		}
 
-	if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
-		log.Printf("Failed to send verification email to %s: %v", req.Email, err)
-		// Don't fail the request - return success anyway
-	}
+		if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
+			log.Printf("Failed to send verification email to %s: %v", email, err)
+		}
+	}(req.Email, user.Name, code)
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"message": "Verification code has been sent to your email",
+		"message": "Verification code will be sent to your email shortly",
 	})
 }
 
@@ -661,12 +663,13 @@ func VerifyCode(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Database error"})
 	}
 
-	// Send welcome email after successful verification
-	emailConfig := utils.LoadEmailConfig()
-	if err := utils.SendWelcomeEmail(emailConfig, user.Email, user.Name); err != nil {
-		log.Printf("Failed to send welcome email to %s: %v", user.Email, err)
-		// Don't fail the request
-	}
+	// Send welcome email after successful verification asynchronously
+	go func(email, name string) {
+		emailConfig := utils.LoadEmailConfig()
+		if err := utils.SendWelcomeEmail(emailConfig, email, name); err != nil {
+			log.Printf("Failed to send welcome email to %s: %v", email, err)
+		}
+	}(user.Email, user.Name)
 
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Email verified successfully",
@@ -745,12 +748,13 @@ func VerifyEmail(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Database error"})
 	}
 
-	// Send welcome email after successful verification
-	emailConfig := utils.LoadEmailConfig()
-	if err := utils.SendWelcomeEmail(emailConfig, user.Email, user.Name); err != nil {
-		log.Printf("Failed to send welcome email to %s: %v", user.Email, err)
-		// Don't fail the request
-	}
+	// Send welcome email after successful verification asynchronously
+	go func(email, name string) {
+		emailConfig := utils.LoadEmailConfig()
+		if err := utils.SendWelcomeEmail(emailConfig, email, name); err != nil {
+			log.Printf("Failed to send welcome email to %s: %v", email, err)
+		}
+	}(user.Email, user.Name)
 
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Email verified successfully",
@@ -825,39 +829,40 @@ func ResendVerification(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Database error"})
 	}
 
-	// Send verification email
-	emailConfig := utils.LoadEmailConfig()
-	emailMessage := &utils.EmailMessage{
-		To:      []string{req.Email},
-		Subject: "Your Verification Code",
-		Body: fmt.Sprintf(`
-			<html>
-			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-				<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-					<h2 style="color: #4CAF50;">Email Verification</h2>
-					<p>Hi %s,</p>
-					<p>Your verification code is:</p>
-					<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-						%s
+	// Send verification email asynchronously
+	go func(email, name, verificationCode string) {
+		emailConfig := utils.LoadEmailConfig()
+		emailMessage := &utils.EmailMessage{
+			To:      []string{email},
+			Subject: "Your Verification Code",
+			Body: fmt.Sprintf(`
+				<html>
+				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+						<h2 style="color: #4CAF50;">Email Verification</h2>
+						<p>Hi %s,</p>
+						<p>Your verification code is:</p>
+						<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+							%s
+						</div>
+						<p>This code will expire in 10 minutes.</p>
+						<p>If you didn't request this code, please ignore this email.</p>
+						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
 					</div>
-					<p>This code will expire in 10 minutes.</p>
-					<p>If you didn't request this code, please ignore this email.</p>
-					<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-					<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
-				</div>
-			</body>
-			</html>
-		`, user.Name, code),
-		IsHTML: true,
-	}
+				</body>
+				</html>
+			`, name, verificationCode),
+			IsHTML: true,
+		}
 
-	if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
-		log.Printf("Failed to send verification email to %s: %v", req.Email, err)
-		// Don't fail the request - return success for security
-	}
+		if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
+			log.Printf("Failed to send verification email to %s: %v", email, err)
+		}
+	}(req.Email, user.Name, code)
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"message": "If an account with that email exists, a verification code has been sent",
+		"message": "If an account with that email exists, a verification code will be sent shortly",
 	})
 }
 

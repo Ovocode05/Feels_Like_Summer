@@ -76,7 +76,7 @@ func SavePreferences(c echo.Context) error {
 	}
 
 	println("✅ Successfully created preferences with ID:", req.ID)
-	
+
 	// Verify the preferences were actually saved
 	var verify models.ResearchPreference
 	if err := config.DB.Where("user_id = ?", userID).First(&verify).Error; err != nil {
