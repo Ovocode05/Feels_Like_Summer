@@ -125,7 +125,7 @@ export default function Home() {
                         Post a Project
                       </Button>
                     </Link>
-                    <Link href="/professor/dashboard">
+                    <Link href="/professor/">
                       <Button size="lg" variant="outline">
                         View Applications
                       </Button>
@@ -133,12 +133,12 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2 sm:flex-row pl-7">
-                    <Link href="/student/explore">
+                    <Link href="/student/projects">
                       <Button size="lg" className="gap-1.5">
                         Explore Projects
                       </Button>
                     </Link>
-                    <Link href="/student/dashboard">
+                    <Link href="/student/">
                       <Button size="lg" variant="outline">
                         My Dashboard
                       </Button>
@@ -325,7 +325,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-2 pl-5">
               <BookOpen className="h-6 w-6" />
-              <span className="text-xl font-bold">ResearchConnect</span>
+              <span className="text-xl font-bold">Feels like Summer</span>
             </div>
             <nav className="grid grid-cols-2 sm:grid-cols-3 gap-8 pr-10">
               <div className="space-y-3 pl-4">
@@ -349,18 +349,10 @@ export default function Home() {
                   </li>
                   <li>
                     <Link
-                      href="/student/cv"
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      CV Builder
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
                       href="/student/resources"
                       className="text-sm text-muted-foreground hover:text-foreground"
                     >
-                      Resources
+                      Roadmaps
                     </Link>
                   </li>
                 </ul>
@@ -402,7 +394,7 @@ export default function Home() {
                       href="/student/resources"
                       className="text-sm text-muted-foreground hover:text-foreground"
                     >
-                      Hackathon Archives
+                      Roadmaps
                     </Link>
                   </li>
                 </ul>

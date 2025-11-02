@@ -449,35 +449,30 @@ export default function StudentDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Learning Resources</CardTitle>
-              <CardDescription>
-                Roadmaps and materials shared by professors.
-              </CardDescription>
+              <CardDescription>Roadmaps shared by professors.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <Input placeholder="Search resources..." className="flex-1" />
                 <Button variant="outline" size="icon">
-                  <Search className="h-4 w-4" />
-                </Button>
-              </div>
+                  {/* <Search className="h-4 w-4" /> */}
+              {/* </Button> */}
+              {/* </div> */}
 
               {[
                 {
                   title: "Introduction to Quantum Computing",
-                  author: "Prof. Richard Williams",
                   type: "Course Roadmap",
                   icon: <BookText className="h-8 w-8 text-primary" />,
                 },
                 {
                   title: "Machine Learning Fundamentals",
-                  author: "Prof. Sarah Lee",
-                  type: "Reading List",
+                  type: "Course Roadmap",
                   icon: <BookOpen className="h-8 w-8 text-primary" />,
                 },
                 {
                   title: "Research Methodology in Computer Science",
-                  author: "Prof. James Chen",
-                  type: "Video Lectures",
+                  type: "Course Roadmap",
                   icon: <History className="h-8 w-8 text-primary" />,
                 },
               ].map((resource, i) => (
@@ -488,9 +483,6 @@ export default function StudentDashboard() {
                   <div>{resource.icon}</div>
                   <div>
                     <h4 className="font-medium">{resource.title}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {resource.author}
-                    </p>
                     <p className="text-xs text-muted-foreground">
                       {resource.type}
                     </p>

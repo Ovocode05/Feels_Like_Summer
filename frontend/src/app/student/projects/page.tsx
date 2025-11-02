@@ -57,7 +57,11 @@ export default function ExplorePage() {
   const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [projects, setProjects] = useState<ProjectType[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<ProjectType[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // search state
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     async function fetchAllProjects() {
@@ -67,18 +71,53 @@ export default function ExplorePage() {
         const res = await fetchProjects_active(token);
         if (res.projects && Array.isArray(res.projects)) {
           setProjects(res.projects);
+          setFilteredProjects(res.projects);
         } else {
           setProjects([]);
+          setFilteredProjects([]);
         }
       } catch (error) {
         console.error("Error fetching projects:", error);
         setProjects([]);
+        setFilteredProjects([]);
       }
       setLoading(false);
     }
 
     fetchAllProjects();
   }, []);
+
+  // update filteredProjects when searchQuery or projects change
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredProjects(projects);
+      return;
+    }
+
+    let pattern: RegExp | null = null;
+    try {
+      pattern = new RegExp(searchQuery, "i");
+    } catch (err) {
+      // invalid regex: escape input and build a safe regex
+      const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      pattern = new RegExp(escaped, "i");
+    }
+
+    const matches = (p: ProjectType) => {
+      const haystack = [
+        p.name || "",
+        p.sdesc || "",
+        p.ldesc || "",
+        p.user?.name || "",
+        (p.tags || []).join(" "),
+      ].join(" ");
+      if (pattern!.test(haystack)) return true;
+      // also check each tag individually
+      return (p.tags || []).some((t) => pattern!.test(t));
+    };
+
+    setFilteredProjects(projects.filter(matches));
+  }, [searchQuery, projects]);
 
   const [isAuth, setIsAuth] = useState(false);
 
@@ -101,14 +140,6 @@ export default function ExplorePage() {
     return null;
   }
 
-  // const toggleSaveProject = (id: number) => {
-  //   if (savedProjects.includes(id)) {
-  //     setSavedProjects(savedProjects.filter((projectId) => projectId !== id));
-  //   } else {
-  //     setSavedProjects([...savedProjects, id]);
-  //   }
-  // };
-
   return (
     <div className="flex min-h-screen flex-col">
       <MenubarStudent />
@@ -123,29 +154,6 @@ export default function ExplorePage() {
               qualifications.
             </p>
           </div>
-          {/* <div className="flex items-center gap-2">
-            <Link href="/student/explore/saved">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <BookmarkCheck className="h-4 w-4" />
-                <span className="hidden sm:inline">Saved Projects</span>
-                <span className="inline sm:hidden">Saved</span>
-              </Button>
-            </Link>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span className="hidden sm:inline">Advanced Filters</span>
-              <span className="inline sm:hidden">Filters</span>
-            </Button>
-          </div> */}
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
@@ -358,40 +366,10 @@ export default function ExplorePage() {
                   type="search"
                   placeholder="Search projects, professors, keywords..."
                   className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select defaultValue="relevance">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="relevance">Relevance</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="deadline">Deadline (soonest)</SelectItem>
-                  <SelectItem value="popularity">Popularity</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2 overflow-x-auto pb-2">
-              <Badge variant="outline" className="rounded-full px-3 py-1">
-                All Fields
-              </Badge>
-              <Badge variant="secondary" className="rounded-full px-3 py-1">
-                Computer Science
-              </Badge>
-              <Badge variant="outline" className="rounded-full px-3 py-1">
-                Physics
-              </Badge>
-              <Badge variant="outline" className="rounded-full px-3 py-1">
-                Mathematics
-              </Badge>
-              <Badge variant="outline" className="rounded-full px-3 py-1">
-                Biology
-              </Badge>
-              <Badge variant="outline" className="rounded-full px-3 py-1">
-                Chemistry
-              </Badge>
             </div>
 
             <Tabs defaultValue="all" className="w-full">
@@ -404,12 +382,12 @@ export default function ExplorePage() {
                   <div className="text-center text-muted-foreground py-8">
                     Loading projects...
                   </div>
-                ) : projects.length === 0 ? (
+                ) : filteredProjects.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">
                     No projects found.
                   </div>
                 ) : (
-                  projects.map((project: ProjectType) => (
+                  filteredProjects.map((project: ProjectType) => (
                     <Card key={project.pid} className="overflow-hidden">
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
@@ -419,18 +397,6 @@ export default function ExplorePage() {
                               {project.user?.name || "Unknown Professor"}
                             </CardDescription>
                           </div>
-                          {/* <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleSaveProject(project.ID)}
-                            className="text-muted-foreground hover:text-foreground"
-                          >
-                            {savedProjects.includes(project.ID) ? (
-                              <BookmarkCheck className="h-5 w-5 text-primary" />
-                            ) : (
-                              <Bookmark className="h-5 w-5" />
-                            )}
-                          </Button> */}
                         </div>
                       </CardHeader>
                       <CardContent className="pb-3">
