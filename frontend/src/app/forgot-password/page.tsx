@@ -5,7 +5,14 @@ import type React from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { forgotPassword } from "@/api/api";
@@ -39,7 +46,8 @@ export default function ForgotPasswordPage() {
       await forgotPassword(email);
       setSuccess(true);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMsg =
+        err instanceof Error ? err.message : "An unexpected error occurred";
       setError(errorMsg);
     } finally {
       setIsLoading(false);
@@ -68,7 +76,9 @@ export default function ForgotPasswordPage() {
                 <div className="p-6 bg-green-50 border border-green-200 rounded-lg flex flex-col items-center gap-3 text-center">
                   <CheckCircle className="h-12 w-12 text-green-600" />
                   <div>
-                    <p className="font-semibold text-lg text-green-900">Check Your Email</p>
+                    <p className="font-semibold text-lg text-green-900">
+                      Check Your Email
+                    </p>
                     <p className="text-sm text-green-700 mt-1">
                       We&apos;re sending password reset instructions to
                       <br />
@@ -103,11 +113,7 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading}
-                >
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Sending..." : "Send Reset Link"}
                 </Button>
               </form>

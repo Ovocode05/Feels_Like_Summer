@@ -202,7 +202,6 @@ export default function CVBuilderPage() {
   }
 
   function onSubmit(values: z.infer<typeof cvFormSchema>) {
-    console.log(values);
     setActiveTab("preview");
   }
 

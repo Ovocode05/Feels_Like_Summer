@@ -76,7 +76,6 @@ export default function ResourcesPage() {
       try {
         setIsCheckingPreferences(true);
         const prefs = await getPreferences(token);
-        console.log("Fetched existing preferences:", prefs);
         setExistingPreferences(prefs);
         setHasPreferences(true);
         await loadRoadmap(token);
@@ -116,7 +115,6 @@ export default function ResourcesPage() {
     }
 
     try {
-      console.log("Saving preferences:", preferences);
       // Save preferences to backend first
       await savePreferences(preferences, token);
       toast.success("Preferences saved successfully");
@@ -133,10 +131,6 @@ export default function ResourcesPage() {
   };
 
   const handleEditPreferences = async () => {
-    console.log(
-      "Edit preferences clicked. Current preferences:",
-      existingPreferences
-    );
     // Refresh preferences before editing
     const token = localStorage.getItem("token");
     if (token && !existingPreferences) {

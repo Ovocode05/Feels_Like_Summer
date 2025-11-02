@@ -20,10 +20,23 @@ import {
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 
+interface DecodedToken {
+  userId: string;
+  name: string;
+  email: string;
+  type: string;
+  iat: number;
+  exp: number;
+  sub: string;
+  nbf?: number;
+  iss?: string;
+}
+
 export default function ProfessorDashboard() {
   const router = useRouter();
   const [activeProjectsCount, setActiveProjectsCount] = useState<number>(0);
   const [totalApplications, setTotalApplications] = useState<number>(0); // added
+  const decode = jwtDecode(localStorage.getItem("token") || "") as DecodedToken;
 
   useEffect(() => {
     async function fetchAndCountProjects() {
@@ -92,8 +105,8 @@ export default function ProfessorDashboard() {
                 Dashboard
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-1">
-                Welcome back, Professor Davis. Here is an overview of your
-                research activity.
+                Welcome back, Professor {decode.name}. Here is an overview of
+                your research activity.
               </p>
             </div>
             <div className="flex gap-2">

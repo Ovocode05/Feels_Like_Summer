@@ -72,14 +72,28 @@ interface Application {
   };
 }
 
+interface DecodedToken {
+  userId: string;
+  name: string;
+  email: string;
+  type: string;
+  iat: number;
+  exp: number;
+  sub: string;
+  nbf?: number;
+  iss?: string;
+}
+
 export default function StudentDashboard() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token") || "";
+  const decode = jwtDecode(token) as DecodedToken;
+  console.log(decode.name);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
       return;
@@ -95,7 +109,6 @@ export default function StudentDashboard() {
     const fetchApplications = async () => {
       try {
         const response = await getMyApplications(token);
-        console.log("Applications response:", response); // Debug log
         setApplications(response.applications || []);
       } catch (error) {
         console.error("Error fetching applications:", error);
@@ -166,7 +179,7 @@ export default function StudentDashboard() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back Krrish. Track your research journey here.
+              Welcome back {decode.name} . Track your research journey here.
             </p>
           </div>
           <Link href="/student/projects">

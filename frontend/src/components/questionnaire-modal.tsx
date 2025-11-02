@@ -112,9 +112,7 @@ export default function QuestionnaireModal({
     }
   );
   const [selectedInterests, setSelectedInterests] = useState<string[]>(
-    initialData?.interest_areas
-      ? JSON.parse(initialData.interest_areas)
-      : []
+    initialData?.interest_areas ? JSON.parse(initialData.interest_areas) : []
   );
 
   // Reset form when modal opens or initialData changes
@@ -122,7 +120,7 @@ export default function QuestionnaireModal({
     if (open) {
       setStep(1); // Always reset to step 1 when modal opens
       setIsSubmitting(false); // Reset submitting state
-      
+
       if (initialData) {
         console.log("Modal opened with initialData:", initialData);
         setFormData(initialData);
@@ -174,7 +172,7 @@ export default function QuestionnaireModal({
 
   const handleSubmit = async () => {
     if (isSubmitting) return; // Prevent double submission
-    
+
     setIsSubmitting(true);
     const preferences: ResearchPreferences = {
       field_of_study: formData.field_of_study || "",
@@ -188,7 +186,7 @@ export default function QuestionnaireModal({
     console.log("Modal handleSubmit - preferences:", preferences);
     console.log("Modal handleSubmit - formData:", formData);
     console.log("Modal handleSubmit - selectedInterests:", selectedInterests);
-    
+
     try {
       await onComplete(preferences);
     } catch (error) {
@@ -203,7 +201,12 @@ export default function QuestionnaireModal({
       case 1:
         return formData.field_of_study && formData.experience_level;
       case 2:
-        return formData.current_year && formData.current_year > 0 && formData.time_commitment && formData.time_commitment > 0;
+        return (
+          formData.current_year &&
+          formData.current_year > 0 &&
+          formData.time_commitment &&
+          formData.time_commitment > 0
+        );
       case 3:
         return selectedInterests.length > 0;
       case 4:
@@ -427,11 +430,7 @@ export default function QuestionnaireModal({
         </div>
 
         <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={step === 1}
-          >
+          <Button variant="outline" onClick={handleBack} disabled={step === 1}>
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -442,7 +441,10 @@ export default function QuestionnaireModal({
               <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={!canProceed() || isSubmitting}>
+            <Button
+              onClick={handleSubmit}
+              disabled={!canProceed() || isSubmitting}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

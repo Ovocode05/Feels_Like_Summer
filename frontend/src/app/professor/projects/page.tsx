@@ -156,7 +156,6 @@ export default function ProfessorProjectsPage() {
       },
       token
     );
-    console.log(res);
 
     if (!res) return;
     await fetchProjects();
