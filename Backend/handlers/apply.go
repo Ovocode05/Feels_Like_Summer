@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/config"
 	"backend/models"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -53,7 +54,7 @@ func ApplyToProject(c echo.Context) error {
 
 	// Check if student has already applied to this project
 	var existingApplication models.ProjRequests
-	result := tx.Where("uid = ? AND pid = ?", userData.GetUID(), projectID).First(&existingApplication)
+	result := tx.Where("uid = ? AND p_id = ?", userData.GetUID(), projectID).First(&existingApplication)
 	if result.Error == nil {
 		tx.Rollback()
 		return c.JSON(http.StatusConflict, echo.Map{"error": "You have already applied to this project"})
@@ -132,7 +133,7 @@ func GetProjectApplications(c echo.Context) error {
 	}
 
 	var applications []models.ProjRequests
-	if err := config.DB.Where("pid = ?", projectID).Find(&applications).Error; err != nil {
+	if err := config.DB.Where("p_id = ?", projectID).Find(&applications).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch applications"})
 	}
 
@@ -237,7 +238,7 @@ func UpdateApplicationStatus(c echo.Context) error {
 
 	// Find and update the application
 	var application models.ProjRequests
-	if err := tx.Where("id = ? AND pid = ?", applicationID, projectID).First(&application).Error; err != nil {
+	if err := tx.Where("id = ? AND p_id = ?", applicationID, projectID).First(&application).Error; err != nil {
 		tx.Rollback()
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "Application not found"})
 	}
@@ -307,17 +308,17 @@ func GetMyApplications(c echo.Context) error {
 		CVLink           string    `json:"cvLink"`
 		PublicationsLink string    `json:"publicationsLink"`
 		Project          struct {
-			ID           uint     `json:"ID"`
+			ID           uint      `json:"ID"`
 			CreatedAt    time.Time `json:"CreatedAt"`
 			UpdatedAt    time.Time `json:"UpdatedAt"`
-			ProjectName  string   `json:"project_name"`
-			ProjectID    string   `json:"project_id"`
-			ShortDesc    string   `json:"short_desc"`
-			LongDesc     string   `json:"long_desc"`
-			Tags         []string `json:"tags"`
-			CreatorID    string   `json:"creator_id"`
-			IsActive     bool     `json:"is_active"`
-			WorkingUsers []string `json:"working_users"`
+			ProjectName  string    `json:"project_name"`
+			ProjectID    string    `json:"project_id"`
+			ShortDesc    string    `json:"short_desc"`
+			LongDesc     string    `json:"long_desc"`
+			Tags         []string  `json:"tags"`
+			CreatorID    string    `json:"creator_id"`
+			IsActive     bool      `json:"is_active"`
+			WorkingUsers []string  `json:"working_users"`
 		} `json:"Project"`
 		User struct {
 			ID        uint      `json:"ID"`
@@ -334,12 +335,13 @@ func GetMyApplications(c echo.Context) error {
 	if err := config.DB.Where("uid = ?", userData.GetUID()).Order("time_created DESC").Find(&applications).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch applications"})
 	}
-
 	var applicationsResponse []ApplicationResponse
 
 	// For each application, fetch project and professor details
 	for _, app := range applications {
 		var project models.Projects
+		fmt.Println("Printing pid")
+		// fmt.Println(applications.PID)
 		if err := config.DB.Where("project_id = ?", app.PID).First(&project).Error; err != nil {
 			continue // Skip if project not found
 		}
@@ -364,7 +366,7 @@ func GetMyApplications(c echo.Context) error {
 			CVLink:           app.CVLink,
 			PublicationsLink: app.PublicationsLink,
 		}
-		
+
 		appResponse.Project.ID = project.ID
 		appResponse.Project.CreatedAt = project.CreatedAt
 		appResponse.Project.UpdatedAt = project.UpdatedAt
@@ -455,7 +457,7 @@ func GetAllMyProjectApplications(c echo.Context) error {
 	// For each project, fetch all applications
 	for _, project := range projects {
 		var applications []models.ProjRequests
-		if err := config.DB.Where("pid = ?", project.ProjectID).Find(&applications).Error; err != nil {
+		if err := config.DB.Where("p_id = ?", project.ProjectID).Find(&applications).Error; err != nil {
 			continue // Skip if error fetching applications
 		}
 
