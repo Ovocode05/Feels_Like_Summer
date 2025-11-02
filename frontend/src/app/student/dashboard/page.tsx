@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -30,10 +30,53 @@ import MenubarStudent from "@/components/ui/menubar_student";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getMyApplications } from "@/api/api";
+
+interface Application {
+  ID: number;
+  CreatedAt?: string;
+  UpdatedAt?: string;
+  DeletedAt?: string | null;
+  time_created: string;
+  status: string;
+  uid: string;
+  pid: string;
+  availability?: string;
+  motivation?: string;
+  prior_projects?: string;
+  cv_link?: string;
+  publications_link?: string;
+  Project: {
+    ID?: number;
+    CreatedAt?: string;
+    UpdatedAt?: string;
+    DeletedAt?: string | null;
+    project_name: string;
+    project_id: string;
+    short_desc: string;
+    long_desc: string;
+    tags: string[];
+    creator_id: string;
+    is_active: boolean;
+    working_users: string[];
+  };
+  User: {
+    ID?: number;
+    CreatedAt?: string;
+    UpdatedAt?: string;
+    DeletedAt?: string | null;
+    uid: string;
+    name: string;
+    email: string;
+    type: string;
+  };
+}
 
 export default function StudentDashboard() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -47,7 +90,69 @@ export default function StudentDashboard() {
       return;
     }
     setIsAuth(true);
-  }, []);
+    
+    // Fetch applications
+    const fetchApplications = async () => {
+      try {
+        const response = await getMyApplications(token);
+        console.log("Applications response:", response); // Debug log
+        setApplications(response.applications || []);
+      } catch (error) {
+        console.error("Error fetching applications:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, [router]);
+
+  const getStatusVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "approved":
+      case "accepted":
+        return "default";
+      case "interview":
+        return "default";
+      case "under_review":
+        return "secondary";
+      case "rejected":
+        return "destructive";
+      case "waitlisted":
+        return "secondary";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "under_review":
+        return "Under Review";
+      case "approved":
+        return "Approved";
+      case "accepted":
+        return "Accepted";
+      case "rejected":
+        return "Rejected";
+      case "interview":
+        return "Interview Scheduled";
+      case "waitlisted":
+        return "Waitlisted";
+      default:
+        return status;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   if (!isAuth) {
     // Optionally show a loading spinner here
@@ -64,7 +169,7 @@ export default function StudentDashboard() {
               Welcome back Krrish. Track your research journey here.
             </p>
           </div>
-          <Link href="/student/explore">
+          <Link href="/student/projects">
             <Button className="flex items-center gap-1">
               <Search className="h-4 w-4" /> Find Projects
             </Button>
@@ -80,9 +185,9 @@ export default function StudentDashboard() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">{applications.length}</div>
               <p className="text-xs text-muted-foreground">
-                Submitted in the last 30 days
+                Total applications submitted
               </p>
             </CardContent>
           </Card>
@@ -94,7 +199,15 @@ export default function StudentDashboard() {
               <Rocket className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1</div>
+              <div className="text-2xl font-bold">
+                {
+                  applications.filter(
+                    (app) =>
+                      app.status.toLowerCase() === "accepted" ||
+                      app.status.toLowerCase() === "approved"
+                  ).length
+                }
+              </div>
               <p className="text-xs text-muted-foreground">
                 Active research participation
               </p>
@@ -103,13 +216,21 @@ export default function StudentDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Saved Projects
+                Interviews Scheduled
               </CardTitle>
               <BookMarkCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">In your watchlist</p>
+              <div className="text-2xl font-bold">
+                {
+                  applications.filter(
+                    (app) => app.status.toLowerCase() === "interview"
+                  ).length
+                }
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Pending interviews
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -124,80 +245,67 @@ export default function StudentDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {[
-                  {
-                    professor: "Prof. Richard Williams",
-                    project: "Quantum Computing Algorithms",
-                    date: "Submitted May 12, 2023",
-                    status: "Under Review",
-                  },
-                  {
-                    professor: "Prof. Sarah Lee",
-                    project: "Neural Networks for Image Recognition",
-                    date: "Submitted May 5, 2023",
-                    status: "Interview Scheduled",
-                  },
-                  {
-                    professor: "Prof. James Chen",
-                    project: "Statistical Models for Climate Data",
-                    date: "Submitted Apr 28, 2023",
-                    status: "Pending",
-                  },
-                ].map((application, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between space-x-4"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <Avatar>
-                        <AvatarImage
-                          src="/placeholder.svg?height=40&width=40"
-                          alt={application.professor}
-                        />
-                        <AvatarFallback>
-                          {application.professor.split(" ").pop()?.[0] ?? "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium leading-none">
-                          {application.project}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {application.professor}
-                        </p>
-                        <div className="flex items-center gap-2 pt-1">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {application.date}
-                          </span>
-                          <Badge
-                            variant={
-                              application.status === "Interview Scheduled"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className="text-xs"
-                          >
-                            {application.status}
-                          </Badge>
+                {loading ? (
+                  <div className="text-center py-4">Loading applications...</div>
+                ) : applications.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    You haven&apos;t applied to any projects yet.
+                  </div>
+                ) : (
+                  applications.slice(0, 3).map((application) => (
+                    <div
+                      key={application.ID}
+                      className="flex items-center justify-between space-x-4"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <Avatar>
+                          <AvatarFallback>
+                            {application.User?.name
+                              ?.split(" ")
+                              .map((n: string) => n[0])
+                              .join("")
+                              .toUpperCase() || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium leading-none">
+                            {application.Project?.project_name || "Unknown Project"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {application.User?.name || "Unknown Professor"}
+                          </p>
+                          <div className="flex items-center gap-2 pt-1">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                              Submitted {formatDate(application.time_created)}
+                            </span>
+                            <Badge
+                              variant={getStatusVariant(application.status)}
+                              className="text-xs"
+                            >
+                              {getStatusDisplay(application.status)}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
+                      <Link href={`/project/${application.pid}`}>
+                        <Button variant="ghost" size="sm">
+                          View <ChevronRight className="ml-1 h-4 w-4" />
+                        </Button>
+                      </Link>
                     </div>
-                    <Link href={`/student/applications/${i + 1}`}>
-                      <Button variant="ghost" size="sm">
-                        View <ChevronRight className="ml-1 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
             <CardFooter>
-              <Link href="/student/applications">
-                <Button variant="outline" className="w-full">
-                  View All Applications
-                </Button>
-              </Link>
+              {applications.length > 3 && (
+                <Link href="/student/applications" className="w-full">
+                  <Button variant="outline" className="w-full">
+                    View All Applications
+                  </Button>
+                </Link>
+              )}
             </CardFooter>
           </Card>
           <Card className="lg:col-span-3">

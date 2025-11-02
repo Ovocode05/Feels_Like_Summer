@@ -21,7 +21,7 @@ function MenubarStudent() {
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
       <Link href="/" className="flex items-center gap-2 lg:flex">
         <BookOpen className="h-6 w-6" />
-        <span className="text-xl font-bold">ResearchConnect</span>
+        <span className="text-xl font-bold">FLS</span>
       </Link>
       <nav className="hidden flex-1 items-center justify-center lg:flex">
         <div className="flex gap-6">
@@ -32,10 +32,10 @@ function MenubarStudent() {
             Dashboard
           </Link>
           <Link
-            href="/student/explore"
+            href="/student/projects"
             className="text-sm font-medium underline-offset-4 hover:underline"
           >
-            Explore
+            Projects
           </Link>
           <Link
             href="/student/resources"
@@ -44,15 +44,15 @@ function MenubarStudent() {
             Resources
           </Link>
           <Link
-            href="/student/cv"
+            href="/student/profile"
             className="text-sm font-medium text-primary underline-offset-4 hover:underline"
           >
-            My CV
+            Profile
           </Link>
         </div>
       </nav>
       <div className="ml-auto flex items-center gap-4">
-        <Link href="/messages">
+        {/* <Link href="/messages">
           <Button variant="ghost" size="icon" className="relative">
             <MessageSquare className="h-5 w-5" />
             <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
@@ -62,7 +62,7 @@ function MenubarStudent() {
         </Link>
         <Button variant="ghost" size="icon">
           <Bell className="h-5 w-5" />
-        </Button>
+        </Button> */}
         <Link href="/student/profile">
           <Avatar>
             <AvatarImage

@@ -67,9 +67,10 @@ func (u *User) GetName() string {
 
 type User struct {
 	gorm.Model
-	Uid      string   `json:"uid" gorm:"uniqueIndex;not null"`
-	Name     string   `json:"name"`
-	Email    string   `json:"email" gorm:"uniqueIndex;not null"`
-	Password string   `json:"password"`
-	Type     UserType `json:"type" gorm:"type:varchar(3);check:type IN ('fac','stu')"`
+	Uid           string   `json:"uid" gorm:"uniqueIndex;not null"`
+	Name          string   `json:"name"`
+	Email         string   `json:"email" gorm:"uniqueIndex;not null"`
+	Password      string   `json:"password"`
+	Type          UserType `json:"type" gorm:"type:varchar(3);check:type IN ('fac','stu')"`
+	EmailVerified bool     `json:"email_verified" gorm:"default:false"`
 }

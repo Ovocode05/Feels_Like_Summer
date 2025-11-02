@@ -21,21 +21,21 @@ func main() {
 
 	// Initialize Database
 	config.InitDB()
-	config.DB.AutoMigrate(&models.User{}, &models.Projects{})
+	config.DB.AutoMigrate(&models.User{}, &models.Projects{}, &models.PasswordReset{}, &models.ProjRequests{}, &models.EmailVerification{}, &models.Students{})
 
 	// Initialize Echo
 	e := echo.New()
-	    e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-        AllowOrigins: []string{"http://localhost:3000", "https://feels-like-summer.vercel.app"},
-        AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
-        AllowHeaders: []string{
-            echo.HeaderOrigin,
-            echo.HeaderContentType,
-            echo.HeaderAccept,
-            echo.HeaderAuthorization,
-        },
-        AllowCredentials: true,
-    }))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000", "https://feels-like-summer.vercel.app"},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+		},
+		AllowCredentials: true,
+	}))
 	// Setup Routes
 	routers.SetupRoutes(e)
 

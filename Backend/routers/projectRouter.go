@@ -29,5 +29,6 @@ func RegisterProjectRoutes(api *echo.Group) {
 	// Student application routes
 	applications := api.Group("/applications")
 	applications.Use(middleware.JWTMiddleware())
-	applications.GET("/my", handlers.GetMyApplications, middleware.RequireUserType("stu")) // Get student's own applications
+	applications.GET("/my", handlers.GetMyApplications, middleware.RequireUserType("stu"))            // Get student's own applications
+	applications.GET("/all", handlers.GetAllMyProjectApplications, middleware.RequireUserType("fac")) // Get all applications for all professor's projects
 }

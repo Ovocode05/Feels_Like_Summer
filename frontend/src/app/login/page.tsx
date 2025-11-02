@@ -25,8 +25,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { loginUser } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -39,7 +39,18 @@ type JWT = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [showVerifiedMessage, setShowVerifiedMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("verified") === "true") {
+      setShowVerifiedMessage(true);
+      setTimeout(() => setShowVerifiedMessage(false), 5000);
+    }
+  }, [searchParams]);
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -50,19 +61,31 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
-    const res = await loginUser(values);
-    localStorage.setItem("token", res);
-    const decoded: JWT = jwtDecode(res);
+    try {
+      const res = await loginUser(values);
+      localStorage.setItem("token", res);
+      const decoded: JWT = jwtDecode(res);
 
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      if (decoded.type === "stu") {
-        router.push("/student/dashboard");
-      } else if (decoded.type === "fac") {
-        router.push("/professor/dashboard");
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        if (decoded.type === "stu") {
+          router.push("/student/dashboard");
+        } else if (decoded.type === "fac") {
+          router.push("/professor/dashboard");
+        }
+      }, 2000);
+    } catch (error: any) {
+      if (error.response?.status === 403 && error.response?.data?.email_verified === false) {
+        setErrorMessage("Please verify your email before logging in. Check your inbox for the verification link.");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+      } else {
+        setErrorMessage(error.response?.data?.error || "Login failed. Please check your credentials.");
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
       }
-    }, 2000);
+    }
   };
 
   return (
@@ -139,6 +162,30 @@ export default function LoginPage() {
                 <button
                   className="ml-2 text-green-800 hover:text-green-600"
                   onClick={() => setShowSuccess(false)}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+            )}
+            {showError && (
+              <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-red-300 bg-red-50 px-6 py-3 text-red-800 shadow-xl animate-fade-in max-w-md">
+                <span className="text-sm">{errorMessage}</span>
+                <button
+                  className="ml-2 text-red-800 hover:text-red-600"
+                  onClick={() => setShowError(false)}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+            )}
+            {showVerifiedMessage && (
+              <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-green-300 bg-green-50 px-6 py-3 text-green-800 shadow-xl animate-fade-in max-w-md">
+                <span className="font-semibold">✓ Email verified successfully! You can now log in.</span>
+                <button
+                  className="ml-2 text-green-800 hover:text-green-600"
+                  onClick={() => setShowVerifiedMessage(false)}
                   aria-label="Close"
                 >
                   &times;

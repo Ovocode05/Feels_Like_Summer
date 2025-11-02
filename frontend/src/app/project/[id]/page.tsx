@@ -17,6 +17,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
+import { ApplyModal } from "@/components/apply-modal";
+import { useToast } from "@/hooks/use-toast";
 
 type ProjectType = {
   ID: number;
@@ -39,6 +41,7 @@ export default function ProjectDetails() {
   const params = useParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
   const [project, setProject] = useState<ProjectType | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -48,6 +51,7 @@ export default function ProjectDetails() {
   const [showAuthPopup, setShowAuthPopup] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
 
   const pid = params?.id as string;
 
@@ -107,6 +111,13 @@ export default function ProjectDetails() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     window.location.href = "/login";
+  };
+
+  const handleApplicationSuccess = () => {
+    toast({
+      title: "Success!",
+      description: "Your application has been submitted successfully.",
+    });
   };
 
   if (loading) {
@@ -231,6 +242,38 @@ export default function ProjectDetails() {
                 {project.user?.type === "fac" ? "Faculty" : "User"}
               </Badge>
             </div>
+
+            {/* Apply Button for Students */}
+            {isStudent && project.isActive && (
+              <div className="rounded-xl bg-white shadow border border-black/10 p-6">
+                <Button
+                  onClick={() => setApplyModalOpen(true)}
+                  className="w-full bg-black text-white hover:bg-black/80"
+                  size="lg"
+                >
+                  Apply to This Project
+                </Button>
+                <p className="text-xs text-black/60 text-center mt-3">
+                  Submit your application and profile information
+                </p>
+              </div>
+            )}
+            
+            {isStudent && !project.isActive && (
+              <div className="rounded-xl bg-white shadow border border-black/10 p-6">
+                <Button
+                  disabled
+                  className="w-full"
+                  size="lg"
+                  variant="outline"
+                >
+                  Project Inactive
+                </Button>
+                <p className="text-xs text-black/60 text-center mt-3">
+                  This project is not accepting applications
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -359,6 +402,18 @@ export default function ProjectDetails() {
           </div>
         )}
       </main>
+
+      {/* Apply Modal */}
+      {project && (
+        <ApplyModal
+          isOpen={applyModalOpen}
+          onClose={() => setApplyModalOpen(false)}
+          projectId={project.pid}
+          projectName={project.name}
+          onSuccess={handleApplicationSuccess}
+        />
+      )}
+
       <footer className="border-t py-6 md:py-8 bg-white">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-2">

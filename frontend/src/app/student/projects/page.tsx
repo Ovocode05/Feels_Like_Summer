@@ -43,6 +43,7 @@ import MenubarStudent from "@/components/ui/menubar_student";
 import { fetchProjects_active } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 type ProjectType = {
   ID: number;
@@ -500,12 +501,9 @@ export default function ExplorePage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Link href={`/project/${project.pid}`}>
-                            <Button variant="outline" size="sm">
+                            <Button size="sm">
                               View Details
                             </Button>
-                          </Link>
-                          <Link href={`/student/apply/${project.pid}`}>
-                            <Button size="sm">Apply</Button>
                           </Link>
                         </div>
                       </div>

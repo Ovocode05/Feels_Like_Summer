@@ -36,12 +36,19 @@ func UpdateStudentProfile(c echo.Context) error {
 
 	// Parse request body
 	var updateRequest struct {
+		Institution      string   `json:"institution"`
+		Degree           string   `json:"degree"`
+		Location         string   `json:"location"`
+		Dates            string   `json:"dates"`
 		Experience       string   `json:"workEx"`
 		Projects         []string `json:"projects"`
-		PlatformProjects []uint   `json:"platformProjects"`
+		PlatformProjects []int64  `json:"platformProjects"`
 		Skills           []string `json:"skills"`
 		Activities       []string `json:"activities"`
 		Resume           string   `json:"resumeLink"`
+		Publications     string   `json:"publicationsLink"`
+		ResearchInterest string   `json:"researchInterest"`
+		Intention        string   `json:"intention"`
 	}
 
 	if err := c.Bind(&updateRequest); err != nil {
@@ -59,12 +66,19 @@ func UpdateStudentProfile(c echo.Context) error {
 			// Create new student record if doesn't exist
 			student = models.Students{
 				Uid:              userData.UID,
+				Institution:      updateRequest.Institution,
+				Degree:           updateRequest.Degree,
+				Location:         updateRequest.Location,
+				Dates:            updateRequest.Dates,
 				Experience:       updateRequest.Experience,
 				Projects:         updateRequest.Projects,
 				PlatformProjects: updateRequest.PlatformProjects,
 				Skills:           updateRequest.Skills,
 				Activities:       updateRequest.Activities,
 				Resume:           updateRequest.Resume,
+				Publications:     updateRequest.Publications,
+				ResearchInterest: updateRequest.ResearchInterest,
+				Intention:        updateRequest.Intention,
 			}
 
 			if err := config.DB.Create(&student).Error; err != nil {
@@ -85,12 +99,19 @@ func UpdateStudentProfile(c echo.Context) error {
 	}
 
 	// Update existing student record
+	student.Institution = updateRequest.Institution
+	student.Degree = updateRequest.Degree
+	student.Location = updateRequest.Location
+	student.Dates = updateRequest.Dates
 	student.Experience = updateRequest.Experience
 	student.Projects = updateRequest.Projects
 	student.PlatformProjects = updateRequest.PlatformProjects
 	student.Skills = updateRequest.Skills
 	student.Activities = updateRequest.Activities
 	student.Resume = updateRequest.Resume
+	student.Publications = updateRequest.Publications
+	student.ResearchInterest = updateRequest.ResearchInterest
+	student.Intention = updateRequest.Intention
 
 	if err := config.DB.Save(&student).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
@@ -261,7 +282,7 @@ func AddPlatformProject(c echo.Context) error {
 
 	// Parse request body
 	var updateRequest struct {
-		ProjectID uint `json:"projectId"`
+		ProjectID int64 `json:"projectId"`
 	}
 
 	if err := c.Bind(&updateRequest); err != nil {

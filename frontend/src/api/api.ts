@@ -1,0 +1,471 @@
+import axios from "axios";
+
+const url = process.env.NEXT_PUBLIC_BACKEND_API || "http://localhost:8080/v1";
+
+interface RegisterUserData {
+  name: string;
+  email: string;
+  password: string;
+  type: "stu" | "fac";
+}
+
+interface LoginUserData {
+  email: string;
+  password: string;
+}
+
+export type ProjectCreateType = {
+  name: string;
+  sdesc: string;
+  ldesc: string;
+  isActive: boolean;
+  tags?: string[];
+  working_users?: string[];
+};
+
+type booled = {
+  isActive: boolean;
+};
+
+export const registerUser = async (data: RegisterUserData) => {
+  try {
+    const response = await axios.post(`${url}/auth/signup`, data, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error registering user:", error);
+    throw error;
+  }
+};
+
+export const loginUser = async (data: LoginUserData) => {
+  try {
+    const response = await axios.post(`${url}/auth/login`, data, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+    return response.data.token; // Assuming the response contains a token
+  } catch (error) {
+    console.error("Error logging in user:", error);
+    throw error;
+  }
+};
+
+export const getCurrentUser = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/auth/me`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    throw error;
+  }
+};
+
+export const refreshToken = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    throw new Error("No token found");
+  }
+
+  try {
+    const response = await axios.post(
+      `${url}/auth/refresh`,
+      { token },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data.token;
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    throw error;
+  }
+};
+
+export const createProject = async (data: ProjectCreateType, token: string) => {
+  try {
+    const response = await axios.post(`${url}/projects`, data, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating project:", error);
+    throw error;
+  }
+};
+
+export const fetchProjects_active = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/projects`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    throw error;
+  }
+};
+
+export const fetchProjects_active_my = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/projects/my`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    throw error;
+  }
+};
+
+export const deleteProject = async (projectId: string, token: string) => {
+  try {
+    const response = await axios.delete(`${url}/projects/${projectId}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    throw error;
+  }
+};
+
+export const getProjectByPid = async (pid: string, token: string) => {
+  try {
+    const response = await axios.get(`${url}/projects/${pid}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching project by pid:", error);
+    throw error;
+  }
+};
+
+export const updateProjectByPid = async (
+  pid: string,
+  data: booled,
+  token: string
+) => {
+  try {
+    const response = await axios.put(`${url}/projects/${pid}`, data, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating project by pid:", error);
+    throw error;
+  }
+};
+
+// Password Reset APIs
+export const forgotPassword = async (email: string) => {
+  try {
+    const response = await axios.post(
+      `${url}/auth/forgot-password`,
+      { email },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error requesting password reset:", error);
+    throw error;
+  }
+};
+
+export const verifyResetToken = async (token: string) => {
+  try {
+    const response = await axios.post(
+      `${url}/auth/verify-reset-token`,
+      { token },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error verifying reset token:", error);
+    throw error;
+  }
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+  try {
+    const response = await axios.post(
+      `${url}/auth/reset-password`,
+      { token, new_password: newPassword },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    throw error;
+  }
+};
+
+// Email Verification APIs
+export const sendVerificationCode = async (email: string) => {
+  try {
+    const response = await axios.post(
+      `${url}/auth/send-verification-code`,
+      { email },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error sending verification code:", error);
+    throw error;
+  }
+};
+
+export const verifyCode = async (email: string, code: string) => {
+  try {
+    const response = await axios.post(
+      `${url}/auth/verify-code`,
+      { email, code },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error verifying code:", error);
+    throw error;
+  }
+};
+
+export const verifyEmail = async (token: string) => {
+  try {
+    const response = await axios.post(
+      `${url}/auth/verify-email`,
+      { token },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    throw error;
+  }
+};
+
+export const resendVerification = async (email: string) => {
+  try {
+    const response = await axios.post(
+      `${url}/auth/resend-verification`,
+      { email },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error resending verification:", error);
+    throw error;
+  }
+};
+
+// Application APIs
+export const getMyApplications = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/applications/my`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching applications:", error);
+    throw error;
+  }
+};
+
+export type ApplicationData = {
+  availability: string;
+  motivation: string;
+  priorProjects: string;
+  cvLink: string;
+  publicationsLink: string;
+};
+
+export const applyToProject = async (
+  projectId: string,
+  applicationData: ApplicationData,
+  token: string
+) => {
+  try {
+    const response = await axios.post(
+      `${url}/projects/${projectId}/apply`,
+      applicationData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error applying to project:", error);
+    throw error;
+  }
+};
+
+// Profile APIs
+export type StudentProfile = {
+  uid?: string;
+  institution?: string;
+  degree?: string;
+  location?: string;
+  dates?: string;
+  workEx?: string;
+  projects?: string[];
+  platformProjects?: number[];
+  skills?: string[];
+  activities?: string[];
+  resumeLink?: string;
+  publicationsLink?: string;
+  researchInterest?: string;
+  intention?: string;
+};
+
+export const getStudentProfile = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/profile/student`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching student profile:", error);
+    throw error;
+  }
+};
+
+export const updateStudentProfile = async (
+  profileData: StudentProfile,
+  token: string
+) => {
+  try {
+    const response = await axios.put(`${url}/profile/student`, profileData, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating student profile:", error);
+    throw error;
+  }
+};
+
+// Get all applications for all professor's projects
+export const getAllMyProjectApplications = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/applications/all`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all project applications:", error);
+    throw error;
+  }
+};
+
+// Update application status
+export const updateApplicationStatus = async (
+  projectId: string,
+  applicationId: number,
+  status: string,
+  token: string
+) => {
+  try {
+    const response = await axios.put(
+      `${url}/projects/${projectId}/applications/${applicationId}`,
+      { status },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating application status:", error);
+    throw error;
+  }
+};

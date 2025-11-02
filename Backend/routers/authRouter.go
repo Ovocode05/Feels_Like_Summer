@@ -10,10 +10,20 @@ import (
 func RegisterAuthRoutes(api *echo.Group) {
 	authGroup := api.Group("/auth")
 
-	// Public routes (no authentication required)
 	authGroup.POST("/signup", handlers.Signup)
 	authGroup.POST("/login", handlers.Login)
 
-	// Protected routes (require JWT token)
-	authGroup.POST("/refresh", handlers.RefreshToken, middleware.JWTMiddleware())
+	// Password reset routes
+	authGroup.POST("/forgot-password", handlers.ForgotPassword)
+	authGroup.POST("/verify-reset-token", handlers.VerifyResetToken)
+	authGroup.POST("/reset-password", handlers.ResetPassword)
+
+	// Email verification routes
+	authGroup.POST("/send-verification-code", handlers.SendVerificationCode)
+	authGroup.POST("/verify-code", handlers.VerifyCode)
+	authGroup.POST("/verify-email", handlers.VerifyEmail)
+	authGroup.POST("/resend-verification", handlers.ResendVerification)
+
+	// Get current user (requires authentication)
+	authGroup.GET("/me", handlers.GetMe, middleware.JWTMiddleware())
 }
