@@ -31,10 +31,22 @@ type GeminiResponse struct {
 		} `json:"content"`
 	} `json:"candidates"`
 }
-
+func getApiKeys() []string {
+	keys := os.GetEnv("GEMINI_KEYS")
+ if keys == ""{
+return nil
+}
+	parts := strings.Split(keys, ",")
+ for i := range parts{
+		parts[i] = strings.TrimSpace(parts[i])
+}
+return parts
+}
+	
+	
 // GenerateRoadmap calls Gemini 2.5 Flash to generate a research roadmap
 func GenerateRoadmap(fieldOfStudy, experienceLevel, goals, interestAreas string, timeCommitment int) (string, error) {
-	apiKey := os.Getenv("GEMINI_API_KEY")
+	apiKey := getApiKeys()
 	if apiKey == "" {
 		return "", errors.New("GEMINI_API_KEY not set")
 	}
