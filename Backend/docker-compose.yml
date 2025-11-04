@@ -16,6 +16,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app_network
 
   backend:
     image: fls/backend
@@ -35,6 +37,8 @@ services:
     ports:
       - "8090:8080"
     restart: unless-stopped
+    networks:
+      - app_network
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -52,7 +56,13 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - db
+    networks:
+      - app_network
 
 volumes:
   db_data:
   pgadmin_data:
+
+networks:
+  app_network:
+    driver: bridge
