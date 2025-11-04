@@ -34,7 +34,7 @@ type GeminiResponse struct {
 }
 
 func getApiKeys() []string {
-	keys := os.Getenv("GEMINI_KEYS")
+	keys := os.Getenv("GEMINI_API_KEY")
 	if keys == "" {
 		return nil
 	}
