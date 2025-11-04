@@ -47,8 +47,8 @@ func getApiKeys() []string {
 
 // GenerateRoadmap calls Gemini 2.5 Flash to generate a research roadmap
 func GenerateRoadmap(fieldOfStudy, experienceLevel, goals, interestAreas string, timeCommitment int) (string, error) {
-	apiKey := getApiKeys()
-	if len(apiKey) == 0 {
+	apiKeys := getApiKeys()
+	if len(apiKeys) == 0 {
 		return "", errors.New("GEMINI_API_KEY not set")
 	}
 
@@ -69,28 +69,45 @@ func GenerateRoadmap(fieldOfStudy, experienceLevel, goals, interestAreas string,
 		return "", err
 	}
 
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=%s", apiKey)
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+	var lastErr error
+	// Try each API key in sequence
+	for i, apiKey := range apiKeys {
+		url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=%s", apiKey)
+		resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+		if err != nil {
+			lastErr = fmt.Errorf("API key %d failed: %w", i+1, err)
+			continue // Try next key
+		}
 
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("gemini API error: %s", string(body))
+		// Check response status
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			lastErr = fmt.Errorf("API key %d returned status %d: %s", i+1, resp.StatusCode, string(body))
+			continue // Try next key
+		}
+
+		// Parse response
+		var geminiResp GeminiResponse
+		if err := json.NewDecoder(resp.Body).Decode(&geminiResp); err != nil {
+			resp.Body.Close()
+			lastErr = fmt.Errorf("API key %d decode error: %w", i+1, err)
+			continue // Try next key
+		}
+		resp.Body.Close()
+
+		// Check for valid response content
+		if len(geminiResp.Candidates) == 0 || len(geminiResp.Candidates[0].Content.Parts) == 0 {
+			lastErr = fmt.Errorf("API key %d returned empty response", i+1)
+			continue // Try next key
+		}
+
+		// Success! Return the response
+		return geminiResp.Candidates[0].Content.Parts[0].Text, nil
 	}
 
-	var geminiResp GeminiResponse
-	if err := json.NewDecoder(resp.Body).Decode(&geminiResp); err != nil {
-		return "", err
-	}
-
-	if len(geminiResp.Candidates) == 0 || len(geminiResp.Candidates[0].Content.Parts) == 0 {
-		return "", errors.New("no response from Gemini")
-	}
-
-	return geminiResp.Candidates[0].Content.Parts[0].Text, nil
+	// All keys failed
+	return "", fmt.Errorf("all API keys failed, last error: %w", lastErr)
 }
 
 func buildRoadmapPrompt(fieldOfStudy, experienceLevel, goals, interestAreas string, timeCommitment int) string {
