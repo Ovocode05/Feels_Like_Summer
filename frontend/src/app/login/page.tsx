@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { loginUser } from "@/api/api";
+import { loginUser, resendVerification } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -82,11 +82,19 @@ export default function LoginPage() {
         error.response?.status === 403 &&
         error.response?.data?.email_verified === false
       ) {
-        setErrorMessage(
-          "Please verify your email before logging in. Check your inbox for the verification link."
-        );
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
+        // Email not verified - resend verification and redirect
+        try {
+          await resendVerification(values.email);
+          router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
+        } catch (resendError) {
+          setErrorMessage(
+            "Please verify your email. Redirecting to verification page..."
+          );
+          setShowError(true);
+          setTimeout(() => {
+            router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
+          }, 2000);
+        }
       } else {
         setErrorMessage(
           error.response?.data?.error ||

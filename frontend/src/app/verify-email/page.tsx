@@ -48,11 +48,12 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const emailParam = searchParams.get("email");
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(emailParam || "");
   const [isResending, setIsResending] = useState(false);
   const { toast } = useToast();
 
@@ -98,6 +99,33 @@ export default function VerifyEmailPage() {
       handleVerification(token);
     }
   }, [token, handleVerification]);
+
+  // Auto-send verification email when redirected from login with email parameter
+  useEffect(() => {
+    if (emailParam && !token) {
+      const sendVerification = async () => {
+        try {
+          const response = await resendVerification(emailParam);
+          toast({
+            title: "Verification Email Sent",
+            description:
+              getMessageFromResponse(response) ?? "A new verification code has been sent to your email.",
+          });
+        } catch (err: unknown) {
+          const errorMsg = extractErrorMessage(
+            err,
+            "Failed to send verification email"
+          );
+          toast({
+            title: "Notice",
+            description: errorMsg,
+            variant: "destructive",
+          });
+        }
+      };
+      sendVerification();
+    }
+  }, [emailParam, token, toast]);
 
   const handleResendVerification = async (e: React.FormEvent) => {
     e.preventDefault();

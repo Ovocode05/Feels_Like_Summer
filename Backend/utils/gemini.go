@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type GeminiRequest struct {
@@ -31,23 +32,23 @@ type GeminiResponse struct {
 		} `json:"content"`
 	} `json:"candidates"`
 }
+
 func getApiKeys() []string {
-	keys := os.GetEnv("GEMINI_KEYS")
- if keys == ""{
-return nil
-}
+	keys := os.Getenv("GEMINI_KEYS")
+	if keys == "" {
+		return nil
+	}
 	parts := strings.Split(keys, ",")
- for i := range parts{
+	for i := range parts {
 		parts[i] = strings.TrimSpace(parts[i])
+	}
+	return parts
 }
-return parts
-}
-	
-	
+
 // GenerateRoadmap calls Gemini 2.5 Flash to generate a research roadmap
 func GenerateRoadmap(fieldOfStudy, experienceLevel, goals, interestAreas string, timeCommitment int) (string, error) {
 	apiKey := getApiKeys()
-	if apiKey == "" {
+	if len(apiKey) == 0 {
 		return "", errors.New("GEMINI_API_KEY not set")
 	}
 
