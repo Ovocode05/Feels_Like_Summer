@@ -51,6 +51,11 @@ type ProjectType = {
     email: string;
     type: string;
   };
+  fieldOfStudy?: string;
+  specialization?: string;
+  duration?: string;
+  positionType?: string[];
+  deadline?: string;
 };
 
 export default function ExplorePage() {
@@ -62,6 +67,13 @@ export default function ExplorePage() {
 
   // search state
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // filter states
+  const [selectedField, setSelectedField] = useState<string>("");
+  const [selectedSpecialization, setSelectedSpecialization] = useState<string>("");
+  const [durationValue, setDurationValue] = useState<number[]>([50]);
+  const [selectedPositionTypes, setSelectedPositionTypes] = useState<string[]>([]);
+  const [upcomingDeadlineOnly, setUpcomingDeadlineOnly] = useState(false);
 
   useEffect(() => {
     async function fetchAllProjects() {
@@ -87,37 +99,104 @@ export default function ExplorePage() {
     fetchAllProjects();
   }, []);
 
-  // update filteredProjects when searchQuery or projects change
+  // Apply filters function
+  const applyFilters = () => {
+    let filtered = [...projects];
+
+    // Apply search query
+    if (searchQuery) {
+      let pattern: RegExp | null = null;
+      try {
+        pattern = new RegExp(searchQuery, "i");
+      } catch (err) {
+        const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        pattern = new RegExp(escaped, "i");
+      }
+
+      filtered = filtered.filter((p) => {
+        const haystack = [
+          p.name || "",
+          p.sdesc || "",
+          p.ldesc || "",
+          p.user?.name || "",
+          (p.tags || []).join(" "),
+        ].join(" ");
+        if (pattern!.test(haystack)) return true;
+        return (p.tags || []).some((t) => pattern!.test(t));
+      });
+    }
+
+    // Apply field of study filter
+    if (selectedField) {
+      filtered = filtered.filter(
+        (p) => p.fieldOfStudy?.toLowerCase() === selectedField.toLowerCase()
+      );
+    }
+
+    // Apply specialization filter
+    if (selectedSpecialization) {
+      filtered = filtered.filter(
+        (p) => p.specialization?.toLowerCase() === selectedSpecialization.toLowerCase()
+      );
+    }
+
+    // Apply duration filter (0-33: short, 34-66: medium, 67-100: long)
+    if (durationValue[0] !== 50) {
+      filtered = filtered.filter((p) => {
+        if (!p.duration) return false;
+        const duration = p.duration.toLowerCase();
+        
+        if (durationValue[0] <= 33) {
+          return duration.includes("short") || duration.includes("1-3 months") || duration.includes("< 3 months");
+        } else if (durationValue[0] <= 66) {
+          return duration.includes("medium") || duration.includes("3-6 months") || duration.includes("6 months");
+        } else {
+          return duration.includes("long") || duration.includes("> 6 months") || duration.includes("1 year") || duration.includes("year");
+        }
+      });
+    }
+
+    // Apply position type filter
+    if (selectedPositionTypes.length > 0) {
+      filtered = filtered.filter((p) => {
+        if (!p.positionType || p.positionType.length === 0) return false;
+        return selectedPositionTypes.some((selectedType) =>
+          p.positionType!.some((pType) =>
+            pType.toLowerCase().includes(selectedType.toLowerCase())
+          )
+        );
+      });
+    }
+
+    // Apply upcoming deadline filter
+    if (upcomingDeadlineOnly) {
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      
+      filtered = filtered.filter((p) => {
+        if (!p.deadline) return false;
+        const deadlineDate = new Date(p.deadline);
+        return deadlineDate >= new Date() && deadlineDate <= thirtyDaysFromNow;
+      });
+    }
+
+    setFilteredProjects(filtered);
+  };
+
+  // Reset filters function
+  const resetFilters = () => {
+    setSelectedField("");
+    setSelectedSpecialization("");
+    setDurationValue([50]);
+    setSelectedPositionTypes([]);
+    setUpcomingDeadlineOnly(false);
+    setSearchQuery("");
+  };
+
+  // update filteredProjects when filters change
   useEffect(() => {
-    if (!searchQuery) {
-      setFilteredProjects(projects);
-      return;
-    }
-
-    let pattern: RegExp | null = null;
-    try {
-      pattern = new RegExp(searchQuery, "i");
-    } catch (err) {
-      // invalid regex: escape input and build a safe regex
-      const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      pattern = new RegExp(escaped, "i");
-    }
-
-    const matches = (p: ProjectType) => {
-      const haystack = [
-        p.name || "",
-        p.sdesc || "",
-        p.ldesc || "",
-        p.user?.name || "",
-        (p.tags || []).join(" "),
-      ].join(" ");
-      if (pattern!.test(haystack)) return true;
-      // also check each tag individually
-      return (p.tags || []).some((t) => pattern!.test(t));
-    };
-
-    setFilteredProjects(projects.filter(matches));
-  }, [searchQuery, projects]);
+    applyFilters();
+  }, [searchQuery, projects, selectedField, selectedSpecialization, durationValue, selectedPositionTypes, upcomingDeadlineOnly]);
 
   const [isAuth, setIsAuth] = useState(false);
 
@@ -182,7 +261,7 @@ export default function ExplorePage() {
             >
               <div className="space-y-2">
                 <Label htmlFor="field">Field of Study</Label>
-                <Select>
+                <Select value={selectedField} onValueChange={setSelectedField}>
                   <SelectTrigger id="field">
                     <SelectValue placeholder="Select field" />
                   </SelectTrigger>
@@ -220,7 +299,7 @@ export default function ExplorePage() {
 
               <div className="space-y-2">
                 <Label htmlFor="specialization">Specialization</Label>
-                <Select>
+                <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
                   <SelectTrigger id="specialization">
                     <SelectValue placeholder="Select specialization" />
                   </SelectTrigger>
@@ -251,7 +330,7 @@ export default function ExplorePage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="university">University</Label>
                 <Select>
                   <SelectTrigger id="university">
@@ -274,7 +353,7 @@ export default function ExplorePage() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
 
               <div className="space-y-2">
                 <Label>Duration</Label>
@@ -282,14 +361,29 @@ export default function ExplorePage() {
                   <span className="text-sm">Short-term</span>
                   <span className="text-sm">Long-term</span>
                 </div>
-                <Slider defaultValue={[50]} max={100} step={1} />
+                <Slider 
+                  value={durationValue} 
+                  onValueChange={setDurationValue}
+                  max={100} 
+                  step={1} 
+                />
               </div>
 
               <div className="space-y-2">
                 <Label>Position Type</Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="paid" />
+                    <Checkbox 
+                      id="paid" 
+                      checked={selectedPositionTypes.includes("paid")}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedPositionTypes([...selectedPositionTypes, "paid"]);
+                        } else {
+                          setSelectedPositionTypes(selectedPositionTypes.filter(t => t !== "paid"));
+                        }
+                      }}
+                    />
                     <label
                       htmlFor="paid"
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -298,7 +392,17 @@ export default function ExplorePage() {
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="volunteer" />
+                    <Checkbox 
+                      id="volunteer" 
+                      checked={selectedPositionTypes.includes("volunteer")}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedPositionTypes([...selectedPositionTypes, "volunteer"]);
+                        } else {
+                          setSelectedPositionTypes(selectedPositionTypes.filter(t => t !== "volunteer"));
+                        }
+                      }}
+                    />
                     <label
                       htmlFor="volunteer"
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-dowed peer-disabled:opacity-70"
@@ -307,7 +411,17 @@ export default function ExplorePage() {
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="credit" />
+                    <Checkbox 
+                      id="credit" 
+                      checked={selectedPositionTypes.includes("credit")}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedPositionTypes([...selectedPositionTypes, "credit"]);
+                        } else {
+                          setSelectedPositionTypes(selectedPositionTypes.filter(t => t !== "credit"));
+                        }
+                      }}
+                    />
                     <label
                       htmlFor="credit"
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -316,7 +430,17 @@ export default function ExplorePage() {
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="thesis" />
+                    <Checkbox 
+                      id="thesis" 
+                      checked={selectedPositionTypes.includes("thesis")}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedPositionTypes([...selectedPositionTypes, "thesis"]);
+                        } else {
+                          setSelectedPositionTypes(selectedPositionTypes.filter(t => t !== "thesis"));
+                        }
+                      }}
+                    />
                     <label
                       htmlFor="thesis"
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -340,7 +464,11 @@ export default function ExplorePage() {
               <div className="space-y-2">
                 <Label>Deadline</Label>
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="upcoming" />
+                  <Checkbox 
+                    id="upcoming" 
+                    checked={upcomingDeadlineOnly}
+                    onCheckedChange={(checked) => setUpcomingDeadlineOnly(!!checked)}
+                  />
                   <label
                     htmlFor="upcoming"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -350,8 +478,8 @@ export default function ExplorePage() {
                 </div>
               </div>
 
-              <Button className="w-full">Apply Filters</Button>
-              <Button variant="outline" className="w-full">
+              <Button className="w-full" onClick={applyFilters}>Apply Filters</Button>
+              <Button variant="outline" className="w-full" onClick={resetFilters}>
                 Reset
               </Button>
             </CollapsibleContent>
@@ -443,6 +571,52 @@ export default function ExplorePage() {
                             {project.ldesc}
                           </div>
                         </div>
+                        {(project.fieldOfStudy || project.specialization || project.duration || 
+                          (project.positionType && project.positionType.length > 0) || project.deadline) && (
+                          <div className="mt-4 pt-4 border-t">
+                            <div className="font-semibold mb-2">Project Details</div>
+                            <div className="grid gap-2 text-sm">
+                              {project.fieldOfStudy && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground">Field:</span>
+                                  <Badge variant="secondary">{project.fieldOfStudy}</Badge>
+                                </div>
+                              )}
+                              {project.specialization && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground">Specialization:</span>
+                                  <Badge variant="secondary">{project.specialization}</Badge>
+                                </div>
+                              )}
+                              {project.duration && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground">Duration:</span>
+                                  <Badge variant="secondary">{project.duration}</Badge>
+                                </div>
+                              )}
+                              {project.positionType && project.positionType.length > 0 && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-muted-foreground">Position Type:</span>
+                                  <div className="flex flex-wrap gap-1">
+                                    {project.positionType.map((type: string, idx: number) => (
+                                      <Badge key={type + idx} variant="outline">
+                                        {type}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {project.deadline && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground">Deadline:</span>
+                                  <Badge variant="destructive">
+                                    {new Date(project.deadline).toLocaleDateString()}
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </CardContent>
                       <div className="bg-muted/50 px-6 py-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">

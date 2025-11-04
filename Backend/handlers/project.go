@@ -53,15 +53,19 @@ func CreateProject(c echo.Context) error {
 
 	// ...
 	project := models.Projects{
-		ProjectID:    pid,
-		Name:         newProject.Name,
-		SDesc:        newProject.Sdesc,
-		LDesc:        newProject.Ldesc,
-		IsActive:     newProject.IsActive,
-		Tags:         pq.StringArray(newProject.Tags),
-		WorkingUsers: pq.StringArray{}, // or pq.StringArray(newProject.WorkingUsers)
-		// Use CreatorID to represent the owner of the project
-		CreatorID: userData.GetUID(),
+		ProjectID:      pid,
+		Name:           newProject.Name,
+		SDesc:          newProject.Sdesc,
+		LDesc:          newProject.Ldesc,
+		IsActive:       newProject.IsActive,
+		Tags:           pq.StringArray(newProject.Tags),
+		WorkingUsers:   pq.StringArray{}, // or pq.StringArray(newProject.WorkingUsers)
+		CreatorID:      userData.GetUID(),
+		FieldOfStudy:   newProject.FieldOfStudy,
+		Specialization: newProject.Specialization,
+		Duration:       newProject.Duration,
+		PositionType:   pq.StringArray(newProject.PositionType),
+		Deadline:       newProject.Deadline,
 	}
 	if err := tx.Create(&project).Error; err != nil {
 		tx.Rollback()
@@ -167,6 +171,26 @@ func EditProject(c echo.Context) error {
 
 	if updateData.WorkingUsers != nil {
 		updates["working_users"] = pq.StringArray(*updateData.WorkingUsers)
+	}
+
+	if updateData.FieldOfStudy != nil {
+		updates["field_of_study"] = *updateData.FieldOfStudy
+	}
+
+	if updateData.Specialization != nil {
+		updates["specialization"] = *updateData.Specialization
+	}
+
+	if updateData.Duration != nil {
+		updates["duration"] = *updateData.Duration
+	}
+
+	if updateData.PositionType != nil {
+		updates["position_type"] = pq.StringArray(*updateData.PositionType)
+	}
+
+	if updateData.Deadline != nil {
+		updates["deadline"] = *updateData.Deadline
 	}
 
 	if err := tx.Model(&existingProject).Updates(updates).Error; err != nil {

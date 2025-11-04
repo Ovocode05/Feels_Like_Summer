@@ -33,12 +33,16 @@ import {
   Plus,
   Trash2,
   Upload,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import MenubarStudent from "@/components/ui/menubar_student";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
+import { getStudentProfile, updateStudentProfile, type StudentProfile } from "@/api/api";
+import { useToast } from "@/hooks/use-toast";
 
 const cvFormSchema = z.object({
   personalInfo: z.object({
@@ -98,12 +102,20 @@ const cvFormSchema = z.object({
     })
   ),
   summary: z.string().optional(),
+  // Backend-specific fields
+  institution: z.string().optional(),
+  degree: z.string().optional(),
+  dates: z.string().optional(),
+  resumeLink: z.string().optional(),
+  publicationsLink: z.string().optional(),
+  researchInterest: z.string().optional(),
+  intention: z.string().optional(),
 });
 
 export default function CVBuilderPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [isHydrated, setIsHydrated] = useState(false);
-  // const { loading, authorized } = useAuth("student");
   const [activeTab, setActiveTab] = useState("edit");
   const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
   const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
@@ -111,12 +123,10 @@ export default function CVBuilderPage() {
   const [publicationEntries, setPublicationEntries] = useState<
     { id: number }[]
   >([]);
-  const [skills, setSkills] = useState([
-    "Python",
-    "Machine Learning",
-    "Data Analysis",
-    "Research Methodology",
-  ]);
+  const [skills, setSkills] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -126,62 +136,61 @@ export default function CVBuilderPage() {
     resolver: zodResolver(cvFormSchema),
     defaultValues: {
       personalInfo: {
-        firstName: "Jamie",
-        lastName: "Smith",
-        email: "jamie.smith@example.com",
-        phone: "(555) 123-4567",
-        location: "Boston, MA",
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        location: "",
         website: "",
-        linkedin: "linkedin.com/in/jamiesmith",
-        github: "github.com/jamiesmith",
+        linkedin: "",
+        github: "",
       },
       education: [
         {
-          institution: "Massachusetts Institute of Technology",
-          degree: "Bachelor of Science",
-          field: "Computer Science",
-          startDate: "2020-09",
+          institution: "",
+          degree: "",
+          field: "",
+          startDate: "",
           endDate: "",
-          current: true,
-          description:
-            "GPA: 3.8/4.0. Relevant coursework: Machine Learning, Algorithms, Data Structures, Artificial Intelligence",
+          current: false,
+          description: "",
         },
       ],
       experience: [
         {
-          title: "Research Assistant",
-          company: "MIT AI Lab",
-          location: "Cambridge, MA",
-          startDate: "2022-06",
+          title: "",
+          company: "",
+          location: "",
+          startDate: "",
           endDate: "",
-          current: true,
-          description:
-            "Assisting with research on machine learning algorithms for natural language processing. Implementing and testing models, analyzing results, and contributing to publications.",
+          current: false,
+          description: "",
         },
       ],
-      skills: [
-        "Python",
-        "Machine Learning",
-        "Data Analysis",
-        "Research Methodology",
-      ],
+      skills: [],
       projects: [
         {
-          title: "Sentiment Analysis Tool",
-          description:
-            "Developed a machine learning model to analyze sentiment in social media posts with 92% accuracy.",
-          technologies: ["Python", "TensorFlow", "NLP"],
-          link: "github.com/jamiesmith/sentiment-analysis",
+          title: "",
+          description: "",
+          technologies: [],
+          link: "",
         },
       ],
       publications: [],
-      summary:
-        "Computer Science student at MIT with a focus on machine learning and artificial intelligence. Experienced in research methodology and data analysis. Seeking research opportunities in AI and computational methods.",
+      summary: "",
+      institution: "",
+      degree: "",
+      dates: "",
+      resumeLink: "",
+      publicationsLink: "",
+      researchInterest: "",
+      intention: "",
     },
   });
 
   const [isAuth, setIsAuth] = useState(false);
 
+  // Fetch profile data on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -194,23 +203,163 @@ export default function CVBuilderPage() {
       return;
     }
     setIsAuth(true);
+    
+    // Fetch existing profile data
+    fetchProfileData();
   }, [router]);
 
-  if (!isAuth) {
-    // Optionally show a loading spinner here
-    return null;
-  }
+  const fetchProfileData = async () => {
+    setProfileLoading(true);
+    try {
+      const token = localStorage.getItem("token") || "";
+      const response = await getStudentProfile(token);
+      
+      if (response.student) {
+        const student = response.student;
+        
+        // Map backend data to form structure
+        form.reset({
+          personalInfo: {
+            firstName: student.name?.split(" ")[0] || "",
+            lastName: student.name?.split(" ").slice(1).join(" ") || "",
+            email: student.email || "",
+            phone: "",
+            location: student.location || "",
+            website: "",
+            linkedin: "",
+            github: "",
+          },
+          education: student.institution ? [{
+            institution: student.institution,
+            degree: student.degree || "",
+            field: "",
+            startDate: student.dates?.split(" - ")[0] || "",
+            endDate: student.dates?.split(" - ")[1] || "",
+            current: !student.dates?.includes(" - "),
+            description: "",
+          }] : [{
+            institution: "",
+            degree: "",
+            field: "",
+            startDate: "",
+            endDate: "",
+            current: false,
+            description: "",
+          }],
+          experience: student.workEx ? [{
+            title: "",
+            company: "",
+            location: "",
+            startDate: "",
+            endDate: "",
+            current: false,
+            description: student.workEx,
+          }] : [{
+            title: "",
+            company: "",
+            location: "",
+            startDate: "",
+            endDate: "",
+            current: false,
+            description: "",
+          }],
+          skills: student.skills || [],
+          projects: (student.projects && student.projects.length > 0) ? student.projects.map((proj: string) => ({
+            title: proj,
+            description: "",
+            technologies: [],
+            link: "",
+          })) : [{
+            title: "",
+            description: "",
+            technologies: [],
+            link: "",
+          }],
+          publications: [],
+          summary: "",
+          institution: student.institution || "",
+          degree: student.degree || "",
+          dates: student.dates || "",
+          resumeLink: student.resumeLink || "",
+          publicationsLink: student.publicationsLink || "",
+          researchInterest: student.researchInterest || "",
+          intention: student.intention || "",
+        });
+        
+        setSkills(student.skills || []);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      // Don't show error toast if profile doesn't exist yet (404 is expected)
+      const status = (error as any)?.response?.status;
+      if (status !== 404) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load profile data",
+        });
+      }
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
-  function onSubmit(values: z.infer<typeof cvFormSchema>) {
-    setActiveTab("preview");
-  }
-
-  if (!isHydrated) {
+  if (!isAuth || profileLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  async function onSubmit(values: z.infer<typeof cvFormSchema>) {
+    setLoading(true);
+    setSaveSuccess(false);
+    
+    try {
+      const token = localStorage.getItem("token") || "";
+      
+      // Map form data to backend structure
+      const profileData: StudentProfile = {
+        institution: values.education[0]?.institution || "",
+        degree: values.education[0]?.degree || "",
+        location: values.personalInfo.location || "",
+        dates: values.education[0]?.startDate && values.education[0]?.endDate 
+          ? `${values.education[0].startDate} - ${values.education[0].endDate}`
+          : values.education[0]?.startDate || "",
+        workEx: values.experience[0]?.description || "",
+        projects: values.projects.map(p => p.title).filter(Boolean),
+        skills: values.skills,
+        activities: [], // Can be extended later
+        resumeLink: values.resumeLink || "",
+        publicationsLink: values.publicationsLink || "",
+        researchInterest: values.researchInterest || "",
+        intention: values.intention || "",
+      };
+      
+      await updateStudentProfile(profileData, token);
+      
+      setSaveSuccess(true);
+      toast({
+        title: "Success",
+        description: "Your CV has been saved successfully!",
+      });
+      
+      // Switch to preview tab
+      setActiveTab("preview");
+      
+      // Reset success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error saving CV:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save CV. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   const addEducationEntry = () => {
@@ -308,12 +457,23 @@ export default function CVBuilderPage() {
         </div>
 
         <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>CV Completion</AlertTitle>
-          <AlertDescription>
-            Your CV is 85% complete. Add publications or more projects to
-            improve it.
-          </AlertDescription>
+          {saveSuccess ? (
+            <>
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertTitle>CV Saved Successfully</AlertTitle>
+              <AlertDescription>
+                Your CV has been saved to your profile and can be used for project applications.
+              </AlertDescription>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>CV Builder</AlertTitle>
+              <AlertDescription>
+                Create your CV to showcase your skills and experience for research applications.
+              </AlertDescription>
+            </>
+          )}
         </Alert>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -902,14 +1062,63 @@ export default function CVBuilderPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Publications</CardTitle>
+                    <CardTitle>Publications & Documents</CardTitle>
                     {/* FIX: Replaced the apostrophe in "you've" with "&apos;" to fix the unescaped-entities error. */}
                     <CardDescription>
-                      Add any research papers, articles, or publications
-                      you&apos;ve contributed to.
+                      Add links to your resume/CV and publications. These will be used for applications.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold border-b pb-1">
+                        Document Links
+                      </h3>
+                      <FormField
+                        control={form.control}
+                        name="resumeLink"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Resume/CV Link</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="https://drive.google.com/..."
+                                type="url"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Link to your resume or CV (Google Drive, Dropbox, etc.)
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="publicationsLink"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Publications Link (Optional)</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="https://scholar.google.com/..."
+                                type="url"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Link to your Google Scholar profile or publication list
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold border-b pb-1">
+                        Publications List
+                      </h3>
                     {publicationEntries.length === 0 ? (
                       <div className="text-center py-4 text-muted-foreground">
                         <FileText className="mx-auto h-8 w-8 mb-2" />
@@ -1030,6 +1239,7 @@ export default function CVBuilderPage() {
                       <Plus className="mr-2 h-4 w-4" />
                       Add Publication
                     </Button>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -1038,10 +1248,20 @@ export default function CVBuilderPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setActiveTab("preview")}
+                    disabled={loading}
                   >
                     Preview
                   </Button>
-                  <Button type="submit">Save CV</Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>Save CV</>
+                    )}
+                  </Button>
                 </div>
               </form>
             </Form>
@@ -1100,6 +1320,40 @@ export default function CVBuilderPage() {
                   <div>
                     <h3 className="font-semibold text-lg mb-2">Summary</h3>
                     <p>{form.getValues().summary}</p>
+                  </div>
+                )}
+
+                {(form.getValues().resumeLink || form.getValues().publicationsLink) && (
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Documents</h3>
+                    <div className="space-y-2">
+                      {form.getValues().resumeLink && (
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <Link
+                            href={form.getValues().resumeLink || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            Resume/CV
+                          </Link>
+                        </div>
+                      )}
+                      {form.getValues().publicationsLink && (
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <Link
+                            href={form.getValues().publicationsLink || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            Publications List
+                          </Link>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -1247,16 +1501,25 @@ export default function CVBuilderPage() {
                   )}
               </CardContent>
               <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={() => setActiveTab("edit")}>
+                <Button variant="outline" onClick={() => setActiveTab("edit")} disabled={loading}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </Button>
                 <div className="flex gap-2">
-                  <Button variant="outline">
+                  <Button variant="outline" disabled={loading}>
                     <Download className="mr-2 h-4 w-4" />
                     Export as PDF
                   </Button>
-                  <Button>Save CV</Button>
+                  <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>Save CV</>
+                    )}
+                  </Button>
                 </div>
               </CardFooter>
             </Card>

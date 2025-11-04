@@ -83,9 +83,9 @@ export default function RegisterPage() {
   async function onSubmit(values: FormData) {
     // Build a payload with explicit required properties to satisfy the API type
     const payload = {
-      name: values.name,
-      email: values.email,
-      password: values.password,
+      name: values.name.trim(),
+      email: values.email.trim(),
+      password: values.password.trim(),
       type: values.type,
     };
 
@@ -127,15 +127,16 @@ export default function RegisterPage() {
   };
 
   const handleCodeChange = (index: number, value: string) => {
-    if (value.length > 1) return;
-    if (!/^\d*$/.test(value)) return; // Only allow digits
+    const trimmedValue = value.trim();
+    if (trimmedValue.length > 1) return;
+    if (!/^\d*$/.test(trimmedValue)) return; // Only allow digits
 
     const newCode = [...verificationCode];
-    newCode[index] = value;
+    newCode[index] = trimmedValue;
     setVerificationCode(newCode);
 
     // Auto-focus to next input
-    if (value && index < 5) {
+    if (trimmedValue && index < 5) {
       document.getElementById(`code-${index + 1}`)?.focus();
     }
   };

@@ -35,6 +35,11 @@ type ProjectType = {
     type: string;
     ID: number;
   };
+  fieldOfStudy?: string;
+  specialization?: string;
+  duration?: string;
+  positionType?: string[];
+  deadline?: string;
 };
 
 export default function ProjectDetails() {
@@ -213,6 +218,72 @@ export default function ProjectDetails() {
               </h2>
               <p className="text-base text-black/80">{project.ldesc}</p>
             </div>
+
+            {/* Project Details Section */}
+            {(project.fieldOfStudy || project.specialization || project.duration || 
+              (project.positionType && project.positionType.length > 0) || project.deadline) && (
+              <div className="mt-6 rounded-xl bg-white shadow border border-black/10 p-6">
+                <h2 className="text-xl font-semibold mb-4 text-black">
+                  Project Details
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {project.fieldOfStudy && (
+                    <div>
+                      <div className="text-sm font-medium text-black/60 mb-1">
+                        Field of Study
+                      </div>
+                      <Badge className="bg-black text-white">
+                        {project.fieldOfStudy}
+                      </Badge>
+                    </div>
+                  )}
+                  {project.specialization && (
+                    <div>
+                      <div className="text-sm font-medium text-black/60 mb-1">
+                        Specialization
+                      </div>
+                      <Badge className="bg-black text-white">
+                        {project.specialization}
+                      </Badge>
+                    </div>
+                  )}
+                  {project.duration && (
+                    <div>
+                      <div className="text-sm font-medium text-black/60 mb-1">
+                        Duration
+                      </div>
+                      <Badge className="bg-black text-white">
+                        {project.duration}
+                      </Badge>
+                    </div>
+                  )}
+                  {project.positionType && project.positionType.length > 0 && (
+                    <div>
+                      <div className="text-sm font-medium text-black/60 mb-1">
+                        Position Type
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {project.positionType.map((type: string, idx: number) => (
+                          <Badge key={type + idx} className="bg-black text-white">
+                            {type}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {project.deadline && (
+                    <div>
+                      <div className="text-sm font-medium text-black/60 mb-1">
+                        Application Deadline
+                      </div>
+                      <Badge variant="destructive" className="bg-red-800 text-white">
+                        {new Date(project.deadline).toLocaleDateString()}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar: Professor Info */}

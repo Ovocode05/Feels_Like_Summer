@@ -263,7 +263,13 @@ All project endpoints require JWT authentication via the `Authorization: Bearer 
   "name": "AI Research Project",
   "sdesc": "Machine Learning research opportunity",
   "ldesc": "Detailed description of the research project including objectives, methodology, and expected outcomes...",
-  "isActive": true
+  "isActive": true,
+  "tags": ["Machine Learning", "AI", "Research"],
+  "fieldOfStudy": "computer-science",
+  "specialization": "machine-learning",
+  "duration": "medium-term",
+  "positionType": ["paid", "credit"],
+  "deadline": "2025-12-31"
 }
 ```
 
@@ -272,6 +278,12 @@ All project endpoints require JWT authentication via the `Authorization: Bearer 
 - `sdesc` (string, required): Short description/summary
 - `ldesc` (string, required): Detailed project description
 - `isActive` (boolean, required): Whether the project is currently accepting applications
+- `tags` (array of strings, optional): Project keywords/tags
+- `fieldOfStudy` (string, optional): Academic field (e.g., "computer-science", "physics", "biology")
+- `specialization` (string, optional): Specific area (e.g., "machine-learning", "quantum-mechanics")
+- `duration` (string, optional): Project duration ("short-term", "medium-term", "long-term")
+- `positionType` (array of strings, optional): Position types (e.g., ["paid", "volunteer", "credit", "thesis"])
+- `deadline` (string, optional): Application deadline date (ISO format)
 
 **Success Response** (201 Created):
 ```json
@@ -282,10 +294,17 @@ All project endpoints require JWT authentication via the `Authorization: Bearer 
   "DeletedAt": null,
   "name": "AI Research Project",
   "pid": "proj_a1b2c3d4e5f6",
-  "shortDesc": "Machine Learning research opportunity",
-  "longDesc": "Detailed description...",
-  "isActive": "true",
-  "uid": "faculty_user_id"
+  "sdesc": "Machine Learning research opportunity",
+  "ldesc": "Detailed description...",
+  "isActive": true,
+  "tags": ["Machine Learning", "AI", "Research"],
+  "workingUsers": [],
+  "creator": "faculty_user_id",
+  "fieldOfStudy": "computer-science",
+  "specialization": "machine-learning",
+  "duration": "medium-term",
+  "positionType": ["paid", "credit"],
+  "deadline": "2025-12-31"
 }
 ```
 
@@ -507,6 +526,11 @@ CREATE TABLE projects (
     is_active VARCHAR(5) DEFAULT 'true',
     uid VARCHAR(255) NOT NULL REFERENCES users(uid),
     working_users TEXT[] DEFAULT '{}',
+    field_of_study VARCHAR(255),
+    specialization VARCHAR(255),
+    duration VARCHAR(255),
+    position_type TEXT[] DEFAULT '{}',
+    deadline VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
@@ -523,6 +547,11 @@ CREATE TABLE projects (
 - `is_active`: Whether project is accepting applications ("true"/"false")
 - `uid`: Faculty member who created the project
 - `working_users`: Array of student UIDs working on the project
+- `field_of_study`: Academic field (e.g., Computer Science, Physics)
+- `specialization`: Specific area of focus (e.g., Machine Learning, Quantum Mechanics)
+- `duration`: Project duration (short-term, medium-term, long-term)
+- `position_type`: Array of position types (paid, volunteer, credit, thesis)
+- `deadline`: Application deadline date
 
 ---
 

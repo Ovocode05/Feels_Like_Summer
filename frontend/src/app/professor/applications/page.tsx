@@ -83,6 +83,11 @@ type ProjectType = {
   tags: string[];
   workingUsers: string[];
   creator: string;
+  fieldOfStudy?: string;
+  specialization?: string;
+  duration?: string;
+  positionType?: string[];
+  deadline?: string;
 };
 
 type ProjectWithApplications = {

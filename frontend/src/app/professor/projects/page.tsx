@@ -24,6 +24,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -51,6 +62,11 @@ const projectFormSchema = z.object({
   isActive: z.boolean(),
   tags: z.array(z.string()).optional(),
   working_users: z.array(z.string()).optional(),
+  fieldOfStudy: z.string().optional(),
+  specialization: z.string().optional(),
+  duration: z.string().optional(),
+  positionType: z.array(z.string()).optional(),
+  deadline: z.string().optional(),
 });
 
 type Project_type = {
@@ -63,6 +79,11 @@ type Project_type = {
   working_users?: string[];
   pid: string;
   uid: string;
+  fieldOfStudy?: string;
+  specialization?: string;
+  duration?: string;
+  positionType?: string[];
+  deadline?: string;
 };
 
 export default function ProfessorProjectsPage() {
@@ -98,6 +119,11 @@ export default function ProfessorProjectsPage() {
       isActive: false,
       tags: [],
       working_users: [],
+      fieldOfStudy: "",
+      specialization: "",
+      duration: "",
+      positionType: [],
+      deadline: "",
     },
   });
 
@@ -142,6 +168,18 @@ export default function ProfessorProjectsPage() {
     );
   }
 
+  function handleTogglePositionType(type: string) {
+    const current = form.getValues("positionType") || [];
+    if (current.includes(type)) {
+      form.setValue(
+        "positionType",
+        current.filter((t) => t !== type)
+      );
+    } else {
+      form.setValue("positionType", [...current, type]);
+    }
+  }
+
   async function onSubmit(values: z.infer<typeof projectFormSchema>) {
     const token = localStorage.getItem("token") || "";
     console.log("Creating project:", values);
@@ -153,6 +191,11 @@ export default function ProfessorProjectsPage() {
         isActive: values.isActive,
         tags: values.tags ?? [],
         working_users: values.working_users ?? [],
+        fieldOfStudy: values.fieldOfStudy,
+        specialization: values.specialization,
+        duration: values.duration,
+        positionType: values.positionType ?? [],
+        deadline: values.deadline,
       },
       token
     );
@@ -258,7 +301,7 @@ export default function ProfessorProjectsPage() {
                 <Plus className="h-4 w-4" /> Create Project
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] h-[500px] border-spacing-2 overflow-y-auto">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] border-spacing-2 overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Research Project</DialogTitle>
                 <DialogDescription>
@@ -369,6 +412,205 @@ export default function ProfessorProjectsPage() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="fieldOfStudy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Field of Study</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select field of study" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Sciences</SelectLabel>
+                              <SelectItem value="physics">Physics</SelectItem>
+                              <SelectItem value="chemistry">Chemistry</SelectItem>
+                              <SelectItem value="biology">Biology</SelectItem>
+                              <SelectItem value="computer-science">
+                                Computer Science
+                              </SelectItem>
+                            </SelectGroup>
+                            <SelectGroup>
+                              <SelectLabel>Mathematics</SelectLabel>
+                              <SelectItem value="pure-mathematics">
+                                Pure Mathematics
+                              </SelectItem>
+                              <SelectItem value="applied-mathematics">
+                                Applied Mathematics
+                              </SelectItem>
+                              <SelectItem value="statistics">Statistics</SelectItem>
+                            </SelectGroup>
+                            <SelectGroup>
+                              <SelectLabel>Other</SelectLabel>
+                              <SelectItem value="engineering">Engineering</SelectItem>
+                              <SelectItem value="social-sciences">
+                                Social Sciences
+                              </SelectItem>
+                              <SelectItem value="humanities">Humanities</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="specialization"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Specialization</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select specialization" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="quantum-mechanics">
+                              Quantum Mechanics
+                            </SelectItem>
+                            <SelectItem value="quantum-computing">
+                              Quantum Computing
+                            </SelectItem>
+                            <SelectItem value="machine-learning">
+                              Machine Learning
+                            </SelectItem>
+                            <SelectItem value="artificial-intelligence">
+                              Artificial Intelligence
+                            </SelectItem>
+                            <SelectItem value="numerical-analysis">
+                              Numerical Analysis
+                            </SelectItem>
+                            <SelectItem value="organic-chemistry">
+                              Organic Chemistry
+                            </SelectItem>
+                            <SelectItem value="molecular-biology">
+                              Molecular Biology
+                            </SelectItem>
+                            <SelectItem value="genetics">Genetics</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duration</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select duration" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="short-term">Short-term (1-3 months)</SelectItem>
+                            <SelectItem value="medium-term">Medium-term (3-6 months)</SelectItem>
+                            <SelectItem value="long-term">Long-term (6+ months)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="positionType"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Position Type</FormLabel>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="paid"
+                              checked={(form.getValues("positionType") || []).includes("paid")}
+                              onCheckedChange={() => handleTogglePositionType("paid")}
+                            />
+                            <label
+                              htmlFor="paid"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Paid
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="volunteer"
+                              checked={(form.getValues("positionType") || []).includes("volunteer")}
+                              onCheckedChange={() => handleTogglePositionType("volunteer")}
+                            />
+                            <label
+                              htmlFor="volunteer"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Volunteer
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="credit"
+                              checked={(form.getValues("positionType") || []).includes("credit")}
+                              onCheckedChange={() => handleTogglePositionType("credit")}
+                            />
+                            <label
+                              htmlFor="credit"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              For Credit
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="thesis"
+                              checked={(form.getValues("positionType") || []).includes("thesis")}
+                              onCheckedChange={() => handleTogglePositionType("thesis")}
+                            />
+                            <label
+                              htmlFor="thesis"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Thesis/Dissertation
+                            </label>
+                          </div>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deadline"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Application Deadline</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            placeholder="Select deadline"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <Button type="submit">Create Project</Button>
                 </form>
               </Form>
@@ -448,10 +690,35 @@ export default function ProfessorProjectsPage() {
                   <strong>Short Desc:</strong>{" "}
                   {highlightText(project.sdesc, searchQuery)}
                 </p>
-                <p className="text-base">
+                <p className="text-base mb-2">
                   <strong>Long Desc:</strong>{" "}
                   {highlightText(project.ldesc, searchQuery)}
                 </p>
+                {project.fieldOfStudy && (
+                  <p className="text-sm text-muted-foreground mb-1">
+                    <strong>Field:</strong> {project.fieldOfStudy}
+                  </p>
+                )}
+                {project.specialization && (
+                  <p className="text-sm text-muted-foreground mb-1">
+                    <strong>Specialization:</strong> {project.specialization}
+                  </p>
+                )}
+                {project.duration && (
+                  <p className="text-sm text-muted-foreground mb-1">
+                    <strong>Duration:</strong> {project.duration}
+                  </p>
+                )}
+                {project.positionType && project.positionType.length > 0 && (
+                  <p className="text-sm text-muted-foreground mb-1">
+                    <strong>Position Type:</strong> {project.positionType.join(", ")}
+                  </p>
+                )}
+                {project.deadline && (
+                  <p className="text-sm text-muted-foreground mb-1">
+                    <strong>Deadline:</strong> {new Date(project.deadline).toLocaleDateString()}
+                  </p>
+                )}
               </div>
               <div>
                 {project.tags && project.tags.length > 0 && (

@@ -21,6 +21,11 @@ export type ProjectCreateType = {
   isActive: boolean;
   tags?: string[];
   working_users?: string[];
+  fieldOfStudy?: string;
+  specialization?: string;
+  duration?: string;
+  positionType?: string[];
+  deadline?: string;
 };
 
 type booled = {
@@ -565,6 +570,54 @@ export const getRoadmapHistory = async (token: string) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching roadmap history:", error);
+    throw error;
+  }
+};
+
+// Get recommended projects for student
+export type RecommendedProject = {
+  ID: number;
+  CreatedAt: string;
+  UpdatedAt: string;
+  DeletedAt: string | null;
+  name: string;
+  pid: string;
+  sdesc: string;
+  ldesc: string;
+  tags: string[];
+  creator: string;
+  isActive: boolean;
+  workingUsers: string[];
+  fieldOfStudy?: string;
+  specialization?: string;
+  duration?: string;
+  positionType?: string[];
+  deadline?: string;
+  user: {
+    ID: number;
+    CreatedAt: string;
+    UpdatedAt: string;
+    DeletedAt: string | null;
+    uid: string;
+    name: string;
+    email: string;
+    type: string;
+  };
+  match_score: number;
+  match_reasons: string[];
+};
+
+export const getRecommendedProjects = async (token: string) => {
+  try {
+    const response = await axios.get(`${url}/profile/student/recommendations`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching recommended projects:", error);
     throw error;
   }
 };

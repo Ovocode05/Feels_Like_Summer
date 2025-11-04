@@ -21,4 +21,5 @@ func RegisterProfileRoutes(api *echo.Group) {
 	studentGroup.PUT("", handlers.UpdateStudentProfile)
 	studentGroup.PUT("/skills", handlers.UpdateStudentSkills)
 	studentGroup.POST("/project", handlers.AddPlatformProject)
+	studentGroup.GET("/recommendations", handlers.GetRecommendedProjects)
 }

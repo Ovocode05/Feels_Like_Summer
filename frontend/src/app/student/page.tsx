@@ -30,7 +30,15 @@ import MenubarStudent from "@/components/ui/menubar_student";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getMyApplications } from "@/api/api";
+import { 
+  getMyApplications, 
+  getRecommendedProjects, 
+  RecommendedProject,
+  getStudentProfile,
+  StudentProfile,
+  getPreferences,
+  ResearchPreferences
+} from "@/api/api";
 
 interface Application {
   ID: number;
@@ -59,6 +67,11 @@ interface Application {
     creator_id: string;
     is_active: boolean;
     working_users: string[];
+    field_of_study?: string;
+    specialization?: string;
+    duration?: string;
+    position_type?: string[];
+    deadline?: string;
   };
   User: {
     ID?: number;
@@ -88,9 +101,27 @@ export default function StudentDashboard() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [recommendations, setRecommendations] = useState<RecommendedProject[]>([]);
+  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null);
+  const [preferences, setPreferences] = useState<ResearchPreferences | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   // moved decode to client-only state to avoid server-side localStorage access
   const [decode, setDecode] = useState<DecodedToken | null>(null);
+
+  // Calculate profile completion percentage
+  const calculateProfileCompletion = (profile: StudentProfile | null): number => {
+    if (!profile) return 0;
+    let completion = 0;
+    if (profile.institution) completion += 15;
+    if (profile.degree) completion += 15;
+    if (profile.skills && profile.skills.length > 0) completion += 20;
+    if (profile.researchInterest) completion += 20;
+    if (profile.resumeLink) completion += 15;
+    if (profile.workEx) completion += 15;
+    return completion;
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -129,7 +160,41 @@ export default function StudentDashboard() {
       }
     };
 
+    // Fetch recommendations
+    const fetchRecommendations = async () => {
+      try {
+        const response = await getRecommendedProjects(token);
+        setRecommendations(response.recommendations || []);
+      } catch (error) {
+        console.error("Error fetching recommendations:", error);
+      } finally {
+        setLoadingRecommendations(false);
+      }
+    };
+
+    // Fetch student profile
+    const fetchProfile = async () => {
+      try {
+        const profileResponse = await getStudentProfile(token);
+        setStudentProfile(profileResponse.student || null);
+        
+        // Fetch research preferences
+        try {
+          const preferencesResponse = await getPreferences(token);
+          setPreferences(preferencesResponse.preference || null);
+        } catch (prefError) {
+          console.log("No research preferences found");
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
     fetchApplications();
+    fetchRecommendations();
+    fetchProfile();
   }, [router]);
 
   const getStatusVariant = (status: string) => {
@@ -344,39 +409,140 @@ export default function StudentDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="mb-2 font-medium">Primary Field</div>
-                  <Badge className="mr-1" variant="secondary">
-                    <GraduationCap className="mr-1 h-3 w-3" />
-                    Computer Science
-                  </Badge>
+              {loadingProfile ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  Loading profile...
                 </div>
-                <div>
-                  <div className="mb-2 font-medium">Specialized Areas</div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">Machine Learning</Badge>
-                    <Badge variant="outline">Quantum Computing</Badge>
-                    <Badge variant="outline">Algorithm Design</Badge>
-                    <Badge variant="outline">Data Science</Badge>
-                    <Badge variant="outline">Natural Language Processing</Badge>
+              ) : !studentProfile ? (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground mb-4">
+                    Complete your profile to showcase your research interests
+                  </p>
+                  <Link href="/profile">
+                    <Button size="sm">Complete Profile</Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Primary Field */}
+                  {preferences?.field_of_study && (
+                    <div>
+                      <div className="mb-2 font-medium">Primary Field</div>
+                      <div className="flex items-center gap-2">
+                        <Badge className="mr-1" variant="secondary">
+                          <GraduationCap className="mr-1 h-3 w-3" />
+                          {preferences.field_of_study}
+                        </Badge>
+                        {preferences.experience_level && (
+                          <Badge variant="outline" className="text-xs">
+                            {preferences.experience_level}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Research Interest */}
+                  {studentProfile.researchInterest && (
+                    <div>
+                      <div className="mb-2 font-medium">Research Interest</div>
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {studentProfile.researchInterest}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Career Intention */}
+                  {studentProfile.intention && (
+                    <div>
+                      <div className="mb-2 font-medium">Career Intention</div>
+                      <p className="text-sm text-muted-foreground">
+                        {studentProfile.intention}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Interest Areas from Preferences */}
+                  {preferences?.interest_areas && (
+                    <div>
+                      <div className="mb-2 font-medium">Interest Areas</div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {preferences.interest_areas}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Skills/Specialized Areas */}
+                  {studentProfile.skills && studentProfile.skills.length > 0 && (
+                    <div>
+                      <div className="mb-2 font-medium">Skills & Expertise</div>
+                      <div className="flex flex-wrap gap-2">
+                        {studentProfile.skills.slice(0, 8).map((skill, idx) => (
+                          <Badge key={idx} variant="outline">
+                            {skill}
+                          </Badge>
+                        ))}
+                        {studentProfile.skills.length > 8 && (
+                          <Badge variant="outline">
+                            +{studentProfile.skills.length - 8} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show message if no key data is present */}
+                  {!preferences?.field_of_study && 
+                   !studentProfile.researchInterest && 
+                   (!studentProfile.skills || studentProfile.skills.length === 0) && (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Add your research interests and skills to get better project recommendations
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Profile Completion */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium">Profile Completion</div>
+                      <span className={`text-sm font-medium ${
+                        calculateProfileCompletion(studentProfile) === 100 
+                          ? 'text-green-600 dark:text-green-400' 
+                          : calculateProfileCompletion(studentProfile) >= 70
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-yellow-600 dark:text-yellow-400'
+                      }`}>
+                        {calculateProfileCompletion(studentProfile)}%
+                      </span>
+                    </div>
+                    <div className="mt-2 h-2 w-full rounded-full bg-muted">
+                      <div 
+                        className={`h-2 rounded-full transition-all ${
+                          calculateProfileCompletion(studentProfile) === 100
+                            ? 'bg-green-600'
+                            : calculateProfileCompletion(studentProfile) >= 70
+                            ? 'bg-blue-600'
+                            : 'bg-yellow-600'
+                        }`}
+                        style={{ 
+                          width: `${calculateProfileCompletion(studentProfile)}%` 
+                        }}
+                      ></div>
+                    </div>
+                    {calculateProfileCompletion(studentProfile) < 100 && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Complete your profile to improve recommendations
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className="pt-2">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">CV Completion</div>
-                    <span className="text-sm text-muted-foreground">85%</span>
-                  </div>
-                  <div className="mt-2 h-2 w-full rounded-full bg-muted">
-                    <div className="h-2 w-[85%] rounded-full bg-primary"></div>
-                  </div>
-                </div>
-              </div>
+              )}
             </CardContent>
             <CardFooter>
-              <Link href="/student/profile/edit">
+              <Link href="/profile" className="w-full">
                 <Button variant="outline" className="w-full">
-                  Update Interests
+                  Update Profile
                 </Button>
               </Link>
             </CardFooter>
@@ -392,55 +558,48 @@ export default function StudentDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {[
-                {
-                  title: "Deep Learning for Medical Imaging",
-                  professor: "Prof. Maria Garcia",
-                  university: "Stanford University",
-                  relevance: "98% match",
-                },
-                {
-                  title: "Quantum Algorithms for Optimization",
-                  professor: "Prof. David Lee",
-                  university: "MIT",
-                  relevance: "95% match",
-                },
-                {
-                  title: "Natural Language Processing in Healthcare",
-                  professor: "Prof. Elizabeth Chen",
-                  university: "UC Berkeley",
-                  relevance: "92% match",
-                },
-              ].map((project, i) => (
-                <div
-                  key={i}
-                  className="flex items-start justify-between border-b pb-3 last:border-0 last:pb-0"
-                >
-                  <div>
-                    <div className="font-medium">{project.title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {project.professor}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {project.university}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      <Star className="mr-1 h-3 w-3 fill-primary text-primary" />{" "}
-                      {project.relevance}
-                    </Badge>
-                    <Button variant="ghost" size="sm" className="h-7 px-2">
-                      View
-                    </Button>
-                  </div>
+              {loadingRecommendations ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  Loading recommendations...
                 </div>
-              ))}
+              ) : recommendations.length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  Complete your profile to get personalized recommendations.
+                </div>
+              ) : (
+                recommendations.slice(0, 3).map((project) => (
+                  <div
+                    key={project.ID}
+                    className="flex items-start justify-between border-b pb-3 last:border-0 last:pb-0"
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium">{project.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {project.user.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {project.match_reasons.slice(0, 2).join(" • ")}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 ml-2">
+                      <Badge variant="outline" className="text-xs whitespace-nowrap">
+                        <Star className="mr-1 h-3 w-3 fill-primary text-primary" />{" "}
+                        {Math.round(project.match_score)}% match
+                      </Badge>
+                      <Link href={`/project/${project.pid}`}>
+                        <Button variant="ghost" size="sm" className="h-7 px-2">
+                          View
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
             <CardFooter>
-              <Link href="/student/projects">
+              <Link href="/student/recommendations" className="w-full">
                 <Button variant="outline" className="w-full">
-                  Browse More Projects
+                  View All Recommendations
                 </Button>
               </Link>
             </CardFooter>
@@ -499,7 +658,7 @@ export default function StudentDashboard() {
             </CardFooter>
           </Card>
         </div>
-
+{/* 
         <Tabs defaultValue="upcoming" className="w-full">
           <TabsList>
             <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
@@ -568,7 +727,7 @@ export default function StudentDashboard() {
               </div>
             </div>
           </TabsContent>
-        </Tabs>
+        </Tabs> */}
       </main>
     </div>
   );
