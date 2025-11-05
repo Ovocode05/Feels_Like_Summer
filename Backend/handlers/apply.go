@@ -626,10 +626,10 @@ func GetAllMyProjectApplications(c echo.Context) error {
 
 	var result []ProjectWithApplications
 
-	// For each project, fetch all applications
+	// For each project, fetch all applications excluding accepted/rejected ones
 	for _, project := range projects {
 		var applications []models.ProjRequests
-		if err := config.DB.Where("p_id = ?", project.ProjectID).Find(&applications).Error; err != nil {
+		if err := config.DB.Where("p_id = ? AND status NOT IN (?, ?)", project.ProjectID, "accepted", "rejected").Find(&applications).Error; err != nil {
 			continue // Skip if error fetching applications
 		}
 
@@ -927,5 +927,136 @@ func ScheduleInterview(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{
 		"message":     "Interview scheduled successfully",
 		"application": application,
+	})
+}
+
+// GetPastApplicantsForProject returns all accepted/rejected applications for a specific project
+func GetPastApplicantsForProject(c echo.Context) error {
+	projectID := c.Param("id")
+
+	if projectID == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Project ID is required"})
+	}
+
+	// Get user data from context
+	userData := c.Get("userData").(models.UserData)
+
+	// Verify user is a faculty member
+	if userData.GetUserType() != models.UserTypeFaculty {
+		return c.JSON(http.StatusForbidden, echo.Map{"error": "Only faculty can view past applicants"})
+	}
+
+	// Check if project belongs to the professor
+	var project models.Projects
+	if err := config.DB.Where("project_id = ? AND creator_id = ?", projectID, userData.GetUID()).First(&project).Error; err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found or you don't have permission"})
+	}
+
+	// Fetch all accepted/rejected applications for this project
+	var applications []models.ProjRequests
+	if err := config.DB.Where("p_id = ? AND status IN (?, ?)", projectID, "accepted", "rejected").
+		Order("time_created DESC").
+		Find(&applications).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch past applicants"})
+	}
+
+	// Define a flattened struct for application details
+	type ApplicationWithDetails struct {
+		// Application fields
+		ID               uint      `json:"id"`
+		TimeCreated      time.Time `json:"timeCreated"`
+		Status           string    `json:"status"`
+		UID              string    `json:"uid"`
+		PID              string    `json:"pid"`
+		Availability     string    `json:"availability"`
+		Motivation       string    `json:"motivation"`
+		PriorProjects    string    `json:"priorProjects"`
+		CVLink           string    `json:"cvLink"`
+		PublicationsLink string    `json:"publicationsLink"`
+
+		// Interview fields
+		InterviewDate    string `json:"interviewDate"`
+		InterviewTime    string `json:"interviewTime"`
+		InterviewDetails string `json:"interviewDetails"`
+
+		// Student/User fields
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		UserType string `json:"userType"`
+
+		// Student profile fields
+		Institution      string   `json:"institution"`
+		Degree           string   `json:"degree"`
+		Location         string   `json:"location"`
+		Dates            string   `json:"dates"`
+		Experience       string   `json:"workEx"`
+		Projects         []string `json:"projects"`
+		PlatformProjects []int64  `json:"platformProjects"`
+		Skills           []string `json:"skills"`
+		Activities       []string `json:"activities"`
+		Resume           string   `json:"resumeLink"`
+		ResearchInterest string   `json:"researchInterest"`
+		Intention        string   `json:"intention"`
+	}
+
+	var detailedApplications []ApplicationWithDetails
+
+	// For each application, fetch user and student details
+	for _, app := range applications {
+		var user models.User
+		if err := config.DB.Where("uid = ?", app.UID).First(&user).Error; err != nil {
+			continue // Skip if user not found
+		}
+
+		var student models.Students
+		if err := config.DB.Where("uid = ?", app.UID).First(&student).Error; err != nil {
+			// Create empty student record if not found
+			student = models.Students{Uid: app.UID}
+		}
+
+		detailedApp := ApplicationWithDetails{
+			// Application fields
+			ID:               app.ID,
+			TimeCreated:      app.TimeCreated,
+			Status:           app.Status,
+			UID:              app.UID,
+			PID:              app.PID,
+			Availability:     app.Availability,
+			Motivation:       app.Motivation,
+			PriorProjects:    app.PriorProjects,
+			CVLink:           app.CVLink,
+			PublicationsLink: app.PublicationsLink,
+
+			// Interview fields
+			InterviewDate:    app.InterviewDate,
+			InterviewTime:    app.InterviewTime,
+			InterviewDetails: app.InterviewDetails,
+
+			// User fields
+			Name:     user.Name,
+			Email:    user.Email,
+			UserType: string(user.Type),
+
+			// Student profile fields
+			Institution:      student.Institution,
+			Degree:           student.Degree,
+			Location:         student.Location,
+			Dates:            student.Dates,
+			Experience:       student.Experience,
+			Projects:         student.Projects,
+			PlatformProjects: student.PlatformProjects,
+			Skills:           student.Skills,
+			Activities:       student.Activities,
+			Resume:           student.Resume,
+			ResearchInterest: student.ResearchInterest,
+			Intention:        student.Intention,
+		}
+		detailedApplications = append(detailedApplications, detailedApp)
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"project":      project,
+		"applications": detailedApplications,
+		"count":        len(detailedApplications),
 	})
 }

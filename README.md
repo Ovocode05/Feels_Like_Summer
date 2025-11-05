@@ -19,11 +19,3 @@ Increased student contribution and better visibility & efficiency in research ec
 **Professors**: Need efficient applicant/project management  
 *Outcomes*: Focused research groups, less admin burden
 
-## Features
-- Department-wise Project Hub
-- Smart Search with tags/filters
-- Availability Status of professors
-- Roadmaps & Resources for self-start
-- Hackathon Problem Statements
-- Application Workflow with CV builder
-- Progress Tracking dashboard

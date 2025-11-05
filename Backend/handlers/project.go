@@ -315,3 +315,81 @@ func GetMyProjects(c echo.Context) error {
 		"count":    len(projects),
 	})
 }
+
+func GetProjectWorkingUsers(c echo.Context) error {
+	projectID := c.Param("id")
+	if projectID == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Project ID is required"})
+	}
+
+	// Get user data from context
+	userData := c.Get("userData").(models.UserData)
+
+	// Fetch the project
+	var project models.Projects
+	if err := config.DB.Where("project_id = ?", projectID).First(&project).Error; err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found"})
+	}
+
+	// Verify the user is the creator of the project
+	if project.CreatorID != userData.GetUID() {
+		return c.JSON(http.StatusForbidden, echo.Map{"error": "You don't have permission to view this project's working users"})
+	}
+
+	// If no working users, return empty array
+	if len(project.WorkingUsers) == 0 {
+		return c.JSON(http.StatusOK, echo.Map{
+			"workingUsers": []interface{}{},
+			"count":        0,
+		})
+	}
+
+	type UserDetails struct {
+		UID              string   `json:"uid"`
+		Name             string   `json:"name"`
+		Email            string   `json:"email"`
+		Institution      string   `json:"institution,omitempty"`
+		Degree           string   `json:"degree,omitempty"`
+		Location         string   `json:"location,omitempty"`
+		Skills           []string `json:"skills,omitempty"`
+		ResearchInterest string   `json:"researchInterest,omitempty"`
+		ResumeLink       string   `json:"resumeLink,omitempty"`
+	}
+
+	var workingUsersDetails []UserDetails
+
+	// Fetch details for each working user
+	for _, uid := range project.WorkingUsers {
+		var user models.User
+		if err := config.DB.Where("uid = ?", uid).First(&user).Error; err != nil {
+			// Skip if user not found
+			continue
+		}
+
+		userDetail := UserDetails{
+			UID:   user.Uid,
+			Name:  user.Name,
+			Email: user.Email,
+		}
+
+		// If user is a student, fetch their profile
+		if user.Type == "stu" {
+			var student models.Students
+			if err := config.DB.Where("uid = ?", uid).First(&student).Error; err == nil {
+				userDetail.Institution = student.Institution
+				userDetail.Degree = student.Degree
+				userDetail.Location = student.Location
+				userDetail.Skills = student.Skills
+				userDetail.ResearchInterest = student.ResearchInterest
+				userDetail.ResumeLink = student.Resume
+			}
+		}
+
+		workingUsersDetails = append(workingUsersDetails, userDetail)
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"workingUsers": workingUsersDetails,
+		"count":        len(workingUsersDetails),
+	})
+}

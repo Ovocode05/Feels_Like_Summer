@@ -253,6 +253,19 @@ export default function ProfessorApplicationsPage() {
       return;
     }
 
+    // Check if the interview date is in the past
+    const selectedDateTime = new Date(`${interviewDate}T${interviewTime}`);
+    const now = new Date();
+    
+    if (selectedDateTime < now) {
+      toast({
+        title: "Error",
+        description: "Cannot schedule an interview for a past date and time",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await scheduleInterview(
         selectedProject.pid,

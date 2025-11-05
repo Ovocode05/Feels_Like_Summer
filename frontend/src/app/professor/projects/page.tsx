@@ -481,14 +481,32 @@ export default function ProfessorProjectsPage() {
                             </span>
                           ))}
                         </div>
-                        <FormControl>
-                          <Input
-                            placeholder="Add a tag and press Enter"
-                            value={tagInput}
-                            onChange={(e) => setTagInput(e.target.value)}
-                            onKeyDown={handleAddTag}
-                          />
-                        </FormControl>
+                        <div className="flex gap-2">
+                          <FormControl>
+                            <Input
+                              placeholder="Add a tag and press Enter"
+                              value={tagInput}
+                              onChange={(e) => setTagInput(e.target.value)}
+                              onKeyDown={handleAddTag}
+                              className="flex-1"
+                            />
+                          </FormControl>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              if (tagInput.trim() && !form.getValues("tags")?.includes(tagInput.trim())) {
+                                form.setValue("tags", [
+                                  ...(form.getValues("tags") || []),
+                                  tagInput.trim(),
+                                ]);
+                                setTagInput("");
+                              }
+                            }}
+                          >
+                            Add
+                          </Button>
+                        </div>
                         <FormDescription>
                           Add keywords for the subject or research field
                         </FormDescription>

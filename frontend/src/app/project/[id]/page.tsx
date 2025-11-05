@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getProjectByPid, updateProjectByPid } from "@/api/api";
+import { getProjectByPid, updateProjectByPid, getMyApplicationStatusForProject, getProjectWorkingUsers } from "@/api/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,12 @@ import {
   ChevronLeft,
   FileText,
   LogOut,
+  Clock,
+  Calendar,
+  Info,
+  Users,
+  ExternalLink,
+  History,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { ApplyModal } from "@/components/apply-modal";
@@ -42,6 +48,32 @@ type ProjectType = {
   deadline?: string;
 };
 
+type ApplicationType = {
+  ID: number;
+  status: string;
+  time_created: string;
+  availability: string;
+  motivation: string;
+  priorProjects: string;
+  cvLink: string;
+  publicationsLink: string;
+  interviewDate?: string;
+  interviewTime?: string;
+  interviewDetails?: string;
+};
+
+type WorkingUserType = {
+  uid: string;
+  name: string;
+  email: string;
+  institution?: string;
+  degree?: string;
+  location?: string;
+  skills?: string[];
+  researchInterest?: string;
+  resumeLink?: string;
+};
+
 export default function ProjectDetails() {
   const params = useParams();
   const router = useRouter();
@@ -56,6 +88,10 @@ export default function ProjectDetails() {
   const [isAuth, setIsAuth] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [myApplication, setMyApplication] = useState<ApplicationType | null>(null);
+  const [applicationLoading, setApplicationLoading] = useState(false);
+  const [workingUsers, setWorkingUsers] = useState<WorkingUserType[]>([]);
+  const [workingUsersLoading, setWorkingUsersLoading] = useState(false);
 
   const pid = params?.id as string;
 
@@ -72,6 +108,41 @@ export default function ProjectDetails() {
       setLoading(false);
     }
   }, [pid]);
+
+  const fetchMyApplication = useCallback(async () => {
+    if (!isStudent) return;
+    setApplicationLoading(true);
+    try {
+      const token = localStorage.getItem("token") || "";
+      const response = await getMyApplicationStatusForProject(pid, token);
+      
+      if (response.hasApplied && response.application) {
+        setMyApplication(response.application);
+      } else {
+        setMyApplication(null);
+      }
+    } catch (error) {
+      console.error("Error fetching application:", error);
+      setMyApplication(null);
+    } finally {
+      setApplicationLoading(false);
+    }
+  }, [pid, isStudent]);
+
+  const fetchWorkingUsers = useCallback(async () => {
+    if (isStudent) return; // Only fetch for professors
+    setWorkingUsersLoading(true);
+    try {
+      const token = localStorage.getItem("token") || "";
+      const response = await getProjectWorkingUsers(pid, token);
+      setWorkingUsers(response.workingUsers || []);
+    } catch (error) {
+      console.error("Error fetching working users:", error);
+      setWorkingUsers([]);
+    } finally {
+      setWorkingUsersLoading(false);
+    }
+  }, [pid, isStudent]);
 
   useEffect(() => {
     if (pid) fetchProject();
@@ -91,6 +162,18 @@ export default function ProjectDetails() {
     }
     setIsAuth(true);
   }, [router]);
+
+  useEffect(() => {
+    if (isAuth && isStudent && pid) {
+      fetchMyApplication();
+    }
+  }, [isAuth, isStudent, pid, fetchMyApplication]);
+
+  useEffect(() => {
+    if (isAuth && !isStudent && pid) {
+      fetchWorkingUsers();
+    }
+  }, [isAuth, isStudent, pid, fetchWorkingUsers]);
 
   if (!isAuth) {
     return null;
@@ -123,6 +206,44 @@ export default function ProjectDetails() {
       title: "Success!",
       description: "Your application has been submitted successfully.",
     });
+    // Refresh the application status
+    fetchMyApplication();
+  };
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case "accepted":
+      case "approved":
+        return "bg-green-600 text-white hover:bg-green-700";
+      case "rejected":
+        return "bg-red-600 text-white hover:bg-red-700";
+      case "interview":
+        return "bg-blue-600 text-white hover:bg-blue-700";
+      case "waitlisted":
+        return "bg-yellow-600 text-white hover:bg-yellow-700";
+      case "under_review":
+      default:
+        return "bg-gray-600 text-white hover:bg-gray-700";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "accepted":
+        return "Accepted";
+      case "approved":
+        return "Approved";
+      case "rejected":
+        return "Rejected";
+      case "interview":
+        return "Interview Scheduled";
+      case "waitlisted":
+        return "Waitlisted";
+      case "under_review":
+        return "Under Review";
+      default:
+        return status;
+    }
   };
 
   if (loading) {
@@ -188,6 +309,11 @@ export default function ProjectDetails() {
                   >
                     {project.isActive === true ? "Active" : "Inactive"}
                   </Badge>
+                  {myApplication && (
+                    <Badge className={getStatusBadgeColor(myApplication.status)}>
+                      ✓ Applied
+                    </Badge>
+                  )}
                 </h1>
                 <span className="text-xs text-black/60 font-mono">
                   PID: {project.pid}
@@ -218,6 +344,103 @@ export default function ProjectDetails() {
               </h2>
               <p className="text-base text-black/80">{project.ldesc}</p>
             </div>
+
+            {/* Application Status Section - Only for students who have applied */}
+            {isStudent && myApplication && (
+              <div className="mt-6 rounded-xl bg-white shadow border border-black/10 p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-black">
+                  <Info className="h-5 w-5 text-black" />
+                  Your Application Status
+                </h2>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b">
+                    <span className="text-sm font-medium text-black/70">
+                      Status
+                    </span>
+                    <Badge className={getStatusBadgeColor(myApplication.status)}>
+                      {getStatusLabel(myApplication.status)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between pb-3 border-b">
+                    <span className="text-sm font-medium text-black/70">
+                      Applied On
+                    </span>
+                    <span className="text-sm text-black flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(myApplication.time_created).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  
+                  {/* Interview Details if available */}
+                  {myApplication.status === "interview" && myApplication.interviewDate && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h3 className="font-semibold text-blue-900 mb-2">
+                        Interview Scheduled
+                      </h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-blue-800">
+                          <Calendar className="h-4 w-4" />
+                          <span><strong>Date:</strong> {myApplication.interviewDate}</span>
+                        </div>
+                        {myApplication.interviewTime && (
+                          <div className="flex items-center gap-2 text-blue-800">
+                            <Clock className="h-4 w-4" />
+                            <span><strong>Time:</strong> {myApplication.interviewTime}</span>
+                          </div>
+                        )}
+                        {myApplication.interviewDetails && (
+                          <div className="mt-2 text-blue-800">
+                            <strong>Details:</strong>
+                            <p className="mt-1">{myApplication.interviewDetails}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status-specific messages */}
+                  {myApplication.status === "accepted" && (
+                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-800">
+                        🎉 Congratulations! Your application has been accepted. The professor will contact you with next steps.
+                      </p>
+                    </div>
+                  )}
+                  {myApplication.status === "approved" && (
+                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-800">
+                        ✅ Your application has been approved! You'll receive further details soon.
+                      </p>
+                    </div>
+                  )}
+                  {myApplication.status === "under_review" && (
+                    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                      <p className="text-sm text-gray-800">
+                        ⏳ Your application is currently under review. The professor will update you soon.
+                      </p>
+                    </div>
+                  )}
+                  {myApplication.status === "waitlisted" && (
+                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800">
+                        🕐 You've been waitlisted for this project. We'll notify you if a position becomes available.
+                      </p>
+                    </div>
+                  )}
+                  {myApplication.status === "rejected" && (
+                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-800">
+                        Unfortunately, your application was not accepted this time. Keep exploring other opportunities!
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Project Details Section */}
             {(project.fieldOfStudy ||
@@ -295,6 +518,116 @@ export default function ProjectDetails() {
                 </div>
               </div>
             )}
+
+            {/* Past Applicants Button for Professors */}
+            {!isStudent && (
+              <div className="mt-6 rounded-xl bg-white shadow border border-black/10 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-black flex items-center gap-2">
+                      <History className="h-5 w-5 text-black" />
+                      Application History
+                    </h2>
+                    <p className="text-sm text-black/60 mt-1">
+                      View past applicants who were accepted or rejected
+                    </p>
+                  </div>
+                  <Link href={`/professor/project/${project.pid}/past-applicants`}>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2 border-black text-black hover:bg-black hover:text-white"
+                    >
+                      <History className="h-4 w-4" />
+                      View Past Applicants
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Accepted Students Section - Only for Professors */}
+            {!isStudent && workingUsers.length > 0 && (
+              <div className="mt-6 rounded-xl bg-white shadow border border-black/10 p-6">
+                <h2 className="text-xl font-semibold mb-4 text-black flex items-center gap-2">
+                  <Users className="h-5 w-5 text-black" />
+                  Accepted Students ({workingUsers.length})
+                </h2>
+                <div className="space-y-4">
+                  {workingUsers.map((user) => (
+                    <div
+                      key={user.uid}
+                      className="p-4 border border-black/10 rounded-lg hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <User2 className="h-5 w-5 text-black/60" />
+                            <h3 className="font-semibold text-black">
+                              {user.name}
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-black/70 mb-2">
+                            <Mail className="h-4 w-4" />
+                            <span>{user.email}</span>
+                          </div>
+                          {user.institution && (
+                            <div className="text-sm text-black/70 mb-1">
+                              <strong>Institution:</strong> {user.institution}
+                              {user.degree && ` • ${user.degree}`}
+                            </div>
+                          )}
+                          {user.location && (
+                            <div className="text-sm text-black/70 mb-1">
+                              <strong>Location:</strong> {user.location}
+                            </div>
+                          )}
+                          {user.researchInterest && (
+                            <div className="text-sm text-black/70 mb-2">
+                              <strong>Research Interest:</strong>{" "}
+                              {user.researchInterest}
+                            </div>
+                          )}
+                          {user.skills && user.skills.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {user.skills.slice(0, 5).map((skill, idx) => (
+                                <Badge
+                                  key={idx}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {user.skills.length > 5 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{user.skills.length - 5} more
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        {user.resumeLink && (
+                          <a
+                            href={user.resumeLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-1"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Resume
+                            </Button>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar: Professor Info */}
@@ -314,7 +647,7 @@ export default function ProjectDetails() {
             </div>
 
             {/* Apply Button for Students */}
-            {isStudent && project.isActive && (
+            {isStudent && project.isActive && !myApplication && (
               <div className="rounded-xl bg-white shadow border border-black/10 p-6">
                 <Button
                   onClick={() => setApplyModalOpen(true)}
@@ -325,6 +658,21 @@ export default function ProjectDetails() {
                 </Button>
                 <p className="text-xs text-black/60 text-center mt-3">
                   Submit your application and profile information
+                </p>
+              </div>
+            )}
+
+            {isStudent && project.isActive && myApplication && (
+              <div className="rounded-xl bg-white shadow border border-black/10 p-6">
+                <Button
+                  disabled
+                  className="w-full bg-gray-400 text-white cursor-not-allowed"
+                  size="lg"
+                >
+                  Already Applied
+                </Button>
+                <p className="text-xs text-black/60 text-center mt-3">
+                  Your application is {getStatusLabel(myApplication.status).toLowerCase()}
                 </p>
               </div>
             )}
@@ -478,21 +826,6 @@ export default function ProjectDetails() {
           onSuccess={handleApplicationSuccess}
         />
       )}
-
-      <footer className="border-t py-6 md:py-8 bg-white">
-        <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-black" />
-            <span className="text-lg font-semibold text-black">
-              Feels Like Summer
-            </span>
-          </div>
-          <p className="text-center text-sm text-black/60 md:text-left">
-            &copy; {new Date().getFullYear()} Feels Like Summer. All rights
-            reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

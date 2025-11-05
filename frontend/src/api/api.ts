@@ -310,6 +310,22 @@ export const updateProjectByPid = async (
   }
 };
 
+export const getProjectWorkingUsers = async (pid: string, token: string) => {
+  try {
+    const response = await axiosInstance.get(`/projects/${pid}/working-users`, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching project working users:", error);
+    throw error;
+  }
+};
+
 // Password Reset APIs
 export const forgotPassword = async (email: string) => {
   try {
@@ -457,6 +473,52 @@ export const getMyApplications = async (token: string) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching applications:", error);
+    throw error;
+  }
+};
+
+export const getApplicationForProject = async (projectId: string, token: string) => {
+  try {
+    const response = await getMyApplications(token);
+    if (response.applications && Array.isArray(response.applications)) {
+      const application = response.applications.find((app: any) => app.PID === projectId);
+      return application || null;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching application for project:", error);
+    return null;
+  }
+};
+
+// New optimized endpoint - gets application status for a specific project with a single efficient query
+export const getMyApplicationStatusForProject = async (projectId: string, token: string) => {
+  try {
+    const response = await axiosInstance.get(`/projects/${projectId}/application-status`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching application status for project:", error);
+    throw error;
+  }
+};
+
+// Get lightweight list of all projects the student has applied to (just PIDs and statuses)
+export const getMyAppliedProjects = async (token: string) => {
+  try {
+    const response = await axiosInstance.get("/applications/my/applied-projects", {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching applied projects:", error);
     throw error;
   }
 };
@@ -674,6 +736,28 @@ export const scheduleInterview = async (
     return response.data;
   } catch (error) {
     console.error("Error scheduling interview:", error);
+    throw error;
+  }
+};
+
+// Get past applicants (accepted/rejected) for a project
+export const getPastApplicantsForProject = async (
+  projectId: string,
+  token: string
+) => {
+  try {
+    const response = await axiosInstance.get(
+      `/projects/${projectId}/past-applicants`,
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching past applicants:", error);
     throw error;
   }
 };

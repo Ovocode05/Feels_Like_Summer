@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import { ResearchPreferences } from "@/api/api";
 
 interface QuestionnaireModalProps {
@@ -114,6 +114,7 @@ export default function QuestionnaireModal({
   const [selectedInterests, setSelectedInterests] = useState<string[]>(
     initialData?.interest_areas ? JSON.parse(initialData.interest_areas) : []
   );
+  const [customInterest, setCustomInterest] = useState("");
 
   // Reset form when modal opens or initialData changes
   useEffect(() => {
@@ -168,6 +169,25 @@ export default function QuestionnaireModal({
         ? prev.filter((i) => i !== interest)
         : [...prev, interest]
     );
+  };
+
+  const handleAddCustomInterest = () => {
+    if (customInterest.trim() && !selectedInterests.includes(customInterest.trim())) {
+      setSelectedInterests((prev) => [...prev, customInterest.trim()]);
+      setCustomInterest("");
+    }
+  };
+
+  const handleRemoveInterest = (interest: string) => {
+    setSelectedInterests((prev) => prev.filter((i) => i !== interest));
+  };
+
+  const handleFieldOfStudyChange = (value: string) => {
+    setFormData({ ...formData, field_of_study: value });
+    // Clear selected interests when field of study changes
+    // Only keep interests that exist in the new field's interest areas
+    const newFieldInterests = INTEREST_AREAS_BY_FIELD[value] || INTEREST_AREAS_BY_FIELD["Other"];
+    setSelectedInterests((prev) => prev.filter((interest) => newFieldInterests.includes(interest)));
   };
 
   const handleSubmit = async () => {
@@ -246,9 +266,7 @@ export default function QuestionnaireModal({
                 <Label htmlFor="field_of_study">Field of Study</Label>
                 <Select
                   value={formData.field_of_study}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, field_of_study: value })
-                  }
+                  onValueChange={handleFieldOfStudyChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select your field" />
@@ -341,7 +359,32 @@ export default function QuestionnaireModal({
                 <p className="text-sm text-muted-foreground mb-3">
                   Select all areas that interest you (choose at least one)
                 </p>
-                <div className="flex flex-wrap gap-2">
+                
+                {/* Selected interests with remove option */}
+                {selectedInterests.length > 0 && (
+                  <div className="mb-3 p-3 bg-muted/50 rounded-md">
+                    <p className="text-xs font-medium mb-2">Selected Interests:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedInterests.map((interest) => (
+                        <Badge
+                          key={interest}
+                          variant="default"
+                          className="cursor-pointer hover:bg-destructive flex items-center gap-1"
+                          onClick={() => handleRemoveInterest(interest)}
+                        >
+                          {interest}
+                          <X className="h-3 w-3" />
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Click on an interest to remove it
+                    </p>
+                  </div>
+                )}
+                
+                {/* Predefined interest options */}
+                <div className="flex flex-wrap gap-2 mb-3">
                   {(
                     INTEREST_AREAS_BY_FIELD[formData.field_of_study || ""] ||
                     INTEREST_AREAS_BY_FIELD["Other"]
@@ -359,6 +402,39 @@ export default function QuestionnaireModal({
                       {interest}
                     </Badge>
                   ))}
+                </div>
+                
+                {/* Add custom interest */}
+                <div>
+                  <Label htmlFor="custom-interest" className="text-xs">
+                    Add Custom Interest Area
+                  </Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="custom-interest"
+                      value={customInterest}
+                      onChange={(e) => setCustomInterest(e.target.value)}
+                      placeholder="Enter a custom interest area..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddCustomInterest();
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddCustomInterest}
+                      disabled={!customInterest.trim()}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Can't find your interest? Add it here.
+                  </p>
                 </div>
               </div>
             </div>
