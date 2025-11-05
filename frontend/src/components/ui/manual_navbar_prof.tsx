@@ -64,31 +64,10 @@ function Header() {
               <Menu className="h-5 w-5" />
             )}
           </button>
-
-          <Link href="/professor/profile" className="block">
-            <Avatar>
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Professor"
-                className="h-8 w-8 rounded-full"
-              />
-              <AvatarFallback>PD</AvatarFallback>
-            </Avatar>
-          </Link>
         </div>
 
         {/* Right side actions for desktop */}
         <div className="ml-auto hidden items-center gap-4 lg:flex">
-          <Link href="/professor/profile" className="block">
-            <Avatar>
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Professor"
-              />
-              <AvatarFallback>PD</AvatarFallback>
-            </Avatar>
-          </Link>
-
           <Button
             variant="outline"
             size="sm"
@@ -128,20 +107,6 @@ function Header() {
                 Applications
               </Link>
               <div className="mt-2 flex items-center justify-between gap-2">
-                <Link
-                  href="/professor/profile"
-                  className="flex items-center gap-2"
-                >
-                  <Avatar>
-                    <AvatarImage
-                      src="/placeholder.svg?height=32&width=32"
-                      alt="Professor"
-                      className="h-8 w-8 rounded-full"
-                    />
-                    <AvatarFallback>PD</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">Profile</span>
-                </Link>
                 <Button
                   variant="outline"
                   size="sm"

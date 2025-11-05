@@ -146,7 +146,7 @@ export default function ProjectDetails() {
       <header className="sticky top-0 z-50 flex h-16 justify-between gap-4 border-b border-black/10 bg-white px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
           <BookOpen className="h-6 w-6 text-black" />
-          <span className="text-xl font-bold text-black">ResearchConnect</span>
+          <span className="text-xl font-bold text-black">FLS</span>
         </Link>
         <div className="ml-2">
           <Button
@@ -220,8 +220,11 @@ export default function ProjectDetails() {
             </div>
 
             {/* Project Details Section */}
-            {(project.fieldOfStudy || project.specialization || project.duration || 
-              (project.positionType && project.positionType.length > 0) || project.deadline) && (
+            {(project.fieldOfStudy ||
+              project.specialization ||
+              project.duration ||
+              (project.positionType && project.positionType.length > 0) ||
+              project.deadline) && (
               <div className="mt-6 rounded-xl bg-white shadow border border-black/10 p-6">
                 <h2 className="text-xl font-semibold mb-4 text-black">
                   Project Details
@@ -263,11 +266,16 @@ export default function ProjectDetails() {
                         Position Type
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {project.positionType.map((type: string, idx: number) => (
-                          <Badge key={type + idx} className="bg-black text-white">
-                            {type}
-                          </Badge>
-                        ))}
+                        {project.positionType.map(
+                          (type: string, idx: number) => (
+                            <Badge
+                              key={type + idx}
+                              className="bg-black text-white"
+                            >
+                              {type}
+                            </Badge>
+                          )
+                        )}
                       </div>
                     </div>
                   )}
@@ -276,7 +284,10 @@ export default function ProjectDetails() {
                       <div className="text-sm font-medium text-black/60 mb-1">
                         Application Deadline
                       </div>
-                      <Badge variant="destructive" className="bg-red-800 text-white">
+                      <Badge
+                        variant="destructive"
+                        className="bg-red-800 text-white"
+                      >
                         {new Date(project.deadline).toLocaleDateString()}
                       </Badge>
                     </div>
@@ -473,11 +484,11 @@ export default function ProjectDetails() {
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-black" />
             <span className="text-lg font-semibold text-black">
-              ResearchConnect
+              Feels Like Summer
             </span>
           </div>
           <p className="text-center text-sm text-black/60 md:text-left">
-            &copy; {new Date().getFullYear()} ResearchConnect. All rights
+            &copy; {new Date().getFullYear()} Feels Like Summer. All rights
             reserved.
           </p>
         </div>

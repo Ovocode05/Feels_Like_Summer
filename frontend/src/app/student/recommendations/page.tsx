@@ -26,6 +26,15 @@ import {
   Sparkles,
 } from "lucide-react";
 
+interface DecodedToken {
+  userId: string;
+  name: string;
+  email: string;
+  type: string;
+  iat: number;
+  exp: number;
+}
+
 export default function RecommendationsPage() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
@@ -33,18 +42,19 @@ export default function RecommendationsPage() {
     []
   );
   const [loading, setLoading] = useState(true);
+  const [decode, setDecode] = useState<DecodedToken | null>(null);
 
-  // useEffect(() => {
-  //   if (typeof window === "undefined") return;
-  //   const token = localStorage.getItem("token") || "";
-  //   if (!token) return;
-  //   try {
-  //     setDecode(jwtDecode(token) as DecodedToken);
-  //   } catch (e) {
-  //     console.error("Invalid token decode", e);
-  //     setDecode(null);
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("token") || "";
+    if (!token) return;
+    try {
+      setDecode(jwtDecode(token) as DecodedToken);
+    } catch (e) {
+      console.error("Invalid token decode", e);
+      setDecode(null);
+    }
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token") || "";
@@ -128,7 +138,7 @@ export default function RecommendationsPage() {
                 Complete your profile with your skills, research interests, and
                 preferences to get personalized project recommendations.
               </p>
-              <Link href="/profile">
+              <Link href="/student/profile">
                 <Button>Complete Your Profile</Button>
               </Link>
             </CardContent>

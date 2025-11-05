@@ -262,7 +262,7 @@ export default function StudentDashboard() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back {decode.name} . Track your research journey here.
+              Welcome back {decode.name}. Track your research journey here.
             </p>
           </div>
           <Link href="/student/projects">
@@ -557,7 +557,7 @@ export default function StudentDashboard() {
               )}
             </CardContent>
             <CardFooter>
-              <Link href="/profile" className="w-full">
+              <Link href="/student/profile" className="w-full">
                 <Button variant="outline" className="w-full">
                   Update Profile
                 </Button>
@@ -628,47 +628,11 @@ export default function StudentDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Learning Resources</CardTitle>
-              <CardDescription>Roadmaps shared by professors.</CardDescription>
+              <CardDescription>
+                Roadmaps to help you in your research journey.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* <div className="flex gap-2">
-                <Input placeholder="Search resources..." className="flex-1" />
-                <Button variant="outline" size="icon">
-                  {/* <Search className="h-4 w-4" /> */}
-              {/* </Button> */}
-              {/* </div> */}
 
-              {[
-                {
-                  title: "Introduction to Quantum Computing",
-                  type: "Course Roadmap",
-                  icon: <BookText className="h-8 w-8 text-primary" />,
-                },
-                {
-                  title: "Machine Learning Fundamentals",
-                  type: "Course Roadmap",
-                  icon: <BookOpen className="h-8 w-8 text-primary" />,
-                },
-                {
-                  title: "Research Methodology in Computer Science",
-                  type: "Course Roadmap",
-                  icon: <History className="h-8 w-8 text-primary" />,
-                },
-              ].map((resource, i) => (
-                <div
-                  key={i}
-                  className="flex items-start space-x-4 rounded-lg border p-3"
-                >
-                  <div>{resource.icon}</div>
-                  <div>
-                    <h4 className="font-medium">{resource.title}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      {resource.type}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
             <CardFooter>
               <Link href="/student/resources">
                 <Button variant="outline" className="w-full">
@@ -678,76 +642,6 @@ export default function StudentDashboard() {
             </CardFooter>
           </Card>
         </div>
-        {/* 
-        <Tabs defaultValue="upcoming" className="w-full">
-          <TabsList>
-            <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
-            <TabsTrigger value="hackathons">Hackathons</TabsTrigger>
-            <TabsTrigger value="workshops">Workshops</TabsTrigger>
-          </TabsList>
-          <TabsContent value="upcoming" className="space-y-4">
-            <div className="rounded-lg border shadow-sm">
-              <div className="p-6">
-                <h3 className="text-lg font-medium">AI Research Symposium</h3>
-                <p className="text-sm text-muted-foreground">
-                  May 25, 2023 • Virtual Event
-                </p>
-                <p className="mt-2 text-sm">
-                  Join leading AI researchers as they present their latest
-                  findings and innovations in the field.
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <Button size="sm">Register</Button>
-                  <Button variant="outline" size="sm">
-                    Add to Calendar
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="hackathons" className="space-y-4">
-            <div className="rounded-lg border shadow-sm">
-              <div className="p-6">
-                <h3 className="text-lg font-medium">Climate Data Hackathon</h3>
-                <p className="text-sm text-muted-foreground">
-                  June 10-12, 2023 • Online
-                </p>
-                <p className="mt-2 text-sm">
-                  Develop innovative solutions to climate challenges using
-                  real-world data sets.
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <Button size="sm">Register</Button>
-                  <Button variant="outline" size="sm">
-                    Learn More
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="workshops" className="space-y-4">
-            <div className="rounded-lg border shadow-sm">
-              <div className="p-6">
-                <h3 className="text-lg font-medium">
-                  Research Paper Writing Workshop
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  June 5, 2023 • 2:00 PM - 4:00 PM
-                </p>
-                <p className="mt-2 text-sm">
-                  Learn effective strategies for writing and publishing research
-                  papers in top journals.
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <Button size="sm">Register</Button>
-                  <Button variant="outline" size="sm">
-                    Add to Calendar
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs> */}
       </main>
     </div>
   );

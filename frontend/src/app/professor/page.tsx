@@ -188,8 +188,8 @@ export default function ProfessorDashboard() {
           </div>
 
           {/* Main content area: recent applications + availability */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
-            <Card className="col-span-1 md:col-span-2 lg:col-span-4 w-full">
+          <div className="mt-6 gap-4 w-full ">
+            <Card className="col-span-1 md:col-span-2 lg:col-span-4 ">
               <CardHeader>
                 <CardTitle>Recent Applications</CardTitle>
                 <CardDescription>
@@ -205,7 +205,7 @@ export default function ProfessorDashboard() {
               </CardFooter>
             </Card>
 
-            <Card className="col-span-1 md:col-span-2 lg:col-span-3 w-full">
+            {/* <Card className="col-span-1 md:col-span-2 lg:col-span-3 w-full">
               <CardHeader>
                 <CardTitle>Your Availability</CardTitle>
                 <CardDescription>
@@ -219,7 +219,7 @@ export default function ProfessorDashboard() {
                   </Button>
                 </Link>
               </CardFooter>
-            </Card>
+            </Card> */}
           </div>
         </div>
       </main>

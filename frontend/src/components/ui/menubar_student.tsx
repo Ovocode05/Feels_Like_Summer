@@ -71,30 +71,10 @@ function MenubarStudent() {
               <Menu className="h-5 w-5" />
             )}
           </button>
-
-          <Link href="/student/profile" className="block">
-            <Avatar>
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Student"
-                className="h-8 w-8 rounded-full"
-              />
-              <AvatarFallback>JS</AvatarFallback>
-            </Avatar>
-          </Link>
         </div>
 
         {/* Desktop actions */}
         <div className="ml-auto hidden items-center gap-4 lg:flex">
-          <Link href="/student/profile">
-            <Avatar>
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Student"
-              />
-              <AvatarFallback>JS</AvatarFallback>
-            </Avatar>
-          </Link>
           <Button
             variant="outline"
             size="sm"
@@ -133,29 +113,8 @@ function MenubarStudent() {
               >
                 Resources
               </Link>
-              <Link
-                href="/student/profile"
-                className="block rounded px-2 py-2 text-sm font-medium hover:bg-muted/40"
-                onClick={() => setMenuOpen(false)}
-              >
-                Profile
-              </Link>
 
               <div className="mt-2 flex items-center justify-between gap-2">
-                <Link
-                  href="/student/profile"
-                  className="flex items-center gap-2"
-                >
-                  <Avatar>
-                    <AvatarImage
-                      src="/placeholder.svg?height=32&width=32"
-                      alt="Student"
-                      className="h-8 w-8 rounded-full"
-                    />
-                    <AvatarFallback>JS</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">Profile</span>
-                </Link>
                 <Button
                   variant="outline"
                   size="sm"
