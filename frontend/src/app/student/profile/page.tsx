@@ -350,7 +350,7 @@ export default function CVBuilderPage() {
       setSaveSuccess(true);
       toast({
         title: "Success",
-        description: "Your CV has been saved successfully!",
+        description: "Your profile has been saved successfully!",
       });
 
       // Switch to preview tab
@@ -447,20 +447,10 @@ export default function CVBuilderPage() {
       <main className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">CV Builder</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
             <p className="text-muted-foreground">
-              Create and manage your CV for research applications.
+              Create and manage your profile information.
             </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              <span>Import</span>
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              <span>Export as PDF</span>
-            </Button>
           </div>
         </div>
 
@@ -468,33 +458,29 @@ export default function CVBuilderPage() {
           {saveSuccess ? (
             <>
               <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertTitle>CV Saved Successfully</AlertTitle>
+              <AlertTitle>Profile Saved Successfully</AlertTitle>
               <AlertDescription>
-                Your CV has been saved to your profile and can be used for
+                Your profile has been saved to your account and can be used for
                 project applications.
               </AlertDescription>
             </>
           ) : (
             <>
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>CV Builder</AlertTitle>
+              <AlertTitle>Profile Created Successfully</AlertTitle>
               <AlertDescription>
-                Create your CV to showcase your skills and experience for
-                research applications.
+                Your profile has been created and can be used for project
+                applications.
               </AlertDescription>
             </>
           )}
         </Alert>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="edit" className="flex items-center gap-2">
               <Edit className="h-4 w-4" />
-              Edit CV
-            </TabsTrigger>
-            <TabsTrigger value="preview" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Preview
+              Edit Profile
             </TabsTrigger>
           </TabsList>
           <TabsContent value="edit" className="space-y-4 mt-4">
@@ -1257,14 +1243,6 @@ export default function CVBuilderPage() {
                 </Card>
 
                 <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setActiveTab("preview")}
-                    disabled={loading}
-                  >
-                    Preview
-                  </Button>
                   <Button type="submit" disabled={loading}>
                     {loading ? (
                       <>
@@ -1272,278 +1250,12 @@ export default function CVBuilderPage() {
                         Saving...
                       </>
                     ) : (
-                      <>Save CV</>
+                      <>Save Profile</>
                     )}
                   </Button>
                 </div>
               </form>
             </Form>
-          </TabsContent>
-          <TabsContent value="preview" className="mt-4">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="text-2xl">
-                      {form.getValues().personalInfo.firstName}{" "}
-                      {form.getValues().personalInfo.lastName}
-                    </CardTitle>
-                    <CardDescription className="text-base mt-1">
-                      {form.getValues().personalInfo.email} •{" "}
-                      {form.getValues().personalInfo.phone}
-                    </CardDescription>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
-                      {form.getValues().personalInfo.location && (
-                        <span>{form.getValues().personalInfo.location}</span>
-                      )}
-                      {form.getValues().personalInfo.linkedin && (
-                        <Link
-                          href={`https://${
-                            form.getValues().personalInfo.linkedin
-                          }`}
-                          className="hover:underline"
-                        >
-                          LinkedIn
-                        </Link>
-                      )}
-                      {form.getValues().personalInfo.github && (
-                        <Link
-                          href={`https://${
-                            form.getValues().personalInfo.github
-                          }`}
-                          className="hover:underline"
-                        >
-                          GitHub
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setActiveTab("edit")}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {form.getValues().summary && (
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">Summary</h3>
-                    <p>{form.getValues().summary}</p>
-                  </div>
-                )}
-
-                {(form.getValues().resumeLink ||
-                  form.getValues().publicationsLink) && (
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">Documents</h3>
-                    <div className="space-y-2">
-                      {form.getValues().resumeLink && (
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <Link
-                            href={form.getValues().resumeLink || "#"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            Resume/CV
-                          </Link>
-                        </div>
-                      )}
-                      {form.getValues().publicationsLink && (
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <Link
-                            href={form.getValues().publicationsLink || "#"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            Publications List
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">Education</h3>
-                  <div className="space-y-4">
-                    {form.getValues().education.map((edu, index) => (
-                      <div key={index} className="space-y-1">
-                        <div className="flex justify-between">
-                          <h4 className="font-medium">{edu.institution}</h4>
-                          <div className="text-sm text-muted-foreground">
-                            {edu.startDate &&
-                              new Date(edu.startDate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                }
-                              )}{" "}
-                            -
-                            {edu.endDate
-                              ? new Date(edu.endDate).toLocaleDateString(
-                                  "en-US",
-                                  { year: "numeric", month: "short" }
-                                )
-                              : " Present"}
-                          </div>
-                        </div>
-                        <div className="text-sm">
-                          {edu.degree} in {edu.field}
-                        </div>
-                        {edu.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {edu.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">Experience</h3>
-                  <div className="space-y-4">
-                    {form.getValues().experience.map((exp, index) => (
-                      <div key={index} className="space-y-1">
-                        <div className="flex justify-between">
-                          <h4 className="font-medium">{exp.title}</h4>
-                          <div className="text-sm text-muted-foreground">
-                            {exp.startDate &&
-                              new Date(exp.startDate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                }
-                              )}{" "}
-                            -
-                            {exp.endDate
-                              ? new Date(exp.endDate).toLocaleDateString(
-                                  "en-US",
-                                  { year: "numeric", month: "short" }
-                                )
-                              : " Present"}
-                          </div>
-                        </div>
-                        <div className="text-sm">
-                          {exp.company}
-                          {exp.location ? `, ${exp.location}` : ""}
-                        </div>
-                        {exp.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {exp.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">Skills</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {form.getValues().skills.map((skill, index) => (
-                      <Badge key={index} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">Projects</h3>
-                  <div className="space-y-4">
-                    {form.getValues().projects.map((project, index) => (
-                      <div key={index} className="space-y-1">
-                        <h4 className="font-medium">{project.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {project.description}
-                        </p>
-                        {project.link && (
-                          <Link
-                            href={`https://${project.link}`}
-                            className="text-sm text-primary hover:underline"
-                          >
-                            {project.link}
-                          </Link>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {form.getValues().publications &&
-                  form.getValues().publications.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">
-                        Publications
-                      </h3>
-                      <div className="space-y-4">
-                        {form.getValues().publications.map((pub, index) => (
-                          <div key={index} className="space-y-1">
-                            <h4 className="font-medium">{pub.title}</h4>
-                            <p className="text-sm">{pub.authors}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {pub.journal}
-                              {pub.date &&
-                                `, ${new Date(pub.date).toLocaleDateString(
-                                  "en-US",
-                                  { year: "numeric", month: "long" }
-                                )}`}
-                            </p>
-                            {pub.link && (
-                              <Link
-                                href={`https://${pub.link}`}
-                                className="text-sm text-primary hover:underline"
-                              >
-                                {pub.link}
-                              </Link>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveTab("edit")}
-                  disabled={loading}
-                >
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </Button>
-                <div className="flex gap-2">
-                  <Button variant="outline" disabled={loading}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export as PDF
-                  </Button>
-                  <Button
-                    onClick={form.handleSubmit(onSubmit)}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>Save CV</>
-                    )}
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
           </TabsContent>
         </Tabs>
       </main>

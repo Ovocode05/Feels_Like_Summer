@@ -548,7 +548,7 @@ export default function ProfessorApplicationsPage() {
                             <MessageSquare className="h-4 w-4" />
                             Send Feedback
                           </Button>
-                          {application.cvLink && (
+                          {/* {application.cvLink && (
                             <a
                               href={application.cvLink}
                               target="_blank"
@@ -563,7 +563,7 @@ export default function ProfessorApplicationsPage() {
                                 View CV
                               </Button>
                             </a>
-                          )}
+                          )} */}
                           {application.resumeLink && (
                             <a
                               href={application.resumeLink}
@@ -779,7 +779,7 @@ export default function ProfessorApplicationsPage() {
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  {selectedApplication.cvLink && (
+                  {/* {selectedApplication.cvLink && (
                     <a
                       href={selectedApplication.cvLink}
                       target="_blank"
@@ -794,7 +794,7 @@ export default function ProfessorApplicationsPage() {
                         View CV
                       </Button>
                     </a>
-                  )}
+                  )} */}
                   {selectedApplication.resumeLink && (
                     <a
                       href={selectedApplication.resumeLink}
@@ -1056,7 +1056,10 @@ export default function ProfessorApplicationsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="interviewDate" className="text-sm font-medium">
+                  <label
+                    htmlFor="interviewDate"
+                    className="text-sm font-medium"
+                  >
                     Interview Date *
                   </label>
                   <Input
@@ -1069,7 +1072,10 @@ export default function ProfessorApplicationsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="interviewTime" className="text-sm font-medium">
+                  <label
+                    htmlFor="interviewTime"
+                    className="text-sm font-medium"
+                  >
                     Interview Time *
                   </label>
                   <Input

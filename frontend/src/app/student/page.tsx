@@ -147,19 +147,19 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token") || "";
-    
+
     // Check if authenticated with valid token
     if (!isAuthenticated()) {
       clearAuthData();
       router.push("/login?expired=true");
       return;
     }
-    
+
     if (!token) {
       router.push("/login");
       return;
     }
-    
+
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "stu") {
       router.push("/login");

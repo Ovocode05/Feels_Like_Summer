@@ -92,19 +92,19 @@ export default function ProfessorDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    
+
     // Check if authenticated with valid token
     if (!isAuthenticated()) {
       clearAuthData();
       router.push("/login?expired=true");
       return;
     }
-    
+
     if (!token) {
       router.push("/login");
       return;
     }
-    
+
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "fac") {
       router.push("/login");
@@ -148,9 +148,7 @@ export default function ProfessorDashboard() {
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <Card className="w-full">
               <CardHeader className="flex items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Active Projects
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Projects</CardTitle>
                 <ClipboardList className="h-5 w-5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -158,7 +156,7 @@ export default function ProfessorDashboard() {
                   {activeProjectsCount}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  +1 from last month
+                  Includes recently added and previous projects
                 </p>
               </CardContent>
             </Card>

@@ -802,7 +802,8 @@ export default function ProfessorProjectsPage() {
                 Please type{" "}
                 <span className="font-mono font-semibold">
                   {projectToDelete?.name}
-                </span>{" "}
+                </span>
+                {"   "}
                 to confirm deletion of this project.
               </DialogDescription>
             </DialogHeader>
