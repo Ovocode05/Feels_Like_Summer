@@ -18,8 +18,8 @@ import {
 import { toast } from "sonner";
 import { isAuthenticated, clearAuthData } from "@/lib/auth";
 
-// small helper to extract error messages without using `any`
-const extractErrorMessage = (err: unknown, fallback = "An error occurred") => {
+// small helper to extract error messages
+const extractErrorMessage = (err: unknown, fallback = "An error occurred"): string => {
   if (!err || typeof err !== "object") return fallback;
   const maybe = err as Record<string, unknown>;
   if (

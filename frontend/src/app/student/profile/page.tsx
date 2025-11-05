@@ -259,7 +259,15 @@ export default function CVBuilderPage() {
           const student = response.student;
 
           // Parse personal info if available
-          let personalInfoData: any = {
+          let personalInfoData: {
+            firstName: string;
+            lastName: string;
+            email: string;
+            phone: string;
+            website: string;
+            linkedin: string;
+            github: string;
+          } = {
             firstName: "",
             lastName: "",
             email: "",
@@ -369,7 +377,7 @@ export default function CVBuilderPage() {
               ? student.educationDetails
               : student.institution ? [{}] : [];
             if (eduData.length > 0) {
-              setEducationEntries(eduData.map((_: any, idx: number) => ({ id: idx + 1 })));
+              setEducationEntries(eduData.map((_: unknown, idx: number) => ({ id: idx + 1 })));
             }
           }
           if (hasExperience) {
@@ -377,7 +385,7 @@ export default function CVBuilderPage() {
               ? student.experienceDetails
               : student.workEx ? [{}] : [];
             if (expData.length > 0) {
-              setExperienceEntries(expData.map((_: any, idx: number) => ({ id: idx + 1 })));
+              setExperienceEntries(expData.map((_: unknown, idx: number) => ({ id: idx + 1 })));
             }
           }
           if (hasProjects) {
@@ -385,11 +393,11 @@ export default function CVBuilderPage() {
               ? student.projectsDetails
               : student.projects && student.projects.length > 0 ? student.projects : [];
             if (projData.length > 0) {
-              setProjectEntries(projData.map((_: any, idx: number) => ({ id: idx + 1 })));
+              setProjectEntries(projData.map((_: unknown, idx: number) => ({ id: idx + 1 })));
             }
           }
           if (student.publicationsList && student.publicationsList.length > 0) {
-            setPublicationEntries(student.publicationsList.map((_: any, idx: number) => ({ id: idx + 1 })));
+            setPublicationEntries(student.publicationsList.map((_: unknown, idx: number) => ({ id: idx + 1 })));
           }
         }
       } catch (error: unknown) {

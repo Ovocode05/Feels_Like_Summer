@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BookOpen, LogOut, Menu, X } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+// import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { useRouter } from "next/navigation";
 
 function Header() {

@@ -277,7 +277,7 @@ export default function ProjectDetails() {
     setExtendingDeadline(true);
     try {
       const token = localStorage.getItem("token") || "";
-      await updateProjectByPid(pid, { deadline: newDeadline } as any, token);
+      await updateProjectByPid(pid, { deadline: newDeadline }, token);
       
       toast({
         title: "Success!",
@@ -314,9 +314,9 @@ export default function ProjectDetails() {
       // Refresh application status
       setMyApplication(null);
       setShowRetractConfirm(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error retracting application:", error);
-      const errorMessage = error.response?.data?.error || "Failed to retract application.";
+      const errorMessage = (error as { response?: { data?: { error?: string } } }).response?.data?.error || "Failed to retract application.";
       toast({
         title: "Error",
         description: errorMessage,
@@ -781,7 +781,7 @@ export default function ProjectDetails() {
                   {myApplication.status === "approved" && (
                     <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-xs text-green-800">
-                        ✅ Your application has been approved! You'll receive further details soon.
+                        ✅ Your application has been approved! You&apos;ll receive further details soon.
                       </p>
                     </div>
                   )}
@@ -795,7 +795,7 @@ export default function ProjectDetails() {
                   {myApplication.status === "waitlisted" && (
                     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <p className="text-xs text-yellow-800">
-                        🕐 You've been waitlisted. We'll notify you if a position becomes available.
+                        🕐 You&apos;ve been waitlisted. We&apos;ll notify you if a position becomes available.
                       </p>
                     </div>
                   )}

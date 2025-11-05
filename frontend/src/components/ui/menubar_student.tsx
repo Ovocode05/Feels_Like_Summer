@@ -5,7 +5,7 @@ import Link from "next/link";
 import { BookOpen, LogOut, Menu, X } from "lucide-react";
 
 import { Button } from "./button";
-import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+// import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { useRouter } from "next/navigation"; // <-- Use next/navigation for app router
 
 function MenubarStudent() {

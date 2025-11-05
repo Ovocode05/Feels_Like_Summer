@@ -519,7 +519,7 @@ export const getApplicationForProject = async (projectId: string, token: string)
   try {
     const response = await getMyApplications(token);
     if (response.applications && Array.isArray(response.applications)) {
-      const application = response.applications.find((app: any) => app.PID === projectId);
+      const application = response.applications.find((app: { PID: string }) => app.PID === projectId);
       return application || null;
     }
     return null;

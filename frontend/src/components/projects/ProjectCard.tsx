@@ -263,7 +263,7 @@ export default function ProjectCard({ project, hasApplied, application, isConden
               {application.status === "waitlisted" && (
                 <div className="bg-yellow-50 dark:bg-yellow-950/30 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800">
                   <div className="text-yellow-900 dark:text-yellow-100">
-                    ⏳ Your application is currently waitlisted. You'll be notified if a position becomes available.
+                    ⏳ Your application is currently waitlisted. You&apos;ll be notified if a position becomes available.
                   </div>
                 </div>
               )}

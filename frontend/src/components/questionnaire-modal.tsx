@@ -439,7 +439,7 @@ export default function QuestionnaireModal({
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Can't find your interest? Add it here.
+                    Can&apos;t find your interest? Add it here.
                   </p>
                 </div>
               </div>
