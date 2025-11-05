@@ -424,7 +424,7 @@ export default function StudentDashboard() {
                   <p className="text-muted-foreground mb-4">
                     Complete your profile to showcase your research interests
                   </p>
-                  <Link href="/profile">
+                  <Link href="/student/profile">
                     <Button size="sm">Complete Profile</Button>
                   </Link>
                 </div>
