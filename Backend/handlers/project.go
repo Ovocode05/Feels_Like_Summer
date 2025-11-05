@@ -6,6 +6,7 @@ import (
 	"backend/models"
 	"backend/utils"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -117,6 +118,88 @@ func ListProject(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{
 		"projects": projectsWithUsers,
 		"count":    len(projectsWithUsers),
+	})
+}
+
+// ListProjectsForStudent returns projects visible to a student based on application status
+// Only shows active projects OR inactive projects the student has applied to
+func ListProjectsForStudent(c echo.Context) error {
+	type ProjectWithUser struct {
+		models.Projects
+		User models.User `json:"user"`
+	}
+
+	// Get user data from context
+	userData := c.Get("userData").(models.UserData)
+	studentUID := userData.GetUID()
+
+	// Get pagination parameters
+	page := 1
+	pageSize := 20
+	if pageParam := c.QueryParam("page"); pageParam != "" {
+		if p, err := strconv.Atoi(pageParam); err == nil && p > 0 {
+			page = p
+		}
+	}
+	if pageSizeParam := c.QueryParam("pageSize"); pageSizeParam != "" {
+		if ps, err := strconv.Atoi(pageSizeParam); err == nil && ps > 0 && ps <= 100 {
+			pageSize = ps
+		}
+	}
+
+	// Get all project IDs the student has applied to
+	var appliedProjectIDs []string
+	if err := config.DB.Model(&models.ProjRequests{}).
+		Where("uid = ?", studentUID).
+		Pluck("p_id", &appliedProjectIDs).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch applied projects"})
+	}
+
+	// Build query to fetch projects
+	// Show active projects OR projects the student has applied to
+	var projects []models.Projects
+	query := config.DB.Where("is_active = ?", true)
+	if len(appliedProjectIDs) > 0 {
+		query = query.Or("project_id IN ?", appliedProjectIDs)
+	}
+
+	// Get total count before pagination
+	var totalCount int64
+	if err := query.Model(&models.Projects{}).Count(&totalCount).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to count projects"})
+	}
+
+	// Apply pagination
+	offset := (page - 1) * pageSize
+	if err := query.Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&projects).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch projects"})
+	}
+
+	var projectsWithUsers []ProjectWithUser
+
+	// For each project, fetch the associated user (by creator)
+	for _, project := range projects {
+		var user models.User
+		if err := config.DB.Where("uid = ?", project.CreatorID).First(&user).Error; err != nil {
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch user information"})
+		}
+
+		projectWithUser := ProjectWithUser{
+			Projects: project,
+			User:     user,
+		}
+		projectsWithUsers = append(projectsWithUsers, projectWithUser)
+	}
+
+	totalPages := int((totalCount + int64(pageSize) - 1) / int64(pageSize))
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"projects":   projectsWithUsers,
+		"count":      len(projectsWithUsers),
+		"total":      totalCount,
+		"page":       page,
+		"pageSize":   pageSize,
+		"totalPages": totalPages,
 	})
 }
 

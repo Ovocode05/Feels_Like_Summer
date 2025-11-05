@@ -50,7 +50,7 @@ func GetRecommendedProjects(c echo.Context) error {
 	var preferences models.ResearchPreference
 	hasPreferences := config.DB.Where("user_id = ?", userData.UID).First(&preferences).Error == nil
 
-	// Get all active projects (optimization: only select needed fields)
+	// Get all active projects that are NOT created by the student
 	var projects []models.Projects
 	if err := config.DB.Where("is_active = ? AND creator_id != ?", true, userData.UID).Find(&projects).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
@@ -58,15 +58,16 @@ func GetRecommendedProjects(c echo.Context) error {
 		})
 	}
 
-	// Get student's ALL applications to filter out already applied projects
+	// Get ALL of student's applications (all statuses) to filter out
 	var applications []models.ProjRequests
-	config.DB.Select("pid, time_created").Where("uid = ?", userData.UID).Find(&applications)
+	config.DB.Select("p_id").Where("uid = ?", userData.UID).Find(&applications)
 	appliedProjects := make(map[string]bool, len(applications))
 	for _, app := range applications {
 		appliedProjects[app.PID] = true
 	}
 
-	// Get recent applications (past 3 months) with full project details for similarity matching
+	// Get recent applications (past 3 months) for similarity matching
+	// Only fetch applications that haven't been rejected/accepted for pattern analysis
 	threeMonthsAgo := time.Now().AddDate(0, -3, 0)
 	var recentApplications []models.ProjRequests
 	config.DB.Where("uid = ? AND time_created >= ?", userData.UID, threeMonthsAgo).Find(&recentApplications)
@@ -83,10 +84,34 @@ func GetRecommendedProjects(c echo.Context) error {
 
 	// Calculate match scores for each project
 	var recommendations []RecommendedProject
+	currentTime := time.Now()
+
 	for _, project := range projects {
-		// Skip if already applied (this ensures no duplicates)
+		// Skip if already applied (regardless of status - accepted, rejected, interview, etc.)
 		if appliedProjects[project.ProjectID] {
 			continue
+		}
+
+		// Skip projects with past deadlines
+		if project.Deadline != nil && *project.Deadline != "" {
+			// Try to parse the deadline - assuming format like "2024-12-31" or similar
+			deadline, err := time.Parse("2006-01-02", *project.Deadline)
+			if err == nil && deadline.Before(currentTime) {
+				continue // Skip projects with expired deadlines
+			}
+			// If we can't parse it, try other common formats
+			if err != nil {
+				deadline, err = time.Parse("02/01/2006", *project.Deadline)
+				if err == nil && deadline.Before(currentTime) {
+					continue
+				}
+			}
+			if err != nil {
+				deadline, err = time.Parse("01-02-2006", *project.Deadline)
+				if err == nil && deadline.Before(currentTime) {
+					continue
+				}
+			}
 		}
 
 		matchScore, reasons := calculateMatchScore(student, project, hasPreferences, preferences, recentAppliedProjects)
@@ -457,13 +482,6 @@ func calculateMatchScore(student models.Students, project models.Projects, hasPr
 			recencyBonus := 3.0 * (1.0 - float64(daysSinceCreation)/30.0)
 			score += recencyBonus
 		}
-	}
-
-	// Deadline urgency: boost projects with upcoming deadlines (up to 2 points)
-	if project.Deadline != nil && *project.Deadline != "" {
-		// Note: You'd need to parse the deadline string to date
-		// For now, just give a small boost to projects with deadlines
-		score += 2.0
 	}
 
 	// BONUS: Recent Applications Similarity (up to 15 points)

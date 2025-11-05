@@ -14,13 +14,14 @@ func RegisterProjectRoutes(api *echo.Group) {
 	projects.Use(middleware.JWTMiddleware())
 
 	// Project CRUD routes
-	projects.POST("", handlers.CreateProject, middleware.RequireUserType("fac")) // Create a new project (Faculty only)
-	projects.GET("", handlers.ListProject)                                       // Get all active projects with user info
-	projects.GET("/my", handlers.GetMyProjects)                                  // Get projects belonging to authenticated user
-	projects.GET("/:id", handlers.GetProject)                                    // Get a specific project by ID
-	projects.GET("/:id/working-users", handlers.GetProjectWorkingUsers)          // Get working users details for a project (Faculty only)
-	projects.PUT("/:id", handlers.EditProject)                                   // Update a project by ID
-	projects.DELETE("/:id", handlers.DeleteProject)                              // Delete a project by ID
+	projects.POST("", handlers.CreateProject, middleware.RequireUserType("fac"))                 // Create a new project (Faculty only)
+	projects.GET("", handlers.ListProject)                                                       // Get all projects with user info (for faculty/admin)
+	projects.GET("/student", handlers.ListProjectsForStudent, middleware.RequireUserType("stu")) // Get projects visible to student (active + applied)
+	projects.GET("/my", handlers.GetMyProjects)                                                  // Get projects belonging to authenticated user
+	projects.GET("/:id", handlers.GetProject)                                                    // Get a specific project by ID
+	projects.GET("/:id/working-users", handlers.GetProjectWorkingUsers)                          // Get working users details for a project (Faculty only)
+	projects.PUT("/:id", handlers.EditProject)                                                   // Update a project by ID
+	projects.DELETE("/:id", handlers.DeleteProject)                                              // Delete a project by ID
 
 	// Application routes
 	projects.POST("/:id/apply", handlers.ApplyToProject, middleware.RequireUserType("stu"))                                     // Apply to a project (Students only)
