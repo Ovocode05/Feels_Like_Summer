@@ -79,11 +79,117 @@ export default function ExplorePage() {
   const [selectedField, setSelectedField] = useState<string>("");
   const [selectedSpecialization, setSelectedSpecialization] =
     useState<string>("");
-  const [durationValue, setDurationValue] = useState<number[]>([50]);
+  const [durationSlider, setDurationSlider] = useState<number[]>([0]); // 0=any, 1=short, 2=medium, 3=long
   const [selectedPositionTypes, setSelectedPositionTypes] = useState<string[]>(
     []
   );
   const [upcomingDeadlineOnly, setUpcomingDeadlineOnly] = useState(false);
+
+  // Specialization options based on field of study
+  const specializationsByField: Record<string, { value: string; label: string }[]> = {
+    "": [
+      { value: "all", label: "All Specializations" },
+    ],
+    physics: [
+      { value: "all", label: "All Specializations" },
+      { value: "quantum-mechanics", label: "Quantum Mechanics" },
+      { value: "quantum-computing", label: "Quantum Computing" },
+      { value: "astrophysics", label: "Astrophysics" },
+      { value: "condensed-matter", label: "Condensed Matter Physics" },
+      { value: "particle-physics", label: "Particle Physics" },
+      { value: "optics", label: "Optics and Photonics" },
+    ],
+    chemistry: [
+      { value: "all", label: "All Specializations" },
+      { value: "organic-chemistry", label: "Organic Chemistry" },
+      { value: "inorganic-chemistry", label: "Inorganic Chemistry" },
+      { value: "physical-chemistry", label: "Physical Chemistry" },
+      { value: "analytical-chemistry", label: "Analytical Chemistry" },
+      { value: "biochemistry", label: "Biochemistry" },
+    ],
+    biology: [
+      { value: "all", label: "All Specializations" },
+      { value: "molecular-biology", label: "Molecular Biology" },
+      { value: "genetics", label: "Genetics" },
+      { value: "microbiology", label: "Microbiology" },
+      { value: "ecology", label: "Ecology" },
+      { value: "neuroscience", label: "Neuroscience" },
+      { value: "bioinformatics", label: "Bioinformatics" },
+    ],
+    "computer-science": [
+      { value: "all", label: "All Specializations" },
+      { value: "machine-learning", label: "Machine Learning" },
+      { value: "artificial-intelligence", label: "Artificial Intelligence" },
+      { value: "computer-vision", label: "Computer Vision" },
+      { value: "natural-language-processing", label: "Natural Language Processing" },
+      { value: "cybersecurity", label: "Cybersecurity" },
+      { value: "distributed-systems", label: "Distributed Systems" },
+      { value: "human-computer-interaction", label: "Human-Computer Interaction" },
+    ],
+    "pure-mathematics": [
+      { value: "all", label: "All Specializations" },
+      { value: "algebra", label: "Algebra" },
+      { value: "topology", label: "Topology" },
+      { value: "number-theory", label: "Number Theory" },
+      { value: "geometry", label: "Geometry" },
+      { value: "analysis", label: "Analysis" },
+    ],
+    "applied-mathematics": [
+      { value: "all", label: "All Specializations" },
+      { value: "numerical-analysis", label: "Numerical Analysis" },
+      { value: "mathematical-modeling", label: "Mathematical Modeling" },
+      { value: "optimization", label: "Optimization" },
+      { value: "dynamical-systems", label: "Dynamical Systems" },
+    ],
+    statistics: [
+      { value: "all", label: "All Specializations" },
+      { value: "statistical-learning", label: "Statistical Learning" },
+      { value: "bayesian-statistics", label: "Bayesian Statistics" },
+      { value: "data-science", label: "Data Science" },
+      { value: "biostatistics", label: "Biostatistics" },
+    ],
+    engineering: [
+      { value: "all", label: "All Specializations" },
+      { value: "electrical-engineering", label: "Electrical Engineering" },
+      { value: "mechanical-engineering", label: "Mechanical Engineering" },
+      { value: "civil-engineering", label: "Civil Engineering" },
+      { value: "chemical-engineering", label: "Chemical Engineering" },
+      { value: "biomedical-engineering", label: "Biomedical Engineering" },
+    ],
+    "social-sciences": [
+      { value: "all", label: "All Specializations" },
+      { value: "psychology", label: "Psychology" },
+      { value: "sociology", label: "Sociology" },
+      { value: "economics", label: "Economics" },
+      { value: "political-science", label: "Political Science" },
+      { value: "anthropology", label: "Anthropology" },
+    ],
+    humanities: [
+      { value: "all", label: "All Specializations" },
+      { value: "history", label: "History" },
+      { value: "philosophy", label: "Philosophy" },
+      { value: "literature", label: "Literature" },
+      { value: "linguistics", label: "Linguistics" },
+    ],
+    "environmental-science": [
+      { value: "all", label: "All Specializations" },
+      { value: "climate-science", label: "Climate Science" },
+      { value: "conservation", label: "Conservation" },
+      { value: "sustainability", label: "Sustainability" },
+    ],
+    "materials-science": [
+      { value: "all", label: "All Specializations" },
+      { value: "nanomaterials", label: "Nanomaterials" },
+      { value: "polymers", label: "Polymers" },
+      { value: "biomaterials", label: "Biomaterials" },
+    ],
+    "earth-sciences": [
+      { value: "all", label: "All Specializations" },
+      { value: "geology", label: "Geology" },
+      { value: "geophysics", label: "Geophysics" },
+      { value: "oceanography", label: "Oceanography" },
+    ],
+  };
 
   useEffect(() => {
     async function fetchAllProjects() {
@@ -159,7 +265,7 @@ export default function ExplorePage() {
     }
 
     // Apply specialization filter
-    if (selectedSpecialization) {
+    if (selectedSpecialization && selectedSpecialization !== "all") {
       filtered = filtered.filter(
         (p) =>
           p.specialization?.toLowerCase() ===
@@ -167,32 +273,23 @@ export default function ExplorePage() {
       );
     }
 
-    // Apply duration filter (0-33: short, 34-66: medium, 67-100: long)
-    if (durationValue[0] !== 50) {
+    // Apply duration filter (0=any, 1=short-term, 2=medium-term, 3=long-term)
+    if (durationSlider[0] !== 0) {
       filtered = filtered.filter((p) => {
         if (!p.duration) return false;
         const duration = p.duration.toLowerCase();
-
-        if (durationValue[0] <= 33) {
-          return (
-            duration.includes("short") ||
-            duration.includes("1-3 months") ||
-            duration.includes("< 3 months")
-          );
-        } else if (durationValue[0] <= 66) {
-          return (
-            duration.includes("medium") ||
-            duration.includes("3-6 months") ||
-            duration.includes("6 months")
-          );
-        } else {
-          return (
-            duration.includes("long") ||
-            duration.includes("> 6 months") ||
-            duration.includes("1 year") ||
-            duration.includes("year")
-          );
+        
+        if (durationSlider[0] === 1) {
+          // Short-term (1-3 months)
+          return duration.includes("short-term");
+        } else if (durationSlider[0] === 2) {
+          // Medium-term (3-6 months)
+          return duration.includes("medium-term");
+        } else if (durationSlider[0] === 3) {
+          // Long-term (6+ months)
+          return duration.includes("long-term");
         }
+        return false;
       });
     }
 
@@ -226,8 +323,8 @@ export default function ExplorePage() {
   // Reset filters function
   const resetFilters = () => {
     setSelectedField("");
-    setSelectedSpecialization("");
-    setDurationValue([50]);
+    setSelectedSpecialization("all");
+    setDurationSlider([0]); // Reset to "any duration"
     setSelectedPositionTypes([]);
     setUpcomingDeadlineOnly(false);
     setSearchQuery("");
@@ -241,7 +338,7 @@ export default function ExplorePage() {
     projects,
     selectedField,
     selectedSpecialization,
-    durationValue,
+    durationSlider,
     selectedPositionTypes,
     upcomingDeadlineOnly,
   ]);
@@ -309,7 +406,10 @@ export default function ExplorePage() {
             >
               <div className="space-y-2">
                 <Label htmlFor="field">Field of Study</Label>
-                <Select value={selectedField} onValueChange={setSelectedField}>
+                <Select value={selectedField} onValueChange={(value) => {
+                  setSelectedField(value);
+                  setSelectedSpecialization("all");
+                }}>
                   <SelectTrigger id="field">
                     <SelectValue placeholder="Select field" />
                   </SelectTrigger>
@@ -340,6 +440,15 @@ export default function ExplorePage() {
                         Social Sciences
                       </SelectItem>
                       <SelectItem value="humanities">Humanities</SelectItem>
+                      <SelectItem value="environmental-science">
+                        Environmental Science
+                      </SelectItem>
+                      <SelectItem value="materials-science">
+                        Materials Science
+                      </SelectItem>
+                      <SelectItem value="earth-sciences">
+                        Earth Sciences
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -348,6 +457,7 @@ export default function ExplorePage() {
               <div className="space-y-2">
                 <Label htmlFor="specialization">Specialization</Label>
                 <Select
+                  key={selectedField}
                   value={selectedSpecialization}
                   onValueChange={setSelectedSpecialization}
                 >
@@ -355,28 +465,11 @@ export default function ExplorePage() {
                     <SelectValue placeholder="Select specialization" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="quantum-mechanics">
-                      Quantum Mechanics
-                    </SelectItem>
-                    <SelectItem value="quantum-computing">
-                      Quantum Computing
-                    </SelectItem>
-                    <SelectItem value="machine-learning">
-                      Machine Learning
-                    </SelectItem>
-                    <SelectItem value="artificial-intelligence">
-                      Artificial Intelligence
-                    </SelectItem>
-                    <SelectItem value="numerical-analysis">
-                      Numerical Analysis
-                    </SelectItem>
-                    <SelectItem value="organic-chemistry">
-                      Organic Chemistry
-                    </SelectItem>
-                    <SelectItem value="molecular-biology">
-                      Molecular Biology
-                    </SelectItem>
-                    <SelectItem value="genetics">Genetics</SelectItem>
+                    {(specializationsByField[selectedField] || specializationsByField[""]).map((spec) => (
+                      <SelectItem key={spec.value} value={spec.value}>
+                        {spec.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -407,17 +500,35 @@ export default function ExplorePage() {
               </div> */}
 
               <div className="space-y-2">
-                <Label>Duration</Label>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Short-term</span>
-                  <span className="text-sm">Long-term</span>
+                <Label htmlFor="duration">Duration</Label>
+                <div className="space-y-3">
+                  <Slider
+                    id="duration"
+                    value={durationSlider}
+                    onValueChange={setDurationSlider}
+                    max={3}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="grid grid-cols-4 gap-1 text-xs text-muted-foreground">
+                    <div className={`text-center ${durationSlider[0] === 0 ? "font-semibold text-primary" : ""}`}>
+                      <div>Any</div>
+                      <div className="text-[10px]">&nbsp;</div>
+                    </div>
+                    <div className={`text-center ${durationSlider[0] === 1 ? "font-semibold text-primary" : ""}`}>
+                      <div>Short</div>
+                      <div className="text-[10px]">(1-3 mo)</div>
+                    </div>
+                    <div className={`text-center ${durationSlider[0] === 2 ? "font-semibold text-primary" : ""}`}>
+                      <div>Medium</div>
+                      <div className="text-[10px]">(3-6 mo)</div>
+                    </div>
+                    <div className={`text-center ${durationSlider[0] === 3 ? "font-semibold text-primary" : ""}`}>
+                      <div>Long</div>
+                      <div className="text-[10px]">(6+ mo)</div>
+                    </div>
+                  </div>
                 </div>
-                <Slider
-                  value={durationValue}
-                  onValueChange={setDurationValue}
-                  max={100}
-                  step={1}
-                />
               </div>
 
               <div className="space-y-2">

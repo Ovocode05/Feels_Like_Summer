@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { jwtDecode } from "jwt-decode";
-import { getRecommendedProjects, RecommendedProject } from "@/api/api";
+import { getRecommendedProjects, RecommendedProject, getStudentProfile, StudentProfile } from "@/api/api";
 import {
   Card,
   CardContent,
@@ -43,6 +43,9 @@ export default function RecommendationsPage() {
   );
   const [loading, setLoading] = useState(true);
   const [decode, setDecode] = useState<DecodedToken | null>(null);
+  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(
+    null
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -69,18 +72,24 @@ export default function RecommendationsPage() {
     }
     setIsAuth(true);
 
-    const fetchRecommendations = async () => {
+    const fetchData = async () => {
       try {
-        const response = await getRecommendedProjects(token);
-        setRecommendations(response.recommendations || []);
+        // Fetch profile and recommendations in parallel
+        const [profileResponse, recommendationsResponse] = await Promise.all([
+          getStudentProfile(token).catch(() => ({ student: null })),
+          getRecommendedProjects(token).catch(() => ({ recommendations: [] })),
+        ]);
+        
+        setStudentProfile(profileResponse.student || null);
+        setRecommendations(recommendationsResponse.recommendations || []);
       } catch (error) {
-        console.error("Error fetching recommendations:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRecommendations();
+    fetchData();
   }, [router]);
 
   const getMatchColor = (score: number) => {
@@ -131,16 +140,42 @@ export default function RecommendationsPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                No Recommendations Yet
-              </h3>
-              <p className="text-muted-foreground text-center max-w-md mb-4">
-                Complete your profile with your skills, research interests, and
-                preferences to get personalized project recommendations.
-              </p>
-              <Link href="/student/profile">
-                <Button>Complete Your Profile</Button>
-              </Link>
+              {!studentProfile || 
+               (!studentProfile.researchInterest && 
+                (!studentProfile.skills || studentProfile.skills.length === 0)) ? (
+                <>
+                  <h3 className="text-xl font-semibold mb-2">
+                    No Recommendations Yet
+                  </h3>
+                  <p className="text-muted-foreground text-center max-w-md mb-4">
+                    Complete your profile with your skills, research interests, and
+                    preferences to get personalized project recommendations.
+                  </p>
+                  <Link href="/student/profile">
+                    <Button>Complete Your Profile</Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-xl font-semibold mb-2">
+                    No Matching Projects Found
+                  </h3>
+                  <p className="text-muted-foreground text-center max-w-md mb-2">
+                    We couldn&apos;t find any projects that match your profile at the moment.
+                  </p>
+                  <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
+                    Try exploring all available projects or update your profile with different skills and interests.
+                  </p>
+                  <div className="flex gap-3">
+                    <Link href="/student/projects">
+                      <Button>Browse All Projects</Button>
+                    </Link>
+                    <Link href="/student/profile">
+                      <Button variant="outline">Update Profile</Button>
+                    </Link>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         ) : (

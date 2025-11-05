@@ -13,6 +13,12 @@ func RegisterProfileRoutes(api *echo.Group) {
 	// All profile routes require authentication
 	profileGroup.Use(middleware.JWTMiddleware())
 
+	// Public profile route - get any user's profile by UID
+	profileGroup.GET("/user/:uid", handlers.GetUserProfileByUID)
+
+	// Explore users
+	profileGroup.GET("/explore", handlers.ExploreUsers)
+
 	// Student profile routes
 	studentGroup := profileGroup.Group("/student")
 	studentGroup.Use(middleware.RequireUserType("stu"))

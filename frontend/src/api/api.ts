@@ -509,6 +509,41 @@ export type StudentProfile = {
   publicationsLink?: string;
   researchInterest?: string;
   intention?: string;
+  // New detailed fields
+  educationDetails?: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate?: string;
+    current?: boolean;
+    description?: string;
+  }>;
+  experienceDetails?: Array<{
+    title: string;
+    company: string;
+    location?: string;
+    startDate: string;
+    endDate?: string;
+    current?: boolean;
+    description?: string;
+  }>;
+  publicationsList?: Array<{
+    title: string;
+    authors: string;
+    journal?: string;
+    date?: string;
+    link?: string;
+  }>;
+  projectsDetails?: Array<{
+    title: string;
+    description: string;
+    technologies?: string[];
+    link?: string;
+  }>;
+  summary?: string;
+  personalInfo?: string; // JSON string containing phone, linkedin, github, etc.
+  discoveryEnabled?: boolean; // Controls visibility in explore section
 };
 
 export const getStudentProfile = async (token: string) => {
@@ -786,6 +821,80 @@ export const getRecommendedProjects = async (token: string) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching recommended projects:", error);
+    throw error;
+  }
+};
+
+// Get any user's profile by UID (public profile view)
+export type UserProfileData = {
+  uid: string;
+  name: string;
+  email: string;
+  type: string;
+  student?: {
+    institution: string;
+    degree: string;
+    location: string;
+    dates: string;
+    experience: string;
+    projects: string[];
+    skills: string[];
+    activities: string[];
+    resumeLink: string;
+    publicationsLink: string;
+    researchInterest: string;
+  };
+};
+
+export const getUserProfileByUID = async (uid: string, token: string) => {
+  try {
+    const response = await axiosInstance.get(`/profile/user/${uid}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw error;
+  }
+};
+
+// Explore users
+export type ExploreUserData = {
+  uid: string;
+  name: string;
+  email: string;
+  type: string;
+  institution?: string;
+  degree?: string;
+  location?: string;
+  skills?: string[];
+  researchInterest?: string;
+};
+
+export const exploreUsers = async (
+  token: string,
+  filters?: { type?: string; search?: string }
+) => {
+  try {
+    const params = new URLSearchParams();
+    if (filters?.type) params.append("type", filters.type);
+    if (filters?.search) params.append("search", filters.search);
+
+    const response = await axiosInstance.get(
+      `/profile/explore${params.toString() ? `?${params.toString()}` : ""}`,
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching users:", error);
     throw error;
   }
 };

@@ -83,6 +83,10 @@ export default function LoginPage() {
         }
       }, 2000);
     } catch (error) {
+      // Clear any existing messages
+      setShowExpiredMessage(false);
+      setShowVerifiedMessage(false);
+      
       if (
         error.response?.status === 403 &&
         error.response?.data?.email_verified === false

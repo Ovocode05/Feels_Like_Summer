@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // ApplyToProject handles student applications to projects
@@ -54,12 +56,20 @@ func ApplyToProject(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found or not active"})
 	}
 
-	// Check if student has already applied to this project
+	// Check if student has already applied to this project (excluding soft-deleted/rejected applications)
 	var existingApplication models.ProjRequests
-	result := tx.Where("uid = ? AND p_id = ?", userData.GetUID(), projectID).First(&existingApplication)
+	result := tx.Unscoped().Where("uid = ? AND p_id = ?", userData.GetUID(), projectID).First(&existingApplication)
 	if result.Error == nil {
-		tx.Rollback()
-		return c.JSON(http.StatusConflict, echo.Map{"error": "You have already applied to this project"})
+		// If application exists and is NOT soft-deleted, reject duplicate
+		if existingApplication.DeletedAt.Time.IsZero() {
+			tx.Rollback()
+			return c.JSON(http.StatusConflict, echo.Map{"error": "You have already applied to this project"})
+		}
+		// If application was soft-deleted (rejected), allow reapplication by permanently deleting old one
+		if err := tx.Unscoped().Delete(&existingApplication).Error; err != nil {
+			tx.Rollback()
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to process application"})
+		}
 	}
 
 	// Create new application with additional fields
@@ -77,6 +87,10 @@ func ApplyToProject(c echo.Context) error {
 
 	if err := tx.Create(&application).Error; err != nil {
 		tx.Rollback()
+		// Check if it's a duplicate key error (race condition caught)
+		if err == gorm.ErrDuplicatedKey || strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "unique") {
+			return c.JSON(http.StatusConflict, echo.Map{"error": "You have already applied to this project"})
+		}
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to submit application"})
 	}
 
@@ -286,17 +300,17 @@ func UpdateApplicationStatus(c echo.Context) error {
 
 	// If accepted, add user to project's working users
 	if requestBody.Status == "accepted" {
-		workingUsers := project.WorkingUsers
-		userExists := false
-		for _, uid := range workingUsers {
-			if uid == application.UID {
-				userExists = true
-				break
-			}
-		}
-		if !userExists {
-			workingUsers = append(workingUsers, application.UID)
-			if err := tx.Model(&project).Update("working_users", workingUsers).Error; err != nil {
+		// Use a database-level check to prevent race conditions
+		var count int64
+		tx.Raw("SELECT COUNT(*) FROM projects WHERE project_id = ? AND ? = ANY(working_users)",
+			projectID, application.UID).Scan(&count)
+
+		if count == 0 {
+			// Use PostgreSQL array append function to safely add user
+			if err := tx.Exec(
+				"UPDATE projects SET working_users = array_append(working_users, ?), updated_at = ? WHERE project_id = ?",
+				application.UID, time.Now(), projectID,
+			).Error; err != nil {
 				tx.Rollback()
 				return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to add user to project"})
 			}
@@ -491,7 +505,6 @@ func GetMyApplications(c echo.Context) error {
 	// For each application, fetch project and professor details
 	for _, app := range applications {
 		var project models.Projects
-		fmt.Println("Printing pid")
 		// fmt.Println(applications.PID)
 		if err := config.DB.Where("project_id = ?", app.PID).First(&project).Error; err != nil {
 			continue // Skip if project not found

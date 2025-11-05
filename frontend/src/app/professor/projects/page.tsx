@@ -100,6 +100,91 @@ export default function ProfessorProjectsPage() {
   const [showDeletedPopup, setShowDeletedPopup] = useState(false);
   const deletedPopupTimeout = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
+  const [selectedFieldInForm, setSelectedFieldInForm] = useState("");
+
+  // Specialization options based on field of study
+  const specializationsByField: Record<string, { value: string; label: string }[]> = {
+    physics: [
+      { value: "quantum-mechanics", label: "Quantum Mechanics" },
+      { value: "quantum-computing", label: "Quantum Computing" },
+      { value: "astrophysics", label: "Astrophysics" },
+      { value: "condensed-matter", label: "Condensed Matter Physics" },
+      { value: "particle-physics", label: "Particle Physics" },
+      { value: "optics", label: "Optics and Photonics" },
+    ],
+    chemistry: [
+      { value: "organic-chemistry", label: "Organic Chemistry" },
+      { value: "inorganic-chemistry", label: "Inorganic Chemistry" },
+      { value: "physical-chemistry", label: "Physical Chemistry" },
+      { value: "analytical-chemistry", label: "Analytical Chemistry" },
+      { value: "biochemistry", label: "Biochemistry" },
+    ],
+    biology: [
+      { value: "molecular-biology", label: "Molecular Biology" },
+      { value: "genetics", label: "Genetics" },
+      { value: "microbiology", label: "Microbiology" },
+      { value: "ecology", label: "Ecology" },
+      { value: "neuroscience", label: "Neuroscience" },
+      { value: "bioinformatics", label: "Bioinformatics" },
+    ],
+    "computer-science": [
+      { value: "machine-learning", label: "Machine Learning" },
+      { value: "artificial-intelligence", label: "Artificial Intelligence" },
+      { value: "computer-vision", label: "Computer Vision" },
+      { value: "natural-language-processing", label: "Natural Language Processing" },
+      { value: "cybersecurity", label: "Cybersecurity" },
+      { value: "distributed-systems", label: "Distributed Systems" },
+      { value: "human-computer-interaction", label: "Human-Computer Interaction" },
+    ],
+    "pure-mathematics": [
+      { value: "algebra", label: "Algebra" },
+      { value: "topology", label: "Topology" },
+      { value: "number-theory", label: "Number Theory" },
+      { value: "geometry", label: "Geometry" },
+      { value: "analysis", label: "Analysis" },
+    ],
+    "applied-mathematics": [
+      { value: "numerical-analysis", label: "Numerical Analysis" },
+      { value: "mathematical-modeling", label: "Mathematical Modeling" },
+      { value: "optimization", label: "Optimization" },
+      { value: "dynamical-systems", label: "Dynamical Systems" },
+    ],
+    statistics: [
+      { value: "statistical-learning", label: "Statistical Learning" },
+      { value: "bayesian-statistics", label: "Bayesian Statistics" },
+      { value: "data-science", label: "Data Science" },
+      { value: "biostatistics", label: "Biostatistics" },
+    ],
+    engineering: [
+      { value: "electrical-engineering", label: "Electrical Engineering" },
+      { value: "mechanical-engineering", label: "Mechanical Engineering" },
+      { value: "civil-engineering", label: "Civil Engineering" },
+      { value: "chemical-engineering", label: "Chemical Engineering" },
+      { value: "biomedical-engineering", label: "Biomedical Engineering" },
+    ],
+    "social-sciences": [
+      { value: "psychology", label: "Psychology" },
+      { value: "sociology", label: "Sociology" },
+      { value: "economics", label: "Economics" },
+      { value: "political-science", label: "Political Science" },
+      { value: "anthropology", label: "Anthropology" },
+    ],
+    "earth-sciences": [
+      { value: "geology", label: "Geology" },
+      { value: "geophysics", label: "Geophysics" },
+      { value: "oceanography", label: "Oceanography" },
+    ],
+    "environmental-science": [
+      { value: "climate-science", label: "Climate Science" },
+      { value: "conservation", label: "Conservation" },
+      { value: "sustainability", label: "Sustainability" },
+    ],
+    "materials-science": [
+      { value: "nanomaterials", label: "Nanomaterials" },
+      { value: "polymers", label: "Polymers" },
+      { value: "biomaterials", label: "Biomaterials" },
+    ],
+  };
 
   useEffect(() => {
     if (!searchQuery) setSearchActive(false);
@@ -418,7 +503,11 @@ export default function ProfessorProjectsPage() {
                       <FormItem>
                         <FormLabel>Field of Study</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setSelectedFieldInForm(value);
+                            form.setValue("specialization", "");
+                          }}
                           defaultValue={field.value}
                         >
                           <FormControl>
@@ -461,6 +550,15 @@ export default function ProfessorProjectsPage() {
                               <SelectItem value="humanities">
                                 Humanities
                               </SelectItem>
+                              <SelectItem value="environmental-science">
+                                Environmental Science
+                              </SelectItem>
+                              <SelectItem value="materials-science">
+                                Materials Science
+                              </SelectItem>
+                              <SelectItem value="earth-sciences">
+                                Earth Sciences
+                              </SelectItem>
                             </SelectGroup>
                           </SelectContent>
                         </Select>
@@ -475,37 +573,26 @@ export default function ProfessorProjectsPage() {
                       <FormItem>
                         <FormLabel>Specialization</FormLabel>
                         <Select
+                          key={selectedFieldInForm}
                           onValueChange={field.onChange}
                           defaultValue={field.value}
+                          disabled={!selectedFieldInForm}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select specialization" />
+                              <SelectValue placeholder={
+                                selectedFieldInForm 
+                                  ? "Select specialization" 
+                                  : "Select field of study first"
+                              } />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="quantum-mechanics">
-                              Quantum Mechanics
-                            </SelectItem>
-                            <SelectItem value="quantum-computing">
-                              Quantum Computing
-                            </SelectItem>
-                            <SelectItem value="machine-learning">
-                              Machine Learning
-                            </SelectItem>
-                            <SelectItem value="artificial-intelligence">
-                              Artificial Intelligence
-                            </SelectItem>
-                            <SelectItem value="numerical-analysis">
-                              Numerical Analysis
-                            </SelectItem>
-                            <SelectItem value="organic-chemistry">
-                              Organic Chemistry
-                            </SelectItem>
-                            <SelectItem value="molecular-biology">
-                              Molecular Biology
-                            </SelectItem>
-                            <SelectItem value="genetics">Genetics</SelectItem>
+                            {selectedFieldInForm && specializationsByField[selectedFieldInForm]?.map((spec) => (
+                              <SelectItem key={spec.value} value={spec.value}>
+                                {spec.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />

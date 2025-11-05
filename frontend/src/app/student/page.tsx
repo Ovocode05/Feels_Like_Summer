@@ -618,8 +618,35 @@ export default function StudentDashboard() {
                   Loading recommendations...
                 </div>
               ) : recommendations.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground">
-                  Complete your profile to get personalized recommendations.
+                <div className="text-center py-4">
+                  {!studentProfile || 
+                   (!studentProfile.researchInterest && 
+                    (!studentProfile.skills || studentProfile.skills.length === 0)) ? (
+                    <>
+                      <p className="text-muted-foreground mb-2">
+                        Complete your profile to get personalized recommendations.
+                      </p>
+                      <Link href="/student/profile">
+                        <Button size="sm" variant="outline">
+                          Complete Profile
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-muted-foreground mb-2">
+                        No matching projects found at the moment.
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Try exploring all projects or adjusting your research interests.
+                      </p>
+                      <Link href="/student/projects">
+                        <Button size="sm" variant="outline">
+                          Browse All Projects
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               ) : (
                 recommendations.slice(0, 3).map((project) => (

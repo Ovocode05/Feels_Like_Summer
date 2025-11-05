@@ -4,6 +4,7 @@ import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,12 +36,21 @@ import {
   Upload,
   Loader2,
   CheckCircle2,
+  CalendarIcon,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import MenubarStudent from "@/components/ui/menubar_student";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   getStudentProfile,
   updateStudentProfile,
@@ -61,41 +71,37 @@ const cvFormSchema = z.object({
   }),
   education: z.array(
     z.object({
-      institution: z
-        .string()
-        .min(1, { message: "Institution name is required" }),
-      degree: z.string().min(1, { message: "Degree is required" }),
-      field: z.string().min(1, { message: "Field of study is required" }),
-      startDate: z.string().min(1, { message: "Start date is required" }),
+      institution: z.string().optional(),
+      degree: z.string().optional(),
+      field: z.string().optional(),
+      startDate: z.string().optional(),
       endDate: z.string().optional(),
       current: z.boolean().optional(),
       description: z.string().optional(),
     })
-  ),
+  ).optional(),
   experience: z.array(
     z.object({
-      title: z.string().min(1, { message: "Job title is required" }),
-      company: z.string().min(1, { message: "Company name is required" }),
+      title: z.string().optional(),
+      company: z.string().optional(),
       location: z.string().optional(),
-      startDate: z.string().min(1, { message: "Start date is required" }),
+      startDate: z.string().optional(),
       endDate: z.string().optional(),
       current: z.boolean().optional(),
       description: z.string().optional(),
     })
-  ),
+  ).optional(),
   skills: z
     .array(z.string())
     .min(1, { message: "At least one skill is required" }),
   projects: z.array(
     z.object({
-      title: z.string().min(1, { message: "Project title is required" }),
-      description: z
-        .string()
-        .min(1, { message: "Project description is required" }),
+      title: z.string().optional(),
+      description: z.string().optional(),
       technologies: z.array(z.string()).optional(),
       link: z.string().optional(),
     })
-  ),
+  ).optional(),
   publications: z.array(
     z.object({
       title: z.string().min(1, { message: "Publication title is required" }),
@@ -114,15 +120,72 @@ const cvFormSchema = z.object({
   publicationsLink: z.string().optional(),
   researchInterest: z.string().optional(),
   intention: z.string().optional(),
+  discoveryEnabled: z.boolean().optional(),
 });
+
+// Month/Year Picker Component
+function MonthYearPicker({
+  value,
+  onChange,
+  disabled,
+}: {
+  value?: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+}) {
+  const [date, setDate] = useState<Date | undefined>(
+    value ? new Date(value + "-01") : undefined
+  );
+
+  const handleSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      setDate(selectedDate);
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      onChange(`${year}-${month}`);
+    }
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          disabled={disabled}
+          className={cn(
+            "w-full justify-start text-left font-normal",
+            !date && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date ? format(date, "MMMM yyyy") : <span>Pick a month</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={handleSelect}
+          captionLayout="dropdown"
+          fromYear={1960}
+          toYear={2030}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function CVBuilderPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("edit");
-  const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
-  const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
-  const [projectEntries, setProjectEntries] = useState([{ id: 1 }]);
+  const [showEducation, setShowEducation] = useState(false);
+  const [showExperience, setShowExperience] = useState(false);
+  const [showProjects, setShowProjects] = useState(false);
+  const [educationEntries, setEducationEntries] = useState<{ id: number }[]>([]);
+  const [experienceEntries, setExperienceEntries] = useState<{ id: number }[]>([]);
+  const [projectEntries, setProjectEntries] = useState<{ id: number }[]>([]);
   const [publicationEntries, setPublicationEntries] = useState<
     { id: number }[]
   >([]);
@@ -130,6 +193,15 @@ export default function CVBuilderPage() {
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Suggested skills
+  const suggestedSkills = [
+    "Python", "JavaScript", "TypeScript", "React", "Node.js", "Java", "C++", "C#",
+    "SQL", "MongoDB", "PostgreSQL", "Git", "Docker", "Kubernetes", "AWS", "Azure",
+    "Machine Learning", "Deep Learning", "Data Analysis", "Research", "Technical Writing",
+    "TensorFlow", "PyTorch", "Scikit-learn", "Pandas", "NumPy", "R", "MATLAB",
+    "Statistics", "Linear Algebra", "Calculus", "Laboratory Skills", "Critical Thinking"
+  ];
 
   const form = useForm<z.infer<typeof cvFormSchema>>({
     resolver: zodResolver(cvFormSchema),
@@ -144,37 +216,10 @@ export default function CVBuilderPage() {
         linkedin: "",
         github: "",
       },
-      education: [
-        {
-          institution: "",
-          degree: "",
-          field: "",
-          startDate: "",
-          endDate: "",
-          current: false,
-          description: "",
-        },
-      ],
-      experience: [
-        {
-          title: "",
-          company: "",
-          location: "",
-          startDate: "",
-          endDate: "",
-          current: false,
-          description: "",
-        },
-      ],
+      education: [],
+      experience: [],
       skills: [],
-      projects: [
-        {
-          title: "",
-          description: "",
-          technologies: [],
-          link: "",
-        },
-      ],
+      projects: [],
       publications: [],
       summary: "",
       institution: "",
@@ -184,6 +229,7 @@ export default function CVBuilderPage() {
       publicationsLink: "",
       researchInterest: "",
       intention: "",
+      discoveryEnabled: true,
     },
   });
 
@@ -212,83 +258,99 @@ export default function CVBuilderPage() {
         if (response.student) {
           const student = response.student;
 
+          // Parse personal info if available
+          let personalInfoData: any = {
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+            website: "",
+            linkedin: "",
+            github: "",
+          };
+
+          try {
+            if (student.personalInfo) {
+              personalInfoData = JSON.parse(student.personalInfo);
+            }
+          } catch (e) {
+            console.error("Error parsing personal info:", e);
+          }
+
+          // Use name from user if personalInfo doesn't have it
+          if (!personalInfoData.firstName && student.name) {
+            personalInfoData.firstName = student.name?.split(" ")[0] || "";
+            personalInfoData.lastName = student.name?.split(" ").slice(1).join(" ") || "";
+          }
+          if (!personalInfoData.email && student.email) {
+            personalInfoData.email = student.email;
+          }
+
           // Map backend data to form structure
+          const hasEducation = (student.educationDetails && student.educationDetails.length > 0) || student.institution;
+          const hasExperience = (student.experienceDetails && student.experienceDetails.length > 0) || student.workEx;
+          const hasProjects = (student.projectsDetails && student.projectsDetails.length > 0) || (student.projects && student.projects.length > 0);
+          
+          setShowEducation(hasEducation);
+          setShowExperience(hasExperience);
+          setShowProjects(hasProjects);
+
           form.reset({
             personalInfo: {
-              firstName: student.name?.split(" ")[0] || "",
-              lastName: student.name?.split(" ").slice(1).join(" ") || "",
-              email: student.email || "",
-              phone: "",
+              firstName: personalInfoData.firstName || "",
+              lastName: personalInfoData.lastName || "",
+              email: personalInfoData.email || "",
+              phone: personalInfoData.phone || "",
               location: student.location || "",
-              website: "",
-              linkedin: "",
-              github: "",
+              website: personalInfoData.website || "",
+              linkedin: personalInfoData.linkedin || "",
+              github: personalInfoData.github || "",
             },
-            education: student.institution
-              ? [
-                  {
-                    institution: student.institution,
-                    degree: student.degree || "",
-                    field: "",
-                    startDate: student.dates?.split(" - ")[0] || "",
-                    endDate: student.dates?.split(" - ")[1] || "",
-                    current: !student.dates?.includes(" - "),
-                    description: "",
-                  },
-                ]
-              : [
-                  {
-                    institution: "",
-                    degree: "",
-                    field: "",
-                    startDate: "",
-                    endDate: "",
-                    current: false,
-                    description: "",
-                  },
-                ],
-            experience: student.workEx
-              ? [
-                  {
-                    title: "",
-                    company: "",
-                    location: "",
-                    startDate: "",
-                    endDate: "",
-                    current: false,
-                    description: student.workEx,
-                  },
-                ]
-              : [
-                  {
-                    title: "",
-                    company: "",
-                    location: "",
-                    startDate: "",
-                    endDate: "",
-                    current: false,
-                    description: "",
-                  },
-                ],
+            education: hasEducation
+              ? student.educationDetails && student.educationDetails.length > 0
+                ? student.educationDetails
+                : [
+                    {
+                      institution: student.institution,
+                      degree: student.degree || "",
+                      field: "",
+                      startDate: student.dates?.split(" - ")[0] || "",
+                      endDate: student.dates?.split(" - ")[1] || "",
+                      current: student.dates ? !student.dates.includes(" - ") : false,
+                      description: "",
+                    },
+                  ]
+              : [],
+            experience: hasExperience
+              ? student.experienceDetails && student.experienceDetails.length > 0
+                ? student.experienceDetails
+                : [
+                    {
+                      title: "",
+                      company: "",
+                      location: "",
+                      startDate: "",
+                      endDate: "",
+                      current: false,
+                      description: student.workEx,
+                    },
+                  ]
+              : [],
             skills: student.skills || [],
-            projects:
-              student.projects && student.projects.length > 0
+            projects: hasProjects
+              ? student.projectsDetails && student.projectsDetails.length > 0
+                ? student.projectsDetails
+                : student.projects && student.projects.length > 0
                 ? student.projects.map((proj: string) => ({
                     title: proj,
                     description: "",
                     technologies: [],
                     link: "",
                   }))
-                : [
-                    {
-                      title: "",
-                      description: "",
-                      technologies: [],
-                      link: "",
-                    },
-                  ],
-            publications: [],
-            summary: "",
+                : []
+              : [],
+            publications: student.publicationsList || [],
+            summary: student.summary || "",
             institution: student.institution || "",
             degree: student.degree || "",
             dates: student.dates || "",
@@ -296,9 +358,39 @@ export default function CVBuilderPage() {
             publicationsLink: student.publicationsLink || "",
             researchInterest: student.researchInterest || "",
             intention: student.intention || "",
+            discoveryEnabled: student.discoveryEnabled !== undefined ? student.discoveryEnabled : true,
           });
 
           setSkills(student.skills || []);
+          
+          // Update entries count
+          if (hasEducation) {
+            const eduData = student.educationDetails && student.educationDetails.length > 0
+              ? student.educationDetails
+              : student.institution ? [{}] : [];
+            if (eduData.length > 0) {
+              setEducationEntries(eduData.map((_: any, idx: number) => ({ id: idx + 1 })));
+            }
+          }
+          if (hasExperience) {
+            const expData = student.experienceDetails && student.experienceDetails.length > 0
+              ? student.experienceDetails
+              : student.workEx ? [{}] : [];
+            if (expData.length > 0) {
+              setExperienceEntries(expData.map((_: any, idx: number) => ({ id: idx + 1 })));
+            }
+          }
+          if (hasProjects) {
+            const projData = student.projectsDetails && student.projectsDetails.length > 0
+              ? student.projectsDetails
+              : student.projects && student.projects.length > 0 ? student.projects : [];
+            if (projData.length > 0) {
+              setProjectEntries(projData.map((_: any, idx: number) => ({ id: idx + 1 })));
+            }
+          }
+          if (student.publicationsList && student.publicationsList.length > 0) {
+            setPublicationEntries(student.publicationsList.map((_: any, idx: number) => ({ id: idx + 1 })));
+          }
         }
       } catch (error: unknown) {
         console.error("Error fetching profile:", error);
@@ -326,23 +418,71 @@ export default function CVBuilderPage() {
     try {
       const token = localStorage.getItem("token") || "";
 
-      // Map form data to backend structure
+      // Create personal info JSON
+      const personalInfoObj = {
+        firstName: values.personalInfo.firstName,
+        lastName: values.personalInfo.lastName,
+        email: values.personalInfo.email,
+        phone: values.personalInfo.phone || "",
+        website: values.personalInfo.website || "",
+        linkedin: values.personalInfo.linkedin || "",
+        github: values.personalInfo.github || "",
+      };
+
+      // Map form data to backend structure with all details
       const profileData: StudentProfile = {
-        institution: values.education[0]?.institution || "",
-        degree: values.education[0]?.degree || "",
+        // Basic fields for backward compatibility
+        institution: values.education && values.education.length > 0 ? values.education[0]?.institution || "" : "",
+        degree: values.education && values.education.length > 0 ? values.education[0]?.degree || "" : "",
         location: values.personalInfo.location || "",
         dates:
-          values.education[0]?.startDate && values.education[0]?.endDate
+          values.education && values.education.length > 0 && values.education[0]?.startDate && values.education[0]?.endDate
             ? `${values.education[0].startDate} - ${values.education[0].endDate}`
-            : values.education[0]?.startDate || "",
-        workEx: values.experience[0]?.description || "",
-        projects: values.projects.map((p) => p.title).filter(Boolean),
-        skills: values.skills,
-        activities: [], // Can be extended later
+            : values.education && values.education.length > 0 ? values.education[0]?.startDate || "" : "",
+        workEx: values.experience && values.experience.length > 0 ? values.experience[0]?.description || "" : "",
+        projects: values.projects && values.projects.length > 0 ? values.projects.map((p) => p.title).filter(Boolean) : [],
+        skills: skills,
+        activities: [],
         resumeLink: values.resumeLink || "",
         publicationsLink: values.publicationsLink || "",
         researchInterest: values.researchInterest || "",
         intention: values.intention || "",
+        
+        // New detailed fields
+        educationDetails: values.education && values.education.length > 0 ? values.education.map(edu => ({
+          institution: edu.institution || "",
+          degree: edu.degree || "",
+          field: edu.field || "",
+          startDate: edu.startDate || "",
+          endDate: edu.endDate || "",
+          current: edu.current,
+          description: edu.description || "",
+        })).filter(edu => edu.institution || edu.degree) : [],
+        experienceDetails: values.experience && values.experience.length > 0 ? values.experience.map(exp => ({
+          title: exp.title || "",
+          company: exp.company || "",
+          location: exp.location || "",
+          startDate: exp.startDate || "",
+          endDate: exp.endDate || "",
+          current: exp.current,
+          description: exp.description || "",
+        })).filter(exp => exp.title || exp.company) : [],
+        publicationsList: values.publications.map(pub => ({
+          title: pub.title,
+          authors: pub.authors,
+          journal: pub.journal,
+          date: pub.date,
+          link: pub.link,
+        })),
+        projectsDetails: values.projects && values.projects.length > 0 ? values.projects.map(proj => ({
+          title: proj.title || "",
+          description: proj.description || "",
+          technologies: proj.technologies,
+          link: proj.link || "",
+        })).filter(proj => proj.title || proj.description) : [],
+        summary: values.summary || "",
+        personalInfo: JSON.stringify(personalInfoObj),
+        discoveryEnabled: values.discoveryEnabled !== undefined ? values.discoveryEnabled : true,
       };
 
       await updateStudentProfile(profileData, token);
@@ -352,9 +492,6 @@ export default function CVBuilderPage() {
         title: "Success",
         description: "Your profile has been saved successfully!",
       });
-
-      // Switch to preview tab
-      setActiveTab("preview");
 
       // Reset success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -371,25 +508,58 @@ export default function CVBuilderPage() {
   };
 
   const addEducationEntry = () => {
-    const newId =
-      educationEntries.length > 0
-        ? Math.max(...educationEntries.map((entry) => entry.id)) + 1
-        : 1;
-    setEducationEntries([...educationEntries, { id: newId }]);
+    if (!showEducation) {
+      setShowEducation(true);
+      setEducationEntries([{ id: 1 }]);
+      form.setValue("education", [{
+        institution: "",
+        degree: "",
+        field: "",
+        startDate: "",
+        endDate: "",
+        current: false,
+        description: "",
+      }]);
+    } else {
+      const newId =
+        educationEntries.length > 0
+          ? Math.max(...educationEntries.map((entry) => entry.id)) + 1
+          : 1;
+      setEducationEntries([...educationEntries, { id: newId }]);
+    }
   };
 
   const removeEducationEntry = (id: number) => {
     if (educationEntries.length > 1) {
       setEducationEntries(educationEntries.filter((entry) => entry.id !== id));
+    } else {
+      // If it's the last entry, hide the entire section
+      setEducationEntries([]);
+      setShowEducation(false);
+      form.setValue("education", []);
     }
   };
 
   const addExperienceEntry = () => {
-    const newId =
-      experienceEntries.length > 0
-        ? Math.max(...experienceEntries.map((entry) => entry.id)) + 1
-        : 1;
-    setExperienceEntries([...experienceEntries, { id: newId }]);
+    if (!showExperience) {
+      setShowExperience(true);
+      setExperienceEntries([{ id: 1 }]);
+      form.setValue("experience", [{
+        title: "",
+        company: "",
+        location: "",
+        startDate: "",
+        endDate: "",
+        current: false,
+        description: "",
+      }]);
+    } else {
+      const newId =
+        experienceEntries.length > 0
+          ? Math.max(...experienceEntries.map((entry) => entry.id)) + 1
+          : 1;
+      setExperienceEntries([...experienceEntries, { id: newId }]);
+    }
   };
 
   const removeExperienceEntry = (id: number) => {
@@ -397,20 +567,41 @@ export default function CVBuilderPage() {
       setExperienceEntries(
         experienceEntries.filter((entry) => entry.id !== id)
       );
+    } else {
+      // If it's the last entry, hide the entire section
+      setExperienceEntries([]);
+      setShowExperience(false);
+      form.setValue("experience", []);
     }
   };
 
   const addProjectEntry = () => {
-    const newId =
-      projectEntries.length > 0
-        ? Math.max(...projectEntries.map((entry) => entry.id)) + 1
-        : 1;
-    setProjectEntries([...projectEntries, { id: newId }]);
+    if (!showProjects) {
+      setShowProjects(true);
+      setProjectEntries([{ id: 1 }]);
+      form.setValue("projects", [{
+        title: "",
+        description: "",
+        technologies: [],
+        link: "",
+      }]);
+    } else {
+      const newId =
+        projectEntries.length > 0
+          ? Math.max(...projectEntries.map((entry) => entry.id)) + 1
+          : 1;
+      setProjectEntries([...projectEntries, { id: newId }]);
+    }
   };
 
   const removeProjectEntry = (id: number) => {
     if (projectEntries.length > 1) {
       setProjectEntries(projectEntries.filter((entry) => entry.id !== id));
+    } else {
+      // If it's the last entry, hide the entire section
+      setProjectEntries([]);
+      setShowProjects(false);
+      form.setValue("projects", []);
     }
   };
 
@@ -454,7 +645,7 @@ export default function CVBuilderPage() {
           </div>
         </div>
 
-        <Alert>
+        {/* <Alert>
           {saveSuccess ? (
             <>
               <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -474,7 +665,7 @@ export default function CVBuilderPage() {
               </AlertDescription>
             </>
           )}
-        </Alert>
+        </Alert> */}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-1">
@@ -631,16 +822,37 @@ export default function CVBuilderPage() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Education</CardTitle>
-                    <CardDescription>
-                      Add your educational background, starting with the most
-                      recent.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {educationEntries.map((entry, index) => (
+                {!showEducation ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Education</CardTitle>
+                      <CardDescription>
+                        Add your educational background (optional)
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addEducationEntry}
+                        className="w-full"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Education
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Education</CardTitle>
+                      <CardDescription>
+                        Add your educational background, starting with the most
+                        recent.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {educationEntries.map((entry, index) => (
                       <div
                         key={entry.id}
                         className="space-y-4 pb-4 border-b last:border-0"
@@ -649,16 +861,14 @@ export default function CVBuilderPage() {
                           <h4 className="text-sm font-medium">
                             Education #{index + 1}
                           </h4>
-                          {educationEntries.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeEducationEntry(entry.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeEducationEntry(entry.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <FormField
@@ -715,7 +925,10 @@ export default function CVBuilderPage() {
                               <FormItem>
                                 <FormLabel>Start Date</FormLabel>
                                 <FormControl>
-                                  <Input type="month" {...field} />
+                                  <MonthYearPicker
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -728,7 +941,10 @@ export default function CVBuilderPage() {
                               <FormItem>
                                 <FormLabel>End Date (or Expected)</FormLabel>
                                 <FormControl>
-                                  <Input type="month" {...field} />
+                                  <MonthYearPicker
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -754,29 +970,51 @@ export default function CVBuilderPage() {
                         />
                       </div>
                     ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={addEducationEntry}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Education
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={addEducationEntry}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Another Education
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Experience</CardTitle>
-                    <CardDescription>
-                      Add your work and research experience, starting with the
-                      most recent.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {experienceEntries.map((entry, index) => (
+                {!showExperience ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Experience</CardTitle>
+                      <CardDescription>
+                        Add your work and research experience (optional)
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addExperienceEntry}
+                        className="w-full"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Experience
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Experience</CardTitle>
+                      <CardDescription>
+                        Add your work and research experience, starting with the
+                        most recent.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {experienceEntries.map((entry, index) => (
                       <div
                         key={entry.id}
                         className="space-y-4 pb-4 border-b last:border-0"
@@ -785,16 +1023,14 @@ export default function CVBuilderPage() {
                           <h4 className="text-sm font-medium">
                             Experience #{index + 1}
                           </h4>
-                          {experienceEntries.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeExperienceEntry(entry.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeExperienceEntry(entry.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <FormField
@@ -854,7 +1090,10 @@ export default function CVBuilderPage() {
                               <FormItem>
                                 <FormLabel>Start Date</FormLabel>
                                 <FormControl>
-                                  <Input type="month" {...field} />
+                                  <MonthYearPicker
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -867,13 +1106,37 @@ export default function CVBuilderPage() {
                               <FormItem>
                                 <FormLabel>End Date</FormLabel>
                                 <FormControl>
-                                  <Input type="month" {...field} />
+                                  <MonthYearPicker
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    disabled={form.watch(`experience.${index}.current`)}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                         </div>
+                        <FormField
+                          control={form.control}
+                          name={`experience.${index}.current`}
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                              <div className="space-y-0.5">
+                                <FormLabel>Currently Working Here</FormLabel>
+                                <FormDescription>
+                                  Check this if you are currently in this position
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
                         <FormField
                           control={form.control}
                           name={`experience.${index}.description`}
@@ -893,18 +1156,19 @@ export default function CVBuilderPage() {
                         />
                       </div>
                     ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={addExperienceEntry}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Experience
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={addExperienceEntry}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Another Experience
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <Card>
                   <CardHeader>
@@ -940,6 +1204,16 @@ export default function CVBuilderPage() {
                         placeholder="Add a skill..."
                         id="new-skill"
                         className="flex-1"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const input = e.currentTarget;
+                            if (input.value) {
+                              addSkill(input.value);
+                              input.value = "";
+                            }
+                          }
+                        }}
                       />
                       <Button
                         type="button"
@@ -956,23 +1230,61 @@ export default function CVBuilderPage() {
                         Add
                       </Button>
                     </div>
-                    <FormDescription>
-                      Add skills that are relevant to the research positions you
-                      are applying for.
-                    </FormDescription>
+                    <div className="space-y-2">
+                      <FormDescription>
+                        Add skills that are relevant to the research positions you
+                        are applying for. Click any suggestion below to add it quickly:
+                      </FormDescription>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestedSkills
+                          .filter((skill) => !skills.includes(skill))
+                          .map((skill) => (
+                            <Badge
+                              key={skill}
+                              variant="outline"
+                              className="cursor-pointer hover:bg-secondary"
+                              onClick={() => addSkill(skill)}
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              {skill}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Projects</CardTitle>
-                    <CardDescription>
-                      Add research or personal projects that showcase your
-                      skills and interests.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {projectEntries.map((entry, index) => (
+                {!showProjects ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Projects</CardTitle>
+                      <CardDescription>
+                        Add research or personal projects (optional)
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addProjectEntry}
+                        className="w-full"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Project
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Projects</CardTitle>
+                      <CardDescription>
+                        Add research or personal projects that showcase your
+                        skills and interests.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {projectEntries.map((entry, index) => (
                       <div
                         key={entry.id}
                         className="space-y-4 pb-4 border-b last:border-0"
@@ -981,16 +1293,14 @@ export default function CVBuilderPage() {
                           <h4 className="text-sm font-medium">
                             Project #{index + 1}
                           </h4>
-                          {projectEntries.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeProjectEntry(entry.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeProjectEntry(entry.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                         <FormField
                           control={form.control}
@@ -1043,16 +1353,94 @@ export default function CVBuilderPage() {
                         />
                       </div>
                     ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={addProjectEntry}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Project
-                    </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={addProjectEntry}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Another Project
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Research Interests & Goals</CardTitle>
+                    <CardDescription>
+                      Tell us about your research interests and career goals.
+                      This helps us recommend relevant projects.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="researchInterest"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Research Interests</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Describe your research interests, areas you want to explore, topics you're passionate about..."
+                              className="min-h-[100px]"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Be specific about the topics or fields you&apos;re
+                            interested in researching
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="intention"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Career Goals & Intentions</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="What are your career goals? What do you hope to achieve through research projects?"
+                              className="min-h-[100px]"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Help us understand what you want to accomplish in
+                            your academic journey
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="discoveryEnabled"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">
+                              Enable Profile Discovery
+                            </FormLabel>
+                            <FormDescription>
+                              Allow your profile to be visible in the Explore section
+                              for professors and other students to discover you.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   </CardContent>
                 </Card>
 
@@ -1202,7 +1590,10 @@ export default function CVBuilderPage() {
                                   <FormItem>
                                     <FormLabel>Publication Date</FormLabel>
                                     <FormControl>
-                                      <Input type="month" {...field} />
+                                      <MonthYearPicker
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                      />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>

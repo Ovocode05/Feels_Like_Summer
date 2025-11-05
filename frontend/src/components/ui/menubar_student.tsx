@@ -43,6 +43,12 @@ function MenubarStudent() {
             >
               Projects
             </Link>
+            {/* <Link
+              href="/student/explore"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+            >
+              Explore
+            </Link> */}
             <Link
               href="/student/resources"
               className="text-sm font-medium underline-offset-4 hover:underline"
@@ -105,6 +111,13 @@ function MenubarStudent() {
                 onClick={() => setMenuOpen(false)}
               >
                 Projects
+              </Link>
+              <Link
+                href="/student/explore"
+                className="block rounded px-2 py-2 text-sm font-medium hover:bg-muted/40"
+                onClick={() => setMenuOpen(false)}
+              >
+                Explore
               </Link>
               <Link
                 href="/student/resources"

@@ -6,9 +6,11 @@ import (
 	"backend/models"
 	"backend/utils"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 func CreateProject(c echo.Context) error {
@@ -69,6 +71,10 @@ func CreateProject(c echo.Context) error {
 	}
 	if err := tx.Create(&project).Error; err != nil {
 		tx.Rollback()
+		// Check if it's a duplicate key error
+		if err == gorm.ErrDuplicatedKey || strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "unique") {
+			return c.JSON(http.StatusConflict, echo.Map{"error": "Project with this name already exists"})
+		}
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
 
@@ -134,8 +140,11 @@ func EditProject(c echo.Context) error {
 		}
 	}()
 
+	// Lock the project row to prevent concurrent modifications
 	var existingProject models.Projects
-	result := tx.Where("project_id = ? AND creator_id = ?", projectID, userData.GetUID()).First(&existingProject)
+	result := tx.Set("gorm:query_option", "FOR UPDATE").
+		Where("project_id = ? AND creator_id = ?", projectID, userData.GetUID()).
+		First(&existingProject)
 	if result.Error != nil {
 		tx.Rollback()
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found or you don't have permission to edit it"})
@@ -144,8 +153,11 @@ func EditProject(c echo.Context) error {
 	updates := make(map[string]interface{})
 
 	if updateData.Name != nil {
+		// Check for duplicate names with row-level locking to prevent race conditions
 		var nameCheck models.Projects
-		nameResult := tx.Where("name = ? AND project_id != ? AND creator_id = ?", *updateData.Name, projectID, userData.GetUID()).First(&nameCheck)
+		nameResult := tx.Set("gorm:query_option", "FOR UPDATE").
+			Where("name = ? AND project_id != ? AND creator_id = ?", *updateData.Name, projectID, userData.GetUID()).
+			First(&nameCheck)
 		if nameResult.Error == nil {
 			tx.Rollback()
 			return c.JSON(http.StatusConflict, echo.Map{"error": "Project with this name already exists"})
@@ -195,6 +207,10 @@ func EditProject(c echo.Context) error {
 
 	if err := tx.Model(&existingProject).Updates(updates).Error; err != nil {
 		tx.Rollback()
+		// Check if it's a duplicate key error (race condition caught)
+		if err == gorm.ErrDuplicatedKey || strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "unique") {
+			return c.JSON(http.StatusConflict, echo.Map{"error": "Project with this name already exists"})
+		}
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to update project"})
 	}
 

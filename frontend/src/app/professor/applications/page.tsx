@@ -25,6 +25,12 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Calendar,
   Check,
   Clock,
@@ -535,6 +541,24 @@ export default function ProfessorApplicationsPage() {
                             <Eye className="h-4 w-4" />
                             View Application
                           </Button>
+                          
+                          {/* Show application details preview */}
+                          {application.priorProjects && (
+                            <Badge variant="outline" className="text-xs">
+                              {
+                                (() => {
+                                  const parts = application.priorProjects.split(/===\s+([^=]+)\s+===/);
+                                  let count = 0;
+                                  for (let i = 1; i < parts.length; i += 2) {
+                                    if (parts[i].trim()) count++;
+                                  }
+                                  return count;
+                                })()
+                              }{" "}
+                              sections included
+                            </Badge>
+                          )}
+                          
                           <Button
                             variant="outline"
                             size="sm"
@@ -679,10 +703,52 @@ export default function ProfessorApplicationsPage() {
 
                 {selectedApplication.priorProjects && (
                   <div className="rounded-lg border p-4">
-                    <div className="font-medium mb-2">Prior Projects</div>
-                    <p className="text-sm whitespace-pre-wrap">
-                      {selectedApplication.priorProjects}
-                    </p>
+                    <div className="font-medium mb-3">
+                      Education, Experience & Projects
+                    </div>
+                    {(() => {
+                      // Split by the pattern === TITLE === and capture the title and content
+                      const parts = selectedApplication.priorProjects.split(/===\s+([^=]+)\s+===/);
+                      const sections: { title: string; content: string }[] = [];
+                      
+                      // parts array: ['', 'EDUCATION', '\n\ncontent...', 'WORK EXPERIENCE', '\n\ncontent...', ...]
+                      for (let i = 1; i < parts.length; i += 2) {
+                        const title = parts[i].trim();
+                        const content = parts[i + 1] ? parts[i + 1].trim() : '';
+                        if (title && content) {
+                          sections.push({ title, content });
+                        }
+                      }
+                      
+                      if (sections.length === 0) {
+                        return (
+                          <p className="text-sm text-muted-foreground">
+                            No additional information provided
+                          </p>
+                        );
+                      }
+                      
+                      return (
+                        <Accordion 
+                          type="multiple" 
+                          className="w-full" 
+                          defaultValue={sections.map((_, idx) => `section-${idx}`)}
+                        >
+                          {sections.map((section, idx) => (
+                            <AccordionItem key={idx} value={`section-${idx}`} className="border-b last:border-b-0">
+                              <AccordionTrigger className="text-sm font-semibold text-primary hover:no-underline py-3">
+                                {section.title}
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="pl-4 border-l-2 border-muted pt-2 pb-3 text-sm whitespace-pre-wrap">
+                                  {section.content}
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          ))}
+                        </Accordion>
+                      );
+                    })()}
                   </div>
                 )}
 
