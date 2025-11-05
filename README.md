@@ -7,12 +7,10 @@ A university-level platform bridging professors, projects, and students, providi
 Increased student contribution and better visibility & efficiency in research ecosystems
 
 ## Major Functions
-- Project Repository with filters/tags
-- Mentor Availability Tracker
+- Projects with filters/tags
+- Mentor project handling (active & non-active)
 - Application & Selection Workflow
-- Roadmap Library (self-learning pathways)
-- CV Builder / Profile Manager
-- Hackathon Problem Bank
+- Roadmap generation (self-learning pathways)
 
 ## User Needs
 **Students**: Need clarity, guidance, access to real opportunities  
@@ -20,17 +18,6 @@ Increased student contribution and better visibility & efficiency in research ec
 
 **Professors**: Need efficient applicant/project management  
 *Outcomes*: Focused research groups, less admin burden
-
-## Features
-- Department-wise Project Hub
-- Smart Search with tags/filters
-- Availability Status of professors
-- Roadmaps & Resources for self-start
-- Hackathon Problem Statements
-- Application Workflow with CV builder
-- Progress Tracking dashboard
-
----
 
 ## API Documentation
 
@@ -1743,10 +1730,10 @@ This design allows for:
 
 
 ### Future Versions
-- Pagination support
 - Advanced filtering and searching
-- Real-time notifications
 - File upload endpoints
 - Batch operations
+- Cv builder
+- Mentor Availability Tracker
 
 
