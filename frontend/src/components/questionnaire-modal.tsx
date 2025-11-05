@@ -27,6 +27,7 @@ import { ResearchPreferences } from "@/api/api";
 interface QuestionnaireModalProps {
   open: boolean;
   onComplete: (preferences: ResearchPreferences) => void;
+  onClose?: () => void;
   initialData?: Partial<ResearchPreferences>;
   isEditing?: boolean;
 }
@@ -95,6 +96,7 @@ const INTEREST_AREAS_BY_FIELD: Record<string, string[]> = {
 export default function QuestionnaireModal({
   open,
   onComplete,
+  onClose,
   initialData,
   isEditing = false,
 }: QuestionnaireModalProps) {
@@ -237,7 +239,11 @@ export default function QuestionnaireModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen && onClose) {
+        onClose();
+      }
+    }}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="text-2xl">

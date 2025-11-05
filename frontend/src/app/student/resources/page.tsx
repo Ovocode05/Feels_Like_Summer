@@ -155,6 +155,16 @@ export default function ResourcesPage() {
     setShowQuestionnaire(true);
   };
 
+  const handleCloseQuestionnaire = () => {
+    // If no preferences exist, user must fill the form or go back to dashboard
+    if (!hasPreferences) {
+      router.push("/student/");
+    } else {
+      // If editing, just close the modal
+      setShowQuestionnaire(false);
+    }
+  };
+
   if (!isAuth || isCheckingPreferences) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -169,6 +179,7 @@ export default function ResourcesPage() {
       <QuestionnaireModal
         open={showQuestionnaire}
         onComplete={handleQuestionnaireComplete}
+        onClose={handleCloseQuestionnaire}
         initialData={existingPreferences || undefined}
         isEditing={hasPreferences}
       />
@@ -212,255 +223,3 @@ export default function ResourcesPage() {
     </div>
   );
 }
-
-// function AdditionalResourcesTabs() {
-//   return (
-//     <Tabs defaultValue="guides" className="w-full">
-//       <TabsList className="grid w-full grid-cols-2">
-//         <TabsTrigger value="guides">Learning Guides</TabsTrigger>
-//         <TabsTrigger value="tools">Research Tools</TabsTrigger>
-//       </TabsList>
-//       <TabsContent value="guides" className="space-y-4 mt-4">
-//         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-//           {LEARNING_MATERIALS.map((material, i) => (
-//             <Card key={i}>
-//               <CardHeader>
-//                 <Badge variant="outline" className="w-fit">
-//                   {material.field}
-//                 </Badge>
-//                 <CardTitle className="mt-2">{material.title}</CardTitle>
-//                 <CardDescription>{material.type}</CardDescription>
-//               </CardHeader>
-//               <CardContent>
-//                 <div className="space-y-2 text-sm">
-//                   <div className="flex items-center gap-2">
-//                     <BookOpen className="h-4 w-4 text-muted-foreground" />
-//                     <span>{material.author}</span>
-//                   </div>
-//                   <div className="flex items-center gap-2">
-//                     <FileText className="h-4 w-4 text-muted-foreground" />
-//                     <span>{material.format}</span>
-//                   </div>
-//                   <div className="flex items-center gap-2">
-//                     <Clock className="h-4 w-4 text-muted-foreground" />
-//                     <span>{material.duration}</span>
-//                   </div>
-//                 </div>
-//               </CardContent>
-//               <CardFooter>
-//                 <Button className="w-full">Access Resource</Button>
-//               </CardFooter>
-//             </Card>
-//           ))}
-
-//           {/* Placeholder cards for empty state */}
-//           {LEARNING_MATERIALS.length === 0 && (
-//             <>
-//               <Card className="animate-pulse">
-//                 <CardHeader>
-//                   <Badge variant="outline" className="w-fit">
-//                     Loading...
-//                   </Badge>
-//                   <CardTitle className="mt-2">Loading...</CardTitle>
-//                   <CardDescription>Loading...</CardDescription>
-//                 </CardHeader>
-//                 <CardContent>
-//                   <div className="space-y-2 text-sm">
-//                     <div className="flex items-center gap-2">
-//                       <BookOpen className="h-4 w-4 text-muted-foreground" />
-//                       <span>Loading...</span>
-//                     </div>
-//                     <div className="flex items-center gap-2">
-//                       <FileText className="h-4 w-4 text-muted-foreground" />
-//                       <span>Loading...</span>
-//                     </div>
-//                     <div className="flex items-center gap-2">
-//                       <Clock className="h-4 w-4 text-muted-foreground" />
-//                       <span>Loading...</span>
-//                     </div>
-//                   </div>
-//                 </CardContent>
-//                 <CardFooter>
-//                   <Button className="w-full" disabled>
-//                     Access Resource
-//                   </Button>
-//                 </CardFooter>
-//               </Card>
-//             </>
-//           )}
-//         </div>
-//       </TabsContent>
-//       <TabsContent value="tools" className="space-y-4 mt-4">
-//         {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-//           {RESEARCH_TOOLS.map((tool, i) => (
-//             <Card key={i}>
-//               <CardHeader>
-//                 <Badge variant="outline" className="w-fit">
-//                   {tool.category}
-//                 </Badge>
-//                 <CardTitle className="mt-2">{tool.title}</CardTitle>
-//                 <CardDescription>{tool.description}</CardDescription>
-//               </CardHeader>
-//               <CardContent>
-//                 <div className="space-y-2 text-sm">
-//                   <div className="flex items-center gap-2">
-//                     <span className="font-medium">Pricing:</span>
-//                     <span>{tool.pricing}</span>
-//                   </div>
-//                   <div className="flex items-center gap-2">
-//                     <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-//                     <span>
-//                       {tool.rating} ({tool.reviews} reviews)
-//                     </span>
-//                   </div>
-//                 </div>
-//               </CardContent>
-//               <CardFooter>
-//                 <Button className="w-full">Access Tool</Button>
-//               </CardFooter>
-//             </Card>
-//           ))}
-
-//           {/* Placeholder cards for empty state */}
-//         {/* {RESEARCH_TOOLS.length === 0 && (
-//             <>
-//               <Card className="animate-pulse">
-//                 <CardHeader>
-//                   <Badge variant="outline" className="w-fit">
-//                     Loading...
-//                   </Badge>
-//                   <CardTitle className="mt-2">Loading...</CardTitle>
-//                   <CardDescription>Loading...</CardDescription>
-//                 </CardHeader>
-//                 <CardContent>
-//                   <div className="space-y-2 text-sm">
-//                     <div className="flex items-center gap-2">
-//                       <span className="font-medium">Pricing:</span>
-//                       <span>Loading...</span>
-//                     </div>
-//                     <div className="flex items-center gap-2">
-//                       <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-//                       <span>Loading...</span>
-//                     </div>
-//                   </div>
-//                 </CardContent>
-//                 <CardFooter>
-//                   <Button className="w-full" disabled>
-//                     Access Tool
-//                   </Button>
-//                 </CardFooter>
-//               </Card>
-//             </>
-//           )} */}
-//         {/* </div>  */}
-//       </TabsContent>
-//     </Tabs>
-//   );
-// }
-
-// const LEARNING_MATERIALS = [
-//   {
-//     title: "Introduction to Quantum Computing",
-//     type: "Course",
-//     author: "Dr. Richard Williams - MIT",
-//     format: "Video Lectures",
-//     duration: "10 hours",
-//     field: "Physics",
-//   },
-//   {
-//     title: "Machine Learning Fundamentals",
-//     type: "Reading List",
-//     author: "Dr. Sarah Lee - Stanford",
-//     format: "PDF Collection",
-//     duration: "Self-paced",
-//     field: "Computer Science",
-//   },
-//   {
-//     title: "Research Methodology",
-//     type: "Workshop",
-//     author: "Dr. James Chen - Harvard",
-//     format: "Interactive Sessions",
-//     duration: "8 weeks",
-//     field: "General",
-//   },
-//   {
-//     title: "Statistical Methods for Research",
-//     type: "Course",
-//     author: "Dr. Emily Rodriguez - UC Berkeley",
-//     format: "Video Lectures",
-//     duration: "12 hours",
-//     field: "Mathematics",
-//   },
-//   {
-//     title: "Scientific Writing",
-//     type: "Guide",
-//     author: "Dr. Michael Johnson - Caltech",
-//     format: "PDF Guide",
-//     duration: "Self-paced",
-//     field: "General",
-//   },
-//   {
-//     title: "Deep Learning for Computer Vision",
-//     type: "Course",
-//     author: "Dr. Lisa Park - UW",
-//     format: "Video & Labs",
-//     duration: "15 hours",
-//     field: "Computer Science",
-//   },
-// ];
-
-// const RESEARCH_TOOLS = [
-//   {
-//     title: "Research Paper Finder",
-//     description:
-//       "Advanced search tool for finding relevant research papers across multiple databases.",
-//     category: "Literature Review",
-//     pricing: "Free",
-//     rating: 4.8,
-//     reviews: 245,
-//   },
-//   {
-//     title: "Citation Manager",
-//     description:
-//       "Organize and format citations for your research papers and publications.",
-//     category: "Writing",
-//     pricing: "Free / Premium",
-//     rating: 4.7,
-//     reviews: 320,
-//   },
-//   {
-//     title: "Data Visualization Suite",
-//     description:
-//       "Create professional charts, graphs, and visualizations for your research data.",
-//     category: "Data Analysis",
-//     pricing: "Free Trial",
-//     rating: 4.6,
-//     reviews: 189,
-//   },
-//   {
-//     title: "Statistical Analysis Tool",
-//     description:
-//       "Comprehensive statistical analysis package for research data.",
-//     category: "Data Analysis",
-//     pricing: "Free / Premium",
-//     rating: 4.9,
-//     reviews: 276,
-//   },
-//   {
-//     title: "Research Project Manager",
-//     description: "Organize your research workflow, tasks, and collaborations.",
-//     category: "Project Management",
-//     pricing: "Free",
-//     rating: 4.5,
-//     reviews: 152,
-//   },
-//   {
-//     title: "Lab Notebook",
-//     description:
-//       "Digital lab notebook for documenting experiments and research findings.",
-//     category: "Documentation",
-//     pricing: "Free / Premium",
-//     rating: 4.7,
-//     reviews: 198,
-//   },
-// ];

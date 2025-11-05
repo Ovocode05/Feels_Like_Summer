@@ -5,7 +5,7 @@ import MenubarStudent from "@/components/ui/menubar_student";
 import ProjectFilters from "@/components/projects/ProjectFilters";
 import ProjectSearch from "@/components/projects/ProjectSearch";
 import ProjectList from "@/components/projects/ProjectList";
-import { fetchProjects_active, getMyAppliedProjects } from "@/api/api";
+import { fetchProjectsForStudent, getMyAppliedProjects } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import { useProjectFilters } from "@/hooks/use-project-filters";
@@ -36,6 +36,12 @@ export default function ExplorePage() {
   const [applicationsMap, setApplicationsMap] = useState<Map<string, ApplicationType>>(new Map());
   const [isAuth, setIsAuth] = useState(false);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [pageSize] = useState(20);
+
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedField, setSelectedField] = useState<string>("");
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>("");
@@ -50,10 +56,13 @@ export default function ExplorePage() {
       setLoading(true);
       const token = localStorage.getItem("token") || "";
       try {
-        const res = await fetchProjects_active(token);
+        // Use the new student-specific endpoint with pagination
+        const res = await fetchProjectsForStudent(token, currentPage, pageSize);
         if (res.projects && Array.isArray(res.projects)) {
           setProjects(res.projects);
           setFilteredProjects(res.projects);
+          setTotalPages(res.totalPages || 1);
+          setTotalCount(res.total || 0);
         } else {
           setProjects([]);
           setFilteredProjects([]);
@@ -87,7 +96,7 @@ export default function ExplorePage() {
     }
 
     fetchAllProjects();
-  }, []);
+  }, [currentPage, pageSize]);
 
   const applyFilters = () => {
     const filtered = filterProjects(
@@ -170,6 +179,10 @@ export default function ExplorePage() {
               loading={loading}
               appliedProjectIds={appliedProjectIds}
               applicationsMap={applicationsMap}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              onPageChange={setCurrentPage}
             />
           </div>
         </div>

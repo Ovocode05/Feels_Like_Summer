@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -65,7 +66,16 @@ const projectFormSchema = z.object({
   specialization: z.string().optional(),
   duration: z.string().optional(),
   positionType: z.array(z.string()).optional(),
-  deadline: z.string().optional(),
+  deadline: z.string().optional().refine(
+    (date) => {
+      if (!date) return true; // Allow empty deadline
+      const selectedDate = new Date(date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return selectedDate >= today;
+    },
+    { message: "Application deadline cannot be a past date" }
+  ),
 });
 
 type Project_type = {
@@ -365,15 +375,14 @@ export default function ProfessorProjectsPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      <main className="flex-1 space-y-4 p-4 md:p-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Projects</h1>
-            <p className="text-muted-foreground">
-              Manage your research projects, track applications, and collaborate
-              with students.
+      <main className="flex-1 space-y-6 p-4 md:p-8 max-w-[1400px] mx-auto w-full">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <h1 className="text-3xl font-semibold tracking-tight">My Projects</h1>
+            <p className="text-muted-foreground text-sm">
+              Manage your research projects and track applications
             </p>
           </div>
           <Dialog
@@ -381,16 +390,15 @@ export default function ProfessorProjectsPage() {
             onOpenChange={setIsCreateDialogOpen}
           >
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-1">
+              <Button className="flex items-center gap-2 h-10 px-5">
                 <Plus className="h-4 w-4" /> Create Project
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] border-spacing-2 overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create New Research Project</DialogTitle>
-                <DialogDescription>
-                  Fill in the details below to create a new research project.
-                  Students will be able to view and apply to this project.
+                <DialogTitle className="text-xl">Create New Project</DialogTitle>
+                <DialogDescription className="text-sm">
+                  Fill in the details below to create a new research project
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -445,14 +453,22 @@ export default function ProfessorProjectsPage() {
                     name="isActive"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Is Active?</FormLabel>
-                        <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={(e) => field.onChange(e.target.checked)}
-                          />
-                        </FormControl>
+                        <div className="flex items-center justify-between rounded-md border p-3 bg-muted/20">
+                          <div className="space-y-0">
+                            <FormLabel className="text-sm font-medium cursor-pointer">
+                              Active Project
+                            </FormLabel>
+                            <FormDescription className="text-xs">
+                              Make project visible for applications
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -462,17 +478,17 @@ export default function ProfessorProjectsPage() {
                     name="tags"
                     render={() => (
                       <FormItem>
-                        <FormLabel>Tags (Subject/Research Field)</FormLabel>
-                        <div className="flex flex-wrap gap-2 mb-2">
+                        <FormLabel className="text-sm">Tags</FormLabel>
+                        <div className="flex flex-wrap gap-1.5 mb-2">
                           {(form.getValues("tags") || []).map((tag) => (
                             <span
                               key={tag}
-                              className="inline-flex items-center rounded bg-primary/10 px-2 py-1 text-sm font-medium text-primary"
+                              className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
                             >
                               {tag}
                               <button
                                 type="button"
-                                className="ml-1 text-primary hover:text-red-600"
+                                className="ml-1 text-muted-foreground hover:text-destructive"
                                 onClick={() => handleRemoveTag(tag)}
                                 tabIndex={-1}
                               >
@@ -488,12 +504,14 @@ export default function ProfessorProjectsPage() {
                               value={tagInput}
                               onChange={(e) => setTagInput(e.target.value)}
                               onKeyDown={handleAddTag}
-                              className="flex-1"
+                              className="flex-1 h-9"
                             />
                           </FormControl>
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="secondary"
+                            size="sm"
+                            className="h-9"
                             onClick={() => {
                               if (tagInput.trim() && !form.getValues("tags")?.includes(tagInput.trim())) {
                                 form.setValue("tags", [
@@ -507,19 +525,20 @@ export default function ProfessorProjectsPage() {
                             Add
                           </Button>
                         </div>
-                        <FormDescription>
-                          Add keywords for the subject or research field
+                        <FormDescription className="text-xs">
+                          Keywords for subject or research field
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="fieldOfStudy"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Field of Study</FormLabel>
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="fieldOfStudy"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Field of Study</FormLabel>
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -584,12 +603,12 @@ export default function ProfessorProjectsPage() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="specialization"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Specialization</FormLabel>
+                    <FormField
+                      control={form.control}
+                      name="specialization"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Specialization</FormLabel>
                         <Select
                           key={selectedFieldInForm}
                           onValueChange={field.onChange}
@@ -617,45 +636,49 @@ export default function ProfessorProjectsPage() {
                       </FormItem>
                     )}
                   />
+                  </div>
                   <FormField
                     control={form.control}
                     name="duration"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Duration</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select duration" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="short-term">
-                              Short-term (1-3 months)
-                            </SelectItem>
-                            <SelectItem value="medium-term">
-                              Medium-term (3-6 months)
-                            </SelectItem>
-                            <SelectItem value="long-term">
-                              Long-term (6+ months)
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select duration" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="short-term">
+                            Short-term (1-3 months)
+                          </SelectItem>
+                          <SelectItem value="medium-term">
+                            Medium-term (3-6 months)
+                          </SelectItem>
+                          <SelectItem value="long-term">
+                            Long-term (6+ months)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                   />
                   <FormField
                     control={form.control}
                     name="positionType"
                     render={() => (
                       <FormItem>
-                        <FormLabel>Position Type</FormLabel>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
+                        <FormLabel className="text-sm">Position Type</FormLabel>
+                        <FormDescription className="text-xs mb-2">
+                          Select all that apply
+                        </FormDescription>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center space-x-2 rounded-md border p-2.5 bg-muted/20">
                             <Checkbox
                               id="paid"
                               checked={(
@@ -667,12 +690,12 @@ export default function ProfessorProjectsPage() {
                             />
                             <label
                               htmlFor="paid"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              className="text-sm font-medium leading-none cursor-pointer"
                             >
                               Paid
                             </label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 rounded-md border p-2.5 bg-muted/20">
                             <Checkbox
                               id="volunteer"
                               checked={(
@@ -684,12 +707,12 @@ export default function ProfessorProjectsPage() {
                             />
                             <label
                               htmlFor="volunteer"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              className="text-sm font-medium leading-none cursor-pointer"
                             >
                               Volunteer
                             </label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 rounded-md border p-2.5 bg-muted/20">
                             <Checkbox
                               id="credit"
                               checked={(
@@ -701,12 +724,12 @@ export default function ProfessorProjectsPage() {
                             />
                             <label
                               htmlFor="credit"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              className="text-sm font-medium leading-none cursor-pointer"
                             >
                               For Credit
                             </label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 rounded-md border p-2.5 bg-muted/20">
                             <Checkbox
                               id="thesis"
                               checked={(
@@ -718,7 +741,7 @@ export default function ProfessorProjectsPage() {
                             />
                             <label
                               htmlFor="thesis"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              className="text-sm font-medium leading-none cursor-pointer"
                             >
                               Thesis/Dissertation
                             </label>
@@ -733,33 +756,38 @@ export default function ProfessorProjectsPage() {
                     name="deadline"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Application Deadline</FormLabel>
+                        <FormLabel className="text-sm">Application Deadline</FormLabel>
                         <FormControl>
                           <Input
                             type="date"
                             placeholder="Select deadline"
+                            min={new Date().toISOString().split('T')[0]}
+                            className="h-9"
                             {...field}
                           />
                         </FormControl>
+                        <FormDescription className="text-xs">
+                          Deadline for student applications
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit">Create Project</Button>
+                  <Button type="submit" className="w-full h-10">Create Project</Button>
                 </form>
               </Form>
             </DialogContent>
           </Dialog>
         </div>
 
-        <div className="flex flex-col gap-4 md:flex-row md:items-center">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-1 items-center gap-2">
             <div className="relative flex-1 md:max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search projects..."
-                className="pl-8"
+                className="pl-9 h-9 border-muted-foreground/20 focus-visible:ring-1"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -768,6 +796,7 @@ export default function ProfessorProjectsPage() {
               variant="outline"
               size="icon"
               onClick={() => setSearchActive(true)}
+              className="h-9 w-9"
             >
               <Filter className="h-4 w-4" />
             </Button>
@@ -777,19 +806,19 @@ export default function ProfessorProjectsPage() {
             onValueChange={setActiveTab}
             className="w-full md:w-auto"
           >
-            <TabsList>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="notactive">Not Active</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-9">
+              <TabsTrigger value="active" className="text-sm">Active</TabsTrigger>
+              <TabsTrigger value="notactive" className="text-sm">Not Active</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {(searchedProjects ?? []).map((project) => (
             <div
               key={project.pid}
               onClick={() => handleProjectClick(project.pid)}
-              className={`cursor-pointer border-2 border-primary/30 p-6 rounded-xl shadow-lg bg-background flex flex-col justify-between min-h-[320px] ${
+              className={`group cursor-pointer rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/40 flex flex-col justify-between ${
                 searchActive &&
                 searchQuery &&
                 (project.name
@@ -805,68 +834,75 @@ export default function ProfessorProjectsPage() {
                     project.tags.some((tag: string) =>
                       tag.toLowerCase().includes(searchQuery.toLowerCase())
                     )))
-                  ? "ring-2 ring-yellow-400"
+                  ? "ring-2 ring-primary/60 border-primary/60"
                   : ""
               }`}
               tabIndex={0}
               role="button"
             >
-              <div>
-                <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                  {highlightText(project?.name, searchQuery)}
+              <div className="space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-lg font-semibold leading-tight">
+                    {highlightText(project?.name, searchQuery)}
+                  </h3>
                   {project.isActive && (
-                    <span className="ml-2 text-green-600 text-base font-semibold bg-green-100 px-2 py-0.5 rounded">
+                    <span className="shrink-0 text-[10px] font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
                       Active
                     </span>
                   )}
-                </h3>
-                <p className="mb-2 text-base text-muted-foreground">
-                  <strong>Short Desc:</strong>{" "}
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2">
                   {highlightText(project.sdesc, searchQuery)}
                 </p>
-                <p className="text-base mb-2">
-                  <strong>Long Desc:</strong>{" "}
+                <p className="text-xs text-foreground/80 line-clamp-3">
                   {highlightText(project.ldesc, searchQuery)}
                 </p>
-                {project.fieldOfStudy && (
-                  <p className="text-sm text-muted-foreground mb-1">
-                    <strong>Field:</strong> {project.fieldOfStudy}
-                  </p>
-                )}
-                {project.specialization && (
-                  <p className="text-sm text-muted-foreground mb-1">
-                    <strong>Specialization:</strong> {project.specialization}
-                  </p>
-                )}
-                {project.duration && (
-                  <p className="text-sm text-muted-foreground mb-1">
-                    <strong>Duration:</strong> {project.duration}
-                  </p>
-                )}
-                {project.positionType && project.positionType.length > 0 && (
-                  <p className="text-sm text-muted-foreground mb-1">
-                    <strong>Position Type:</strong>{" "}
-                    {project.positionType.join(", ")}
-                  </p>
-                )}
-                {project.deadline && (
-                  <p className="text-sm text-muted-foreground mb-1">
-                    <strong>Deadline:</strong>{" "}
-                    {new Date(project.deadline).toLocaleDateString()}
-                  </p>
-                )}
+                <div className="space-y-1 pt-1">
+                  {project.fieldOfStudy && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span className="font-medium">Field:</span>
+                      <span>{project.fieldOfStudy}</span>
+                    </div>
+                  )}
+                  {project.specialization && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span className="font-medium">Specialization:</span>
+                      <span>{project.specialization}</span>
+                    </div>
+                  )}
+                  {project.duration && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span className="font-medium">Duration:</span>
+                      <span>{project.duration}</span>
+                    </div>
+                  )}
+                  {project.positionType && project.positionType.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span className="font-medium">Type:</span>
+                      <span>{project.positionType.join(", ")}</span>
+                    </div>
+                  )}
+                  {project.deadline && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span className="font-medium">Deadline:</span>
+                      <span>
+                        {new Date(project.deadline).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div>
+              <div className="space-y-2.5 pt-3">
                 {project.tags && project.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-4">
+                  <div className="flex flex-wrap gap-1">
                     {project.tags.map((tag: string, idx) => (
                       <span
                         key={tag + idx}
-                        className={`inline-flex items-center rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary ${
+                        className={`inline-flex items-center rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground ${
                           searchActive &&
                           searchQuery &&
                           tag.toLowerCase().includes(searchQuery.toLowerCase())
-                            ? "bg-yellow-200"
+                            ? "bg-yellow-100 text-yellow-900"
                             : ""
                         }`}
                       >
@@ -875,17 +911,17 @@ export default function ProfessorProjectsPage() {
                     ))}
                   </div>
                 )}
-                <div className="mt-3 flex justify-end">
+                <div className="flex justify-end border-t pt-2.5">
                   <Button
-                    variant="destructive"
+                    variant="ghost"
                     size="sm"
-                    className="flex items-center gap-1 bg-red-900"
+                    className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteClick(project);
                     }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5 mr-1" />
                     Delete
                   </Button>
                 </div>
@@ -895,71 +931,71 @@ export default function ProfessorProjectsPage() {
         </div>
 
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Delete Project</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg">Delete Project</DialogTitle>
+              <DialogDescription className="text-sm">
                 This action{" "}
-                <span className="font-bold text-destructive">
+                <span className="font-semibold text-destructive">
                   cannot be undone
                 </span>
-                .<br />
-                Please type{" "}
-                <span className="font-mono font-semibold">
+                . Please type{" "}
+                <span className="font-mono font-semibold text-foreground">
                   {projectToDelete?.name}
                 </span>
-                {"   "}
-                to confirm deletion of this project.
+                {" "}
+                to confirm.
               </DialogDescription>
             </DialogHeader>
             <input
               type="text"
-              className="w-full border rounded px-3 py-2 mt-4"
+              className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               placeholder="Type project name to confirm"
               value={deleteConfirmInput}
               onChange={(e) => setDeleteConfirmInput(e.target.value)}
               autoFocus
             />
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:gap-0">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => setDeleteDialogOpen(false)}
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
+                size="sm"
                 disabled={deleteConfirmInput !== projectToDelete?.name}
                 onClick={confirmDelete}
-                className="bg-red-900"
               >
-                Delete
+                Delete Project
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
         {(filteredProjects ?? []).length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-              <ClipboardList className="h-10 w-10 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center mt-8">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
+              <ClipboardList className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-lg font-semibold">No projects found</h3>
-            <p className="mb-4 mt-2 text-sm text-muted-foreground">
+            <h3 className="mt-6 text-lg font-semibold">No projects found</h3>
+            <p className="mb-6 mt-2 text-sm text-muted-foreground max-w-sm">
               {activeTab === "all"
-                ? "You have not created any projects yet."
+                ? "You have not created any projects yet. Get started by creating your first research project."
                 : `You do not have any ${activeTab} projects.`}
             </p>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="h-11 px-6">
               <Plus className="mr-2 h-4 w-4" /> Create Project
             </Button>
           </div>
         )}
 
         {showDeletedPopup && (
-          <div className="fixed bottom-8 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-green-300 bg-green-50 px-6 py-3 text-green-800 shadow-xl animate-fade-in">
-            <CheckCircle2 className="h-6 w-6 text-green-600" />
-            <span className="font-semibold">Project has been deleted.</span>
+          <div className="fixed bottom-8 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border bg-card px-6 py-4 shadow-lg animate-fade-in">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <span className="font-medium text-sm">Project has been deleted.</span>
           </div>
         )}
       </main>

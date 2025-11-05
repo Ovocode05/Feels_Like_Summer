@@ -345,14 +345,14 @@ export default function StudentDashboard() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="lg:col-span-4">
+          <Card className="lg:col-span-4 flex flex-col">
             <CardHeader>
               <CardTitle>Application Status</CardTitle>
               <CardDescription>
                 Track the status of your research applications.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 overflow-hidden max-h-[500px]">
               <div className="space-y-6">
                 {loading ? (
                   <div className="text-center py-4">
@@ -363,7 +363,7 @@ export default function StudentDashboard() {
                     You haven&apos;t applied to any projects yet.
                   </div>
                 ) : (
-                  applications.slice(0, 3).map((application) => (
+                  applications.slice(0, 4).map((application) => (
                     <div
                       key={application.ID}
                       className="flex items-center justify-between space-x-4"
@@ -435,14 +435,12 @@ export default function StudentDashboard() {
                 )}
               </div>
             </CardContent>
-            <CardFooter>
-              {applications.length > 3 && (
-                <Link href="/student/applications" className="w-full">
-                  <Button variant="outline" className="w-full">
-                    View All Applications
-                  </Button>
-                </Link>
-              )}
+            <CardFooter className="mt-auto">
+              <Link href="/student/applications" className="w-full">
+                <Button variant="outline" className="w-full">
+                  {applications.length > 4 ? 'View All Applications' : 'View Applications'}
+                </Button>
+              </Link>
             </CardFooter>
           </Card>
           <Card className="lg:col-span-3">
@@ -649,7 +647,7 @@ export default function StudentDashboard() {
                   )}
                 </div>
               ) : (
-                recommendations.slice(0, 3).map((project) => (
+                recommendations.slice(0, 2).map((project) => (
                   <div
                     key={project.ID}
                     className="flex items-start justify-between border-b pb-3 last:border-0 last:pb-0"
@@ -697,11 +695,18 @@ export default function StudentDashboard() {
                 Roadmaps to help you in your research journey.
               </CardDescription>
             </CardHeader>
-
+            <CardContent className="flex-1 flex items-center justify-center py-8">
+              <div className="text-center">
+                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-sm text-muted-foreground mb-4">
+                  Generate personalized learning roadmaps based on your research goals and interests.
+                </p>
+              </div>
+            </CardContent>
             <CardFooter>
-              <Link href="/student/resources">
+              <Link href="/student/resources" className="w-full">
                 <Button variant="outline" className="w-full">
-                  View All Resources
+                  Create Roadmaps
                 </Button>
               </Link>
             </CardFooter>

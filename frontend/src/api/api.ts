@@ -141,7 +141,8 @@ export type ProjectCreateType = {
 };
 
 type booled = {
-  isActive: boolean;
+  isActive?: boolean;
+  deadline?: string;
 };
 
 export const registerUser = async (data: RegisterUserData) => {
@@ -245,6 +246,28 @@ export const fetchProjects_active = async (token: string) => {
   }
 };
 
+// New endpoint for students - fetches projects visible to them (active + applied projects)
+// Supports pagination
+export const fetchProjectsForStudent = async (
+  token: string,
+  page: number = 1,
+  pageSize: number = 20
+) => {
+  try {
+    const response = await axiosInstance.get("/projects/student", {
+      params: { page, pageSize },
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching projects for student:", error);
+    throw error;
+  }
+};
+
 export const fetchProjects_active_my = async (token: string) => {
   try {
     const response = await axiosInstance.get("/projects/my", {
@@ -322,6 +345,21 @@ export const getProjectWorkingUsers = async (pid: string, token: string) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching project working users:", error);
+    throw error;
+  }
+};
+
+export const removeWorkingUser = async (pid: string, uid: string, token: string) => {
+  try {
+    const response = await axiosInstance.delete(`/projects/${pid}/working-users/${uid}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error removing working user:", error);
     throw error;
   }
 };
@@ -551,6 +589,27 @@ export const applyToProject = async (
     return response.data;
   } catch (error) {
     console.error("Error applying to project:", error);
+    throw error;
+  }
+};
+
+export const retractApplication = async (
+  projectId: string,
+  token: string
+) => {
+  try {
+    const response = await axiosInstance.delete(
+      `/projects/${projectId}/retract`,
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error retracting application:", error);
     throw error;
   }
 };

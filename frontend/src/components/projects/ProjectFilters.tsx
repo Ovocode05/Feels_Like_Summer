@@ -385,7 +385,7 @@ export default function ProjectFilters({
             </div>
           </div>
         </div>
-
+{/* 
         <div className="space-y-2">
           <Label>Skill Match</Label>
           <div className="flex items-center space-x-2">
@@ -394,7 +394,7 @@ export default function ProjectFilters({
               Show only projects matching my skills
             </Label>
           </div>
-        </div>
+        </div> */}
 
         <div className="space-y-2">
           <Label>Deadline</Label>

@@ -24,6 +24,7 @@ import {
   Users,
   TrendingUp,
   Sparkles,
+  ArrowLeft,
 } from "lucide-react";
 
 interface DecodedToken {
@@ -116,8 +117,17 @@ export default function RecommendationsPage() {
       <main className="flex-1 space-y-6 p-4 md:p-8">
         <div className="flex items-start justify-between">
           <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="mb-4 -ml-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-              <Sparkles className="h-8 w-8 text-primary" />
+              {/* <Sparkles className="h-8 w-8 text-primary" /> */}
               Recommended Projects
             </h1>
             <p className="text-muted-foreground mt-2">
