@@ -26,15 +26,6 @@ import {
   Sparkles,
 } from "lucide-react";
 
-interface DecodedToken {
-  userId: string;
-  name: string;
-  email: string;
-  type: string;
-  iat: number;
-  exp: number;
-}
-
 export default function RecommendationsPage() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
@@ -42,19 +33,18 @@ export default function RecommendationsPage() {
     []
   );
   const [loading, setLoading] = useState(true);
-  const [decode, setDecode] = useState<DecodedToken | null>(null);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("token") || "";
-    if (!token) return;
-    try {
-      setDecode(jwtDecode(token) as DecodedToken);
-    } catch (e) {
-      console.error("Invalid token decode", e);
-      setDecode(null);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return;
+  //   const token = localStorage.getItem("token") || "";
+  //   if (!token) return;
+  //   try {
+  //     setDecode(jwtDecode(token) as DecodedToken);
+  //   } catch (e) {
+  //     console.error("Invalid token decode", e);
+  //     setDecode(null);
+  //   }
+  // }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token") || "";
@@ -154,7 +144,10 @@ export default function RecommendationsPage() {
 
             <div className="grid gap-6">
               {recommendations.map((project) => (
-                <Card key={project.ID} className="hover:shadow-lg transition-shadow">
+                <Card
+                  key={project.ID}
+                  className="hover:shadow-lg transition-shadow"
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -193,7 +186,11 @@ export default function RecommendationsPage() {
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {project.match_reasons.map((reason, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
+                          <Badge
+                            key={idx}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {reason}
                           </Badge>
                         ))}
@@ -260,7 +257,11 @@ export default function RecommendationsPage() {
                     {project.tags && project.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 pt-2">
                         {project.tags.slice(0, 5).map((tag, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
+                          <Badge
+                            key={idx}
+                            variant="outline"
+                            className="text-xs"
+                          >
                             {tag}
                           </Badge>
                         ))}

@@ -41,7 +41,11 @@ import { Badge } from "@/components/ui/badge";
 import MenubarStudent from "@/components/ui/menubar_student";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
-import { getStudentProfile, updateStudentProfile, type StudentProfile } from "@/api/api";
+import {
+  getStudentProfile,
+  updateStudentProfile,
+  type StudentProfile,
+} from "@/api/api";
 import { useToast } from "@/hooks/use-toast";
 
 const cvFormSchema = z.object({
@@ -115,7 +119,6 @@ const cvFormSchema = z.object({
 export default function CVBuilderPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState("edit");
   const [educationEntries, setEducationEntries] = useState([{ id: 1 }]);
   const [experienceEntries, setExperienceEntries] = useState([{ id: 1 }]);
@@ -127,10 +130,6 @@ export default function CVBuilderPage() {
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
 
   const form = useForm<z.infer<typeof cvFormSchema>>({
     resolver: zodResolver(cvFormSchema),
@@ -203,132 +202,141 @@ export default function CVBuilderPage() {
       return;
     }
     setIsAuth(true);
-    
-    // Fetch existing profile data
-    fetchProfileData();
-  }, [router]);
 
-  const fetchProfileData = async () => {
-    setProfileLoading(true);
-    try {
-      const token = localStorage.getItem("token") || "";
-      const response = await getStudentProfile(token);
-      
-      if (response.student) {
-        const student = response.student;
-        
-        // Map backend data to form structure
-        form.reset({
-          personalInfo: {
-            firstName: student.name?.split(" ")[0] || "",
-            lastName: student.name?.split(" ").slice(1).join(" ") || "",
-            email: student.email || "",
-            phone: "",
-            location: student.location || "",
-            website: "",
-            linkedin: "",
-            github: "",
-          },
-          education: student.institution ? [{
-            institution: student.institution,
+    const fetchProfileData = async () => {
+      setProfileLoading(true);
+      try {
+        const tokenInner = localStorage.getItem("token") || "";
+        const response = await getStudentProfile(tokenInner);
+
+        if (response.student) {
+          const student = response.student;
+
+          // Map backend data to form structure
+          form.reset({
+            personalInfo: {
+              firstName: student.name?.split(" ")[0] || "",
+              lastName: student.name?.split(" ").slice(1).join(" ") || "",
+              email: student.email || "",
+              phone: "",
+              location: student.location || "",
+              website: "",
+              linkedin: "",
+              github: "",
+            },
+            education: student.institution
+              ? [
+                  {
+                    institution: student.institution,
+                    degree: student.degree || "",
+                    field: "",
+                    startDate: student.dates?.split(" - ")[0] || "",
+                    endDate: student.dates?.split(" - ")[1] || "",
+                    current: !student.dates?.includes(" - "),
+                    description: "",
+                  },
+                ]
+              : [
+                  {
+                    institution: "",
+                    degree: "",
+                    field: "",
+                    startDate: "",
+                    endDate: "",
+                    current: false,
+                    description: "",
+                  },
+                ],
+            experience: student.workEx
+              ? [
+                  {
+                    title: "",
+                    company: "",
+                    location: "",
+                    startDate: "",
+                    endDate: "",
+                    current: false,
+                    description: student.workEx,
+                  },
+                ]
+              : [
+                  {
+                    title: "",
+                    company: "",
+                    location: "",
+                    startDate: "",
+                    endDate: "",
+                    current: false,
+                    description: "",
+                  },
+                ],
+            skills: student.skills || [],
+            projects:
+              student.projects && student.projects.length > 0
+                ? student.projects.map((proj: string) => ({
+                    title: proj,
+                    description: "",
+                    technologies: [],
+                    link: "",
+                  }))
+                : [
+                    {
+                      title: "",
+                      description: "",
+                      technologies: [],
+                      link: "",
+                    },
+                  ],
+            publications: [],
+            summary: "",
+            institution: student.institution || "",
             degree: student.degree || "",
-            field: "",
-            startDate: student.dates?.split(" - ")[0] || "",
-            endDate: student.dates?.split(" - ")[1] || "",
-            current: !student.dates?.includes(" - "),
-            description: "",
-          }] : [{
-            institution: "",
-            degree: "",
-            field: "",
-            startDate: "",
-            endDate: "",
-            current: false,
-            description: "",
-          }],
-          experience: student.workEx ? [{
-            title: "",
-            company: "",
-            location: "",
-            startDate: "",
-            endDate: "",
-            current: false,
-            description: student.workEx,
-          }] : [{
-            title: "",
-            company: "",
-            location: "",
-            startDate: "",
-            endDate: "",
-            current: false,
-            description: "",
-          }],
-          skills: student.skills || [],
-          projects: (student.projects && student.projects.length > 0) ? student.projects.map((proj: string) => ({
-            title: proj,
-            description: "",
-            technologies: [],
-            link: "",
-          })) : [{
-            title: "",
-            description: "",
-            technologies: [],
-            link: "",
-          }],
-          publications: [],
-          summary: "",
-          institution: student.institution || "",
-          degree: student.degree || "",
-          dates: student.dates || "",
-          resumeLink: student.resumeLink || "",
-          publicationsLink: student.publicationsLink || "",
-          researchInterest: student.researchInterest || "",
-          intention: student.intention || "",
-        });
-        
-        setSkills(student.skills || []);
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      // Don't show error toast if profile doesn't exist yet (404 is expected)
-      const status = (error as any)?.response?.status;
-      if (status !== 404) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load profile data",
-        });
-      }
-    } finally {
-      setProfileLoading(false);
-    }
-  };
+            dates: student.dates || "",
+            resumeLink: student.resumeLink || "",
+            publicationsLink: student.publicationsLink || "",
+            researchInterest: student.researchInterest || "",
+            intention: student.intention || "",
+          });
 
-  if (!isAuth || profileLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+          setSkills(student.skills || []);
+        }
+      } catch (error: unknown) {
+        console.error("Error fetching profile:", error);
+        type AxiosLikeError = { response?: { status?: number } };
+        const status = (error as AxiosLikeError).response?.status;
+        if (status !== 404) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load profile data",
+          });
+        }
+      } finally {
+        setProfileLoading(false);
+      }
+    };
 
-  async function onSubmit(values: z.infer<typeof cvFormSchema>) {
+    fetchProfileData();
+  }, [router, form, toast]);
+
+  const onSubmit = async (values: z.infer<typeof cvFormSchema>) => {
     setLoading(true);
     setSaveSuccess(false);
-    
+
     try {
       const token = localStorage.getItem("token") || "";
-      
+
       // Map form data to backend structure
       const profileData: StudentProfile = {
         institution: values.education[0]?.institution || "",
         degree: values.education[0]?.degree || "",
         location: values.personalInfo.location || "",
-        dates: values.education[0]?.startDate && values.education[0]?.endDate 
-          ? `${values.education[0].startDate} - ${values.education[0].endDate}`
-          : values.education[0]?.startDate || "",
+        dates:
+          values.education[0]?.startDate && values.education[0]?.endDate
+            ? `${values.education[0].startDate} - ${values.education[0].endDate}`
+            : values.education[0]?.startDate || "",
         workEx: values.experience[0]?.description || "",
-        projects: values.projects.map(p => p.title).filter(Boolean),
+        projects: values.projects.map((p) => p.title).filter(Boolean),
         skills: values.skills,
         activities: [], // Can be extended later
         resumeLink: values.resumeLink || "",
@@ -336,18 +344,18 @@ export default function CVBuilderPage() {
         researchInterest: values.researchInterest || "",
         intention: values.intention || "",
       };
-      
+
       await updateStudentProfile(profileData, token);
-      
+
       setSaveSuccess(true);
       toast({
         title: "Success",
         description: "Your CV has been saved successfully!",
       });
-      
+
       // Switch to preview tab
       setActiveTab("preview");
-      
+
       // Reset success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
@@ -360,7 +368,7 @@ export default function CVBuilderPage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const addEducationEntry = () => {
     const newId =
@@ -462,7 +470,8 @@ export default function CVBuilderPage() {
               <CheckCircle2 className="h-4 w-4 text-green-600" />
               <AlertTitle>CV Saved Successfully</AlertTitle>
               <AlertDescription>
-                Your CV has been saved to your profile and can be used for project applications.
+                Your CV has been saved to your profile and can be used for
+                project applications.
               </AlertDescription>
             </>
           ) : (
@@ -470,7 +479,8 @@ export default function CVBuilderPage() {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>CV Builder</AlertTitle>
               <AlertDescription>
-                Create your CV to showcase your skills and experience for research applications.
+                Create your CV to showcase your skills and experience for
+                research applications.
               </AlertDescription>
             </>
           )}
@@ -1065,7 +1075,8 @@ export default function CVBuilderPage() {
                     <CardTitle>Publications & Documents</CardTitle>
                     {/* FIX: Replaced the apostrophe in "you've" with "&apos;" to fix the unescaped-entities error. */}
                     <CardDescription>
-                      Add links to your resume/CV and publications. These will be used for applications.
+                      Add links to your resume/CV and publications. These will
+                      be used for applications.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1087,7 +1098,8 @@ export default function CVBuilderPage() {
                               />
                             </FormControl>
                             <FormDescription>
-                              Link to your resume or CV (Google Drive, Dropbox, etc.)
+                              Link to your resume or CV (Google Drive, Dropbox,
+                              etc.)
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -1107,88 +1119,56 @@ export default function CVBuilderPage() {
                               />
                             </FormControl>
                             <FormDescription>
-                              Link to your Google Scholar profile or publication list
+                              Link to your Google Scholar profile or publication
+                              list
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
-                    
+
                     <div className="space-y-3">
                       <h3 className="text-sm font-semibold border-b pb-1">
                         Publications List
                       </h3>
-                    {publicationEntries.length === 0 ? (
-                      <div className="text-center py-4 text-muted-foreground">
-                        <FileText className="mx-auto h-8 w-8 mb-2" />
-                        <p>No publications added yet.</p>
-                        <p className="text-sm">
-                          Add your research papers, articles, or other
-                          publications.
-                        </p>
-                      </div>
-                    ) : (
-                      publicationEntries.map((entry, index) => (
-                        <div
-                          key={entry.id}
-                          className="space-y-4 pb-4 border-b last:border-0"
-                        >
-                          <div className="flex justify-between items-center">
-                            <h4 className="text-sm font-medium">
-                              Publication #{index + 1}
-                            </h4>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removePublicationEntry(entry.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <FormField
-                            control={form.control}
-                            name={`publications.${index}.title`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Publication Title</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Title of the paper or article"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`publications.${index}.authors`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Authors</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="List of authors (e.g., Smith, J., Johnson, A., et al.)"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {publicationEntries.length === 0 ? (
+                        <div className="text-center py-4 text-muted-foreground">
+                          <FileText className="mx-auto h-8 w-8 mb-2" />
+                          <p>No publications added yet.</p>
+                          <p className="text-sm">
+                            Add your research papers, articles, or other
+                            publications.
+                          </p>
+                        </div>
+                      ) : (
+                        publicationEntries.map((entry, index) => (
+                          <div
+                            key={entry.id}
+                            className="space-y-4 pb-4 border-b last:border-0"
+                          >
+                            <div className="flex justify-between items-center">
+                              <h4 className="text-sm font-medium">
+                                Publication #{index + 1}
+                              </h4>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removePublicationEntry(entry.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                             <FormField
                               control={form.control}
-                              name={`publications.${index}.journal`}
+                              name={`publications.${index}.title`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Journal/Conference</FormLabel>
+                                  <FormLabel>Publication Title</FormLabel>
                                   <FormControl>
                                     <Input
-                                      placeholder="Name of journal or conference"
+                                      placeholder="Title of the paper or article"
                                       {...field}
                                     />
                                   </FormControl>
@@ -1198,47 +1178,80 @@ export default function CVBuilderPage() {
                             />
                             <FormField
                               control={form.control}
-                              name={`publications.${index}.date`}
+                              name={`publications.${index}.authors`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Publication Date</FormLabel>
+                                  <FormLabel>Authors</FormLabel>
                                   <FormControl>
-                                    <Input type="month" {...field} />
+                                    <Input
+                                      placeholder="List of authors (e.g., Smith, J., Johnson, A., et al.)"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name={`publications.${index}.journal`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Journal/Conference</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Name of journal or conference"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`publications.${index}.date`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Publication Date</FormLabel>
+                                    <FormControl>
+                                      <Input type="month" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name={`publications.${index}.link`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>DOI or Link</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="DOI or URL to the publication"
+                                      {...field}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
                           </div>
-                          <FormField
-                            control={form.control}
-                            name={`publications.${index}.link`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>DOI or Link</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="DOI or URL to the publication"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      ))
-                    )}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={addPublicationEntry}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Publication
-                    </Button>
+                        ))
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={addPublicationEntry}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Publication
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -1323,7 +1336,8 @@ export default function CVBuilderPage() {
                   </div>
                 )}
 
-                {(form.getValues().resumeLink || form.getValues().publicationsLink) && (
+                {(form.getValues().resumeLink ||
+                  form.getValues().publicationsLink) && (
                   <div>
                     <h3 className="font-semibold text-lg mb-2">Documents</h3>
                     <div className="space-y-2">
@@ -1501,7 +1515,11 @@ export default function CVBuilderPage() {
                   )}
               </CardContent>
               <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={() => setActiveTab("edit")} disabled={loading}>
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveTab("edit")}
+                  disabled={loading}
+                >
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </Button>
@@ -1510,7 +1528,10 @@ export default function CVBuilderPage() {
                     <Download className="mr-2 h-4 w-4" />
                     Export as PDF
                   </Button>
-                  <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
+                  <Button
+                    onClick={form.handleSubmit(onSubmit)}
+                    disabled={loading}
+                  >
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

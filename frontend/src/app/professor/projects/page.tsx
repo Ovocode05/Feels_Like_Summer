@@ -34,7 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -431,7 +430,9 @@ export default function ProfessorProjectsPage() {
                             <SelectGroup>
                               <SelectLabel>Sciences</SelectLabel>
                               <SelectItem value="physics">Physics</SelectItem>
-                              <SelectItem value="chemistry">Chemistry</SelectItem>
+                              <SelectItem value="chemistry">
+                                Chemistry
+                              </SelectItem>
                               <SelectItem value="biology">Biology</SelectItem>
                               <SelectItem value="computer-science">
                                 Computer Science
@@ -445,15 +446,21 @@ export default function ProfessorProjectsPage() {
                               <SelectItem value="applied-mathematics">
                                 Applied Mathematics
                               </SelectItem>
-                              <SelectItem value="statistics">Statistics</SelectItem>
+                              <SelectItem value="statistics">
+                                Statistics
+                              </SelectItem>
                             </SelectGroup>
                             <SelectGroup>
                               <SelectLabel>Other</SelectLabel>
-                              <SelectItem value="engineering">Engineering</SelectItem>
+                              <SelectItem value="engineering">
+                                Engineering
+                              </SelectItem>
                               <SelectItem value="social-sciences">
                                 Social Sciences
                               </SelectItem>
-                              <SelectItem value="humanities">Humanities</SelectItem>
+                              <SelectItem value="humanities">
+                                Humanities
+                              </SelectItem>
                             </SelectGroup>
                           </SelectContent>
                         </Select>
@@ -521,9 +528,15 @@ export default function ProfessorProjectsPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="short-term">Short-term (1-3 months)</SelectItem>
-                            <SelectItem value="medium-term">Medium-term (3-6 months)</SelectItem>
-                            <SelectItem value="long-term">Long-term (6+ months)</SelectItem>
+                            <SelectItem value="short-term">
+                              Short-term (1-3 months)
+                            </SelectItem>
+                            <SelectItem value="medium-term">
+                              Medium-term (3-6 months)
+                            </SelectItem>
+                            <SelectItem value="long-term">
+                              Long-term (6+ months)
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -540,8 +553,12 @@ export default function ProfessorProjectsPage() {
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id="paid"
-                              checked={(form.getValues("positionType") || []).includes("paid")}
-                              onCheckedChange={() => handleTogglePositionType("paid")}
+                              checked={(
+                                form.getValues("positionType") || []
+                              ).includes("paid")}
+                              onCheckedChange={() =>
+                                handleTogglePositionType("paid")
+                              }
                             />
                             <label
                               htmlFor="paid"
@@ -553,8 +570,12 @@ export default function ProfessorProjectsPage() {
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id="volunteer"
-                              checked={(form.getValues("positionType") || []).includes("volunteer")}
-                              onCheckedChange={() => handleTogglePositionType("volunteer")}
+                              checked={(
+                                form.getValues("positionType") || []
+                              ).includes("volunteer")}
+                              onCheckedChange={() =>
+                                handleTogglePositionType("volunteer")
+                              }
                             />
                             <label
                               htmlFor="volunteer"
@@ -566,8 +587,12 @@ export default function ProfessorProjectsPage() {
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id="credit"
-                              checked={(form.getValues("positionType") || []).includes("credit")}
-                              onCheckedChange={() => handleTogglePositionType("credit")}
+                              checked={(
+                                form.getValues("positionType") || []
+                              ).includes("credit")}
+                              onCheckedChange={() =>
+                                handleTogglePositionType("credit")
+                              }
                             />
                             <label
                               htmlFor="credit"
@@ -579,8 +604,12 @@ export default function ProfessorProjectsPage() {
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id="thesis"
-                              checked={(form.getValues("positionType") || []).includes("thesis")}
-                              onCheckedChange={() => handleTogglePositionType("thesis")}
+                              checked={(
+                                form.getValues("positionType") || []
+                              ).includes("thesis")}
+                              onCheckedChange={() =>
+                                handleTogglePositionType("thesis")
+                              }
                             />
                             <label
                               htmlFor="thesis"
@@ -711,12 +740,14 @@ export default function ProfessorProjectsPage() {
                 )}
                 {project.positionType && project.positionType.length > 0 && (
                   <p className="text-sm text-muted-foreground mb-1">
-                    <strong>Position Type:</strong> {project.positionType.join(", ")}
+                    <strong>Position Type:</strong>{" "}
+                    {project.positionType.join(", ")}
                   </p>
                 )}
                 {project.deadline && (
                   <p className="text-sm text-muted-foreground mb-1">
-                    <strong>Deadline:</strong> {new Date(project.deadline).toLocaleDateString()}
+                    <strong>Deadline:</strong>{" "}
+                    {new Date(project.deadline).toLocaleDateString()}
                   </p>
                 )}
               </div>

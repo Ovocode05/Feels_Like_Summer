@@ -70,9 +70,12 @@ export default function ExplorePage() {
 
   // filter states
   const [selectedField, setSelectedField] = useState<string>("");
-  const [selectedSpecialization, setSelectedSpecialization] = useState<string>("");
+  const [selectedSpecialization, setSelectedSpecialization] =
+    useState<string>("");
   const [durationValue, setDurationValue] = useState<number[]>([50]);
-  const [selectedPositionTypes, setSelectedPositionTypes] = useState<string[]>([]);
+  const [selectedPositionTypes, setSelectedPositionTypes] = useState<string[]>(
+    []
+  );
   const [upcomingDeadlineOnly, setUpcomingDeadlineOnly] = useState(false);
 
   useEffect(() => {
@@ -108,7 +111,7 @@ export default function ExplorePage() {
       let pattern: RegExp | null = null;
       try {
         pattern = new RegExp(searchQuery, "i");
-      } catch (err) {
+      } catch {
         const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         pattern = new RegExp(escaped, "i");
       }
@@ -136,7 +139,9 @@ export default function ExplorePage() {
     // Apply specialization filter
     if (selectedSpecialization) {
       filtered = filtered.filter(
-        (p) => p.specialization?.toLowerCase() === selectedSpecialization.toLowerCase()
+        (p) =>
+          p.specialization?.toLowerCase() ===
+          selectedSpecialization.toLowerCase()
       );
     }
 
@@ -145,13 +150,26 @@ export default function ExplorePage() {
       filtered = filtered.filter((p) => {
         if (!p.duration) return false;
         const duration = p.duration.toLowerCase();
-        
+
         if (durationValue[0] <= 33) {
-          return duration.includes("short") || duration.includes("1-3 months") || duration.includes("< 3 months");
+          return (
+            duration.includes("short") ||
+            duration.includes("1-3 months") ||
+            duration.includes("< 3 months")
+          );
         } else if (durationValue[0] <= 66) {
-          return duration.includes("medium") || duration.includes("3-6 months") || duration.includes("6 months");
+          return (
+            duration.includes("medium") ||
+            duration.includes("3-6 months") ||
+            duration.includes("6 months")
+          );
         } else {
-          return duration.includes("long") || duration.includes("> 6 months") || duration.includes("1 year") || duration.includes("year");
+          return (
+            duration.includes("long") ||
+            duration.includes("> 6 months") ||
+            duration.includes("1 year") ||
+            duration.includes("year")
+          );
         }
       });
     }
@@ -172,7 +190,7 @@ export default function ExplorePage() {
     if (upcomingDeadlineOnly) {
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-      
+
       filtered = filtered.filter((p) => {
         if (!p.deadline) return false;
         const deadlineDate = new Date(p.deadline);
@@ -196,7 +214,15 @@ export default function ExplorePage() {
   // update filteredProjects when filters change
   useEffect(() => {
     applyFilters();
-  }, [searchQuery, projects, selectedField, selectedSpecialization, durationValue, selectedPositionTypes, upcomingDeadlineOnly]);
+  }, [
+    searchQuery,
+    projects,
+    selectedField,
+    selectedSpecialization,
+    durationValue,
+    selectedPositionTypes,
+    upcomingDeadlineOnly,
+  ]);
 
   const [isAuth, setIsAuth] = useState(false);
 
@@ -299,7 +325,10 @@ export default function ExplorePage() {
 
               <div className="space-y-2">
                 <Label htmlFor="specialization">Specialization</Label>
-                <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
+                <Select
+                  value={selectedSpecialization}
+                  onValueChange={setSelectedSpecialization}
+                >
                   <SelectTrigger id="specialization">
                     <SelectValue placeholder="Select specialization" />
                   </SelectTrigger>
@@ -361,11 +390,11 @@ export default function ExplorePage() {
                   <span className="text-sm">Short-term</span>
                   <span className="text-sm">Long-term</span>
                 </div>
-                <Slider 
-                  value={durationValue} 
+                <Slider
+                  value={durationValue}
                   onValueChange={setDurationValue}
-                  max={100} 
-                  step={1} 
+                  max={100}
+                  step={1}
                 />
               </div>
 
@@ -373,14 +402,19 @@ export default function ExplorePage() {
                 <Label>Position Type</Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="paid" 
+                    <Checkbox
+                      id="paid"
                       checked={selectedPositionTypes.includes("paid")}
                       onCheckedChange={(checked) => {
                         if (checked) {
-                          setSelectedPositionTypes([...selectedPositionTypes, "paid"]);
+                          setSelectedPositionTypes([
+                            ...selectedPositionTypes,
+                            "paid",
+                          ]);
                         } else {
-                          setSelectedPositionTypes(selectedPositionTypes.filter(t => t !== "paid"));
+                          setSelectedPositionTypes(
+                            selectedPositionTypes.filter((t) => t !== "paid")
+                          );
                         }
                       }}
                     />
@@ -392,14 +426,21 @@ export default function ExplorePage() {
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="volunteer" 
+                    <Checkbox
+                      id="volunteer"
                       checked={selectedPositionTypes.includes("volunteer")}
                       onCheckedChange={(checked) => {
                         if (checked) {
-                          setSelectedPositionTypes([...selectedPositionTypes, "volunteer"]);
+                          setSelectedPositionTypes([
+                            ...selectedPositionTypes,
+                            "volunteer",
+                          ]);
                         } else {
-                          setSelectedPositionTypes(selectedPositionTypes.filter(t => t !== "volunteer"));
+                          setSelectedPositionTypes(
+                            selectedPositionTypes.filter(
+                              (t) => t !== "volunteer"
+                            )
+                          );
                         }
                       }}
                     />
@@ -411,14 +452,19 @@ export default function ExplorePage() {
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="credit" 
+                    <Checkbox
+                      id="credit"
                       checked={selectedPositionTypes.includes("credit")}
                       onCheckedChange={(checked) => {
                         if (checked) {
-                          setSelectedPositionTypes([...selectedPositionTypes, "credit"]);
+                          setSelectedPositionTypes([
+                            ...selectedPositionTypes,
+                            "credit",
+                          ]);
                         } else {
-                          setSelectedPositionTypes(selectedPositionTypes.filter(t => t !== "credit"));
+                          setSelectedPositionTypes(
+                            selectedPositionTypes.filter((t) => t !== "credit")
+                          );
                         }
                       }}
                     />
@@ -430,14 +476,19 @@ export default function ExplorePage() {
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="thesis" 
+                    <Checkbox
+                      id="thesis"
                       checked={selectedPositionTypes.includes("thesis")}
                       onCheckedChange={(checked) => {
                         if (checked) {
-                          setSelectedPositionTypes([...selectedPositionTypes, "thesis"]);
+                          setSelectedPositionTypes([
+                            ...selectedPositionTypes,
+                            "thesis",
+                          ]);
                         } else {
-                          setSelectedPositionTypes(selectedPositionTypes.filter(t => t !== "thesis"));
+                          setSelectedPositionTypes(
+                            selectedPositionTypes.filter((t) => t !== "thesis")
+                          );
                         }
                       }}
                     />
@@ -464,10 +515,12 @@ export default function ExplorePage() {
               <div className="space-y-2">
                 <Label>Deadline</Label>
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="upcoming" 
+                  <Checkbox
+                    id="upcoming"
                     checked={upcomingDeadlineOnly}
-                    onCheckedChange={(checked) => setUpcomingDeadlineOnly(!!checked)}
+                    onCheckedChange={(checked) =>
+                      setUpcomingDeadlineOnly(!!checked)
+                    }
                   />
                   <label
                     htmlFor="upcoming"
@@ -478,8 +531,14 @@ export default function ExplorePage() {
                 </div>
               </div>
 
-              <Button className="w-full" onClick={applyFilters}>Apply Filters</Button>
-              <Button variant="outline" className="w-full" onClick={resetFilters}>
+              <Button className="w-full" onClick={applyFilters}>
+                Apply Filters
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={resetFilters}
+              >
                 Reset
               </Button>
             </CollapsibleContent>
@@ -571,46 +630,76 @@ export default function ExplorePage() {
                             {project.ldesc}
                           </div>
                         </div>
-                        {(project.fieldOfStudy || project.specialization || project.duration || 
-                          (project.positionType && project.positionType.length > 0) || project.deadline) && (
+                        {(project.fieldOfStudy ||
+                          project.specialization ||
+                          project.duration ||
+                          (project.positionType &&
+                            project.positionType.length > 0) ||
+                          project.deadline) && (
                           <div className="mt-4 pt-4 border-t">
-                            <div className="font-semibold mb-2">Project Details</div>
+                            <div className="font-semibold mb-2">
+                              Project Details
+                            </div>
                             <div className="grid gap-2 text-sm">
                               {project.fieldOfStudy && (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-muted-foreground">Field:</span>
-                                  <Badge variant="secondary">{project.fieldOfStudy}</Badge>
+                                  <span className="text-muted-foreground">
+                                    Field:
+                                  </span>
+                                  <Badge variant="secondary">
+                                    {project.fieldOfStudy}
+                                  </Badge>
                                 </div>
                               )}
                               {project.specialization && (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-muted-foreground">Specialization:</span>
-                                  <Badge variant="secondary">{project.specialization}</Badge>
+                                  <span className="text-muted-foreground">
+                                    Specialization:
+                                  </span>
+                                  <Badge variant="secondary">
+                                    {project.specialization}
+                                  </Badge>
                                 </div>
                               )}
                               {project.duration && (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-muted-foreground">Duration:</span>
-                                  <Badge variant="secondary">{project.duration}</Badge>
+                                  <span className="text-muted-foreground">
+                                    Duration:
+                                  </span>
+                                  <Badge variant="secondary">
+                                    {project.duration}
+                                  </Badge>
                                 </div>
                               )}
-                              {project.positionType && project.positionType.length > 0 && (
-                                <div className="flex items-start gap-2">
-                                  <span className="text-muted-foreground">Position Type:</span>
-                                  <div className="flex flex-wrap gap-1">
-                                    {project.positionType.map((type: string, idx: number) => (
-                                      <Badge key={type + idx} variant="outline">
-                                        {type}
-                                      </Badge>
-                                    ))}
+                              {project.positionType &&
+                                project.positionType.length > 0 && (
+                                  <div className="flex items-start gap-2">
+                                    <span className="text-muted-foreground">
+                                      Position Type:
+                                    </span>
+                                    <div className="flex flex-wrap gap-1">
+                                      {project.positionType.map(
+                                        (type: string, idx: number) => (
+                                          <Badge
+                                            key={type + idx}
+                                            variant="outline"
+                                          >
+                                            {type}
+                                          </Badge>
+                                        )
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
                               {project.deadline && (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-muted-foreground">Deadline:</span>
+                                  <span className="text-muted-foreground">
+                                    Deadline:
+                                  </span>
                                   <Badge variant="destructive">
-                                    {new Date(project.deadline).toLocaleDateString()}
+                                    {new Date(
+                                      project.deadline
+                                    ).toLocaleDateString()}
                                   </Badge>
                                 </div>
                               )}

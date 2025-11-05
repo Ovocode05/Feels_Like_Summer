@@ -85,14 +85,18 @@ export default function LoginPage() {
         // Email not verified - resend verification and redirect
         try {
           await resendVerification(values.email);
-          router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
-        } catch (resendError) {
+          router.push(
+            `/verify-email?email=${encodeURIComponent(values.email)}`
+          );
+        } catch {
           setErrorMessage(
             "Please verify your email. Redirecting to verification page..."
           );
           setShowError(true);
           setTimeout(() => {
-            router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
+            router.push(
+              `/verify-email?email=${encodeURIComponent(values.email)}`
+            );
           }, 2000);
         }
       } else {

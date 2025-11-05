@@ -11,8 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BookmarkCheckIcon as BookMarkCheck,
   BookOpen,
@@ -30,14 +28,14 @@ import MenubarStudent from "@/components/ui/menubar_student";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  getMyApplications, 
-  getRecommendedProjects, 
+import {
+  getMyApplications,
+  getRecommendedProjects,
   RecommendedProject,
   getStudentProfile,
   StudentProfile,
   getPreferences,
-  ResearchPreferences
+  ResearchPreferences,
 } from "@/api/api";
 
 interface Application {
@@ -101,9 +99,15 @@ export default function StudentDashboard() {
   const router = useRouter();
   const [isAuth, setIsAuth] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
-  const [recommendations, setRecommendations] = useState<RecommendedProject[]>([]);
-  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null);
-  const [preferences, setPreferences] = useState<ResearchPreferences | null>(null);
+  const [recommendations, setRecommendations] = useState<RecommendedProject[]>(
+    []
+  );
+  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(
+    null
+  );
+  const [preferences, setPreferences] = useState<ResearchPreferences | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [loadingRecommendations, setLoadingRecommendations] = useState(true);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -111,7 +115,9 @@ export default function StudentDashboard() {
   const [decode, setDecode] = useState<DecodedToken | null>(null);
 
   // Calculate profile completion percentage
-  const calculateProfileCompletion = (profile: StudentProfile | null): number => {
+  const calculateProfileCompletion = (
+    profile: StudentProfile | null
+  ): number => {
     if (!profile) return 0;
     let completion = 0;
     if (profile.institution) completion += 15;
@@ -177,12 +183,12 @@ export default function StudentDashboard() {
       try {
         const profileResponse = await getStudentProfile(token);
         setStudentProfile(profileResponse.student || null);
-        
+
         // Fetch research preferences
         try {
           const preferencesResponse = await getPreferences(token);
           setPreferences(preferencesResponse.preference || null);
-        } catch (prefError) {
+        } catch {
           console.log("No research preferences found");
         }
       } catch (error) {
@@ -473,60 +479,71 @@ export default function StudentDashboard() {
                   )}
 
                   {/* Skills/Specialized Areas */}
-                  {studentProfile.skills && studentProfile.skills.length > 0 && (
-                    <div>
-                      <div className="mb-2 font-medium">Skills & Expertise</div>
-                      <div className="flex flex-wrap gap-2">
-                        {studentProfile.skills.slice(0, 8).map((skill, idx) => (
-                          <Badge key={idx} variant="outline">
-                            {skill}
-                          </Badge>
-                        ))}
-                        {studentProfile.skills.length > 8 && (
-                          <Badge variant="outline">
-                            +{studentProfile.skills.length - 8} more
-                          </Badge>
-                        )}
+                  {studentProfile.skills &&
+                    studentProfile.skills.length > 0 && (
+                      <div>
+                        <div className="mb-2 font-medium">
+                          Skills & Expertise
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {studentProfile.skills
+                            .slice(0, 8)
+                            .map((skill, idx) => (
+                              <Badge key={idx} variant="outline">
+                                {skill}
+                              </Badge>
+                            ))}
+                          {studentProfile.skills.length > 8 && (
+                            <Badge variant="outline">
+                              +{studentProfile.skills.length - 8} more
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Show message if no key data is present */}
-                  {!preferences?.field_of_study && 
-                   !studentProfile.researchInterest && 
-                   (!studentProfile.skills || studentProfile.skills.length === 0) && (
-                    <div className="text-center py-4">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Add your research interests and skills to get better project recommendations
-                      </p>
-                    </div>
-                  )}
+                  {!preferences?.field_of_study &&
+                    !studentProfile.researchInterest &&
+                    (!studentProfile.skills ||
+                      studentProfile.skills.length === 0) && (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Add your research interests and skills to get better
+                          project recommendations
+                        </p>
+                      </div>
+                    )}
 
                   {/* Profile Completion */}
                   <div className="pt-2">
                     <div className="flex items-center justify-between">
                       <div className="font-medium">Profile Completion</div>
-                      <span className={`text-sm font-medium ${
-                        calculateProfileCompletion(studentProfile) === 100 
-                          ? 'text-green-600 dark:text-green-400' 
-                          : calculateProfileCompletion(studentProfile) >= 70
-                          ? 'text-blue-600 dark:text-blue-400'
-                          : 'text-yellow-600 dark:text-yellow-400'
-                      }`}>
+                      <span
+                        className={`text-sm font-medium ${
+                          calculateProfileCompletion(studentProfile) === 100
+                            ? "text-green-600 dark:text-green-400"
+                            : calculateProfileCompletion(studentProfile) >= 70
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-yellow-600 dark:text-yellow-400"
+                        }`}
+                      >
                         {calculateProfileCompletion(studentProfile)}%
                       </span>
                     </div>
                     <div className="mt-2 h-2 w-full rounded-full bg-muted">
-                      <div 
+                      <div
                         className={`h-2 rounded-full transition-all ${
                           calculateProfileCompletion(studentProfile) === 100
-                            ? 'bg-green-600'
+                            ? "bg-green-600"
                             : calculateProfileCompletion(studentProfile) >= 70
-                            ? 'bg-blue-600'
-                            : 'bg-yellow-600'
+                            ? "bg-blue-600"
+                            : "bg-yellow-600"
                         }`}
-                        style={{ 
-                          width: `${calculateProfileCompletion(studentProfile)}%` 
+                        style={{
+                          width: `${calculateProfileCompletion(
+                            studentProfile
+                          )}%`,
                         }}
                       ></div>
                     </div>
@@ -582,7 +599,10 @@ export default function StudentDashboard() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 ml-2">
-                      <Badge variant="outline" className="text-xs whitespace-nowrap">
+                      <Badge
+                        variant="outline"
+                        className="text-xs whitespace-nowrap"
+                      >
                         <Star className="mr-1 h-3 w-3 fill-primary text-primary" />{" "}
                         {Math.round(project.match_score)}% match
                       </Badge>
@@ -658,7 +678,7 @@ export default function StudentDashboard() {
             </CardFooter>
           </Card>
         </div>
-{/* 
+        {/* 
         <Tabs defaultValue="upcoming" className="w-full">
           <TabsList>
             <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
