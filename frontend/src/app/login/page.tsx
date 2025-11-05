@@ -45,12 +45,17 @@ export default function LoginPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [showVerifiedMessage, setShowVerifiedMessage] = useState(false);
+  const [showExpiredMessage, setShowExpiredMessage] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (searchParams.get("verified") === "true") {
       setShowVerifiedMessage(true);
       setTimeout(() => setShowVerifiedMessage(false), 5000);
+    }
+    if (searchParams.get("expired") === "true") {
+      setShowExpiredMessage(true);
+      setTimeout(() => setShowExpiredMessage(false), 5000);
     }
   }, [searchParams]);
 
@@ -210,6 +215,20 @@ export default function LoginPage() {
                 <button
                   className="ml-2 text-green-800 hover:text-green-600"
                   onClick={() => setShowVerifiedMessage(false)}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+            )}
+            {showExpiredMessage && (
+              <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-yellow-300 bg-yellow-50 px-6 py-3 text-yellow-800 shadow-xl animate-fade-in max-w-md">
+                <span className="font-semibold">
+                  ⚠ Your session has expired. Please log in again.
+                </span>
+                <button
+                  className="ml-2 text-yellow-800 hover:text-yellow-600"
+                  onClick={() => setShowExpiredMessage(false)}
                   aria-label="Close"
                 >
                   &times;

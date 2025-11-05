@@ -1,6 +1,118 @@
-import axios from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { isTokenExpired, clearAuthData, getToken, setToken } from "@/lib/auth";
 
 const url = process.env.NEXT_PUBLIC_BACKEND_API || "http://localhost:8080/v1";
+
+// Create axios instance
+const axiosInstance = axios.create({
+  baseURL: url,
+});
+
+// Flag to prevent multiple refresh attempts
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
+
+const processQueue = (error: Error | null, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
+// Request interceptor - check token expiration before request
+axiosInstance.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    const token = getToken();
+
+    if (token && isTokenExpired(token)) {
+      // Token is expired, try to refresh
+      try {
+        const newToken = await refreshToken();
+        setToken(newToken);
+        if (config.headers) {
+          config.headers.Authorization = `Bearer ${newToken}`;
+        }
+      } catch (error) {
+        // Refresh failed, clear auth and redirect to login
+        clearAuthData();
+        if (typeof window !== "undefined") {
+          window.location.href = "/login?expired=true";
+        }
+        return Promise.reject(error);
+      }
+    } else if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor - handle 401 errors
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
+    // If error is 401 and we haven't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return axiosInstance(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const newToken = await refreshToken();
+        setToken(newToken);
+        processQueue(null, newToken);
+
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        }
+
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError as Error, null);
+        clearAuthData();
+        if (typeof window !== "undefined") {
+          window.location.href = "/login?expired=true";
+        }
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 interface RegisterUserData {
   name: string;
@@ -34,7 +146,7 @@ type booled = {
 
 export const registerUser = async (data: RegisterUserData) => {
   try {
-    const response = await axios.post(`${url}/auth/signup`, data, {
+    const response = await axiosInstance.post("/auth/signup", data, {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -49,7 +161,7 @@ export const registerUser = async (data: RegisterUserData) => {
 
 export const loginUser = async (data: LoginUserData) => {
   try {
-    const response = await axios.post(`${url}/auth/login`, data, {
+    const response = await axiosInstance.post("/auth/login", data, {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -64,7 +176,7 @@ export const loginUser = async (data: LoginUserData) => {
 
 export const getCurrentUser = async (token: string) => {
   try {
-    const response = await axios.get(`${url}/auth/me`, {
+    const response = await axiosInstance.get("/auth/me", {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -78,7 +190,7 @@ export const getCurrentUser = async (token: string) => {
 };
 
 export const refreshToken = async () => {
-  const token = localStorage.getItem("token");
+  const token = getToken();
   if (!token) {
     throw new Error("No token found");
   }
@@ -104,7 +216,7 @@ export const refreshToken = async () => {
 
 export const createProject = async (data: ProjectCreateType, token: string) => {
   try {
-    const response = await axios.post(`${url}/projects`, data, {
+    const response = await axiosInstance.post("/projects", data, {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -120,7 +232,7 @@ export const createProject = async (data: ProjectCreateType, token: string) => {
 
 export const fetchProjects_active = async (token: string) => {
   try {
-    const response = await axios.get(`${url}/projects`, {
+    const response = await axiosInstance.get("/projects", {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -135,7 +247,7 @@ export const fetchProjects_active = async (token: string) => {
 
 export const fetchProjects_active_my = async (token: string) => {
   try {
-    const response = await axios.get(`${url}/projects/my`, {
+    const response = await axiosInstance.get("/projects/my", {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -150,7 +262,7 @@ export const fetchProjects_active_my = async (token: string) => {
 
 export const deleteProject = async (projectId: string, token: string) => {
   try {
-    const response = await axios.delete(`${url}/projects/${projectId}`, {
+    const response = await axiosInstance.delete(`/projects/${projectId}`, {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -165,7 +277,7 @@ export const deleteProject = async (projectId: string, token: string) => {
 
 export const getProjectByPid = async (pid: string, token: string) => {
   try {
-    const response = await axios.get(`${url}/projects/${pid}`, {
+    const response = await axiosInstance.get(`/projects/${pid}`, {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -184,7 +296,7 @@ export const updateProjectByPid = async (
   token: string
 ) => {
   try {
-    const response = await axios.put(`${url}/projects/${pid}`, data, {
+    const response = await axiosInstance.put(`/projects/${pid}`, data, {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -201,8 +313,8 @@ export const updateProjectByPid = async (
 // Password Reset APIs
 export const forgotPassword = async (email: string) => {
   try {
-    const response = await axios.post(
-      `${url}/auth/forgot-password`,
+    const response = await axiosInstance.post(
+      "/auth/forgot-password",
       { email },
       {
         headers: {
@@ -220,8 +332,8 @@ export const forgotPassword = async (email: string) => {
 
 export const verifyResetToken = async (token: string) => {
   try {
-    const response = await axios.post(
-      `${url}/auth/verify-reset-token`,
+    const response = await axiosInstance.post(
+      "/auth/verify-reset-token",
       { token },
       {
         headers: {
@@ -239,8 +351,8 @@ export const verifyResetToken = async (token: string) => {
 
 export const resetPassword = async (token: string, newPassword: string) => {
   try {
-    const response = await axios.post(
-      `${url}/auth/reset-password`,
+    const response = await axiosInstance.post(
+      "/auth/reset-password",
       { token, new_password: newPassword },
       {
         headers: {
@@ -259,8 +371,8 @@ export const resetPassword = async (token: string, newPassword: string) => {
 // Email Verification APIs
 export const sendVerificationCode = async (email: string) => {
   try {
-    const response = await axios.post(
-      `${url}/auth/send-verification-code`,
+    const response = await axiosInstance.post(
+      "/auth/send-verification-code",
       { email },
       {
         headers: {
@@ -278,8 +390,8 @@ export const sendVerificationCode = async (email: string) => {
 
 export const verifyCode = async (email: string, code: string) => {
   try {
-    const response = await axios.post(
-      `${url}/auth/verify-code`,
+    const response = await axiosInstance.post(
+      "/auth/verify-code",
       { email, code },
       {
         headers: {
@@ -297,8 +409,8 @@ export const verifyCode = async (email: string, code: string) => {
 
 export const verifyEmail = async (token: string) => {
   try {
-    const response = await axios.post(
-      `${url}/auth/verify-email`,
+    const response = await axiosInstance.post(
+      "/auth/verify-email",
       { token },
       {
         headers: {
@@ -316,8 +428,8 @@ export const verifyEmail = async (token: string) => {
 
 export const resendVerification = async (email: string) => {
   try {
-    const response = await axios.post(
-      `${url}/auth/resend-verification`,
+    const response = await axiosInstance.post(
+      "/auth/resend-verification",
       { email },
       {
         headers: {
@@ -336,7 +448,7 @@ export const resendVerification = async (email: string) => {
 // Application APIs
 export const getMyApplications = async (token: string) => {
   try {
-    const response = await axios.get(`${url}/applications/my`, {
+    const response = await axiosInstance.get("/applications/my", {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -363,8 +475,8 @@ export const applyToProject = async (
   token: string
 ) => {
   try {
-    const response = await axios.post(
-      `${url}/projects/${projectId}/apply`,
+    const response = await axiosInstance.post(
+      `/projects/${projectId}/apply`,
       applicationData,
       {
         headers: {
@@ -401,7 +513,7 @@ export type StudentProfile = {
 
 export const getStudentProfile = async (token: string) => {
   try {
-    const response = await axios.get(`${url}/profile/student`, {
+    const response = await axiosInstance.get("/profile/student", {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -419,7 +531,7 @@ export const updateStudentProfile = async (
   token: string
 ) => {
   try {
-    const response = await axios.put(`${url}/profile/student`, profileData, {
+    const response = await axiosInstance.put("/profile/student", profileData, {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -436,7 +548,7 @@ export const updateStudentProfile = async (
 // Get all applications for all professor's projects
 export const getAllMyProjectApplications = async (token: string) => {
   try {
-    const response = await axios.get(`${url}/applications/all`, {
+    const response = await axiosInstance.get("/applications/all", {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -457,8 +569,8 @@ export const updateApplicationStatus = async (
   token: string
 ) => {
   try {
-    const response = await axios.put(
-      `${url}/projects/${projectId}/applications/${applicationId}`,
+    const response = await axiosInstance.put(
+      `/projects/${projectId}/applications/${applicationId}`,
       { status },
       {
         headers: {
@@ -471,6 +583,62 @@ export const updateApplicationStatus = async (
     return response.data;
   } catch (error) {
     console.error("Error updating application status:", error);
+    throw error;
+  }
+};
+
+// Send feedback to student
+export const sendApplicationFeedback = async (
+  projectId: string,
+  applicationId: number,
+  feedback: string,
+  token: string
+) => {
+  try {
+    const response = await axiosInstance.post(
+      `/projects/${projectId}/applications/${applicationId}/feedback`,
+      { feedback },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error sending feedback:", error);
+    throw error;
+  }
+};
+
+// Schedule interview with student
+export const scheduleInterview = async (
+  projectId: string,
+  applicationId: number,
+  interviewData: {
+    interviewDate: string;
+    interviewTime: string;
+    interviewDetails?: string;
+  },
+  token: string
+) => {
+  try {
+    const response = await axiosInstance.post(
+      `/projects/${projectId}/applications/${applicationId}/schedule-interview`,
+      interviewData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error scheduling interview:", error);
     throw error;
   }
 };
@@ -510,7 +678,7 @@ export const savePreferences = async (
 ) => {
   try {
     console.log("API call - savePreferences payload:", preferences);
-    const response = await axios.post(`${url}/roadmap/preferences`, preferences, {
+    const response = await axiosInstance.post("/roadmap/preferences", preferences, {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -526,7 +694,7 @@ export const savePreferences = async (
 
 export const getPreferences = async (token: string) => {
   try {
-    const response = await axios.get(`${url}/roadmap/preferences`, {
+    const response = await axiosInstance.get("/roadmap/preferences", {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -541,8 +709,8 @@ export const getPreferences = async (token: string) => {
 
 export const generateRoadmap = async (token: string) => {
   try {
-    const response = await axios.post(
-      `${url}/roadmap/generate`,
+    const response = await axiosInstance.post(
+      "/roadmap/generate",
       {},
       {
         headers: {
@@ -561,7 +729,7 @@ export const generateRoadmap = async (token: string) => {
 
 export const getRoadmapHistory = async (token: string) => {
   try {
-    const response = await axios.get(`${url}/roadmap/history`, {
+    const response = await axiosInstance.get("/roadmap/history", {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -609,7 +777,7 @@ export type RecommendedProject = {
 
 export const getRecommendedProjects = async (token: string) => {
   try {
-    const response = await axios.get(`${url}/profile/student/recommendations`, {
+    const response = await axiosInstance.get("/profile/student/recommendations", {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,

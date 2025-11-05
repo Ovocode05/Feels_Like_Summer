@@ -17,4 +17,7 @@ type ProjRequests struct {
 	PriorProjects    string    `json:"priorProjects" gorm:"type:text"`
 	CVLink           string    `json:"cvLink"`
 	PublicationsLink string    `json:"publicationsLink"`
+	InterviewDate    string    `json:"interviewDate" gorm:"type:varchar(100)"`
+	InterviewTime    string    `json:"interviewTime" gorm:"type:varchar(100)"`
+	InterviewDetails string    `json:"interviewDetails" gorm:"type:text"`
 }

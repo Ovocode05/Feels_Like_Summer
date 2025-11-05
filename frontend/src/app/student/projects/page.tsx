@@ -33,7 +33,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import MenubarStudent from "@/components/ui/menubar_student";
-import { fetchProjects_active } from "@/api/api";
+import { fetchProjects_active, getMyApplications } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 
@@ -58,12 +58,19 @@ type ProjectType = {
   deadline?: string;
 };
 
+type ApplicationType = {
+  ID: number;
+  PID: string;
+  status: string;
+};
+
 export default function ExplorePage() {
   const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<ProjectType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [appliedProjectIds, setAppliedProjectIds] = useState<Set<string>>(new Set());
 
   // search state
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -83,6 +90,7 @@ export default function ExplorePage() {
       setLoading(true);
       const token = localStorage.getItem("token") || "";
       try {
+        // Fetch all active projects
         const res = await fetchProjects_active(token);
         if (res.projects && Array.isArray(res.projects)) {
           setProjects(res.projects);
@@ -90,6 +98,20 @@ export default function ExplorePage() {
         } else {
           setProjects([]);
           setFilteredProjects([]);
+        }
+
+        // Fetch student's applications
+        try {
+          const applicationsRes = await getMyApplications(token);
+          if (applicationsRes.applications && Array.isArray(applicationsRes.applications)) {
+            const appliedIds = new Set<string>(
+              applicationsRes.applications.map((app: ApplicationType) => app.PID)
+            );
+            setAppliedProjectIds(appliedIds);
+          }
+        } catch (appError) {
+          console.error("Error fetching applications:", appError);
+          // Continue even if applications fetch fails
         }
       } catch (error) {
         console.error("Error fetching projects:", error);
@@ -574,12 +596,21 @@ export default function ExplorePage() {
                     No projects found.
                   </div>
                 ) : (
-                  filteredProjects.map((project: ProjectType) => (
+                  filteredProjects.map((project: ProjectType) => {
+                    const hasApplied = appliedProjectIds.has(project.pid);
+                    return (
                     <Card key={project.pid} className="overflow-hidden">
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle>{project.name}</CardTitle>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <CardTitle>{project.name}</CardTitle>
+                              {hasApplied && (
+                                <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                                  Applied
+                                </Badge>
+                              )}
+                            </div>
                             <CardDescription className="mt-1">
                               {project.user?.name || "Unknown Professor"}
                             </CardDescription>
@@ -726,7 +757,8 @@ export default function ExplorePage() {
                         </div>
                       </div>
                     </Card>
-                  ))
+                  );
+                  })
                 )}
               </TabsContent>
             </Tabs>

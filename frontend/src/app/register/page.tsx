@@ -93,12 +93,9 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      // Step 1: Register the user
+      // Register the user (backend automatically sends verification code)
       await registerUser(payload);
       setRegisteredEmail(payload.email);
-
-      // Step 2: Send verification code
-      await sendVerificationCode(payload.email);
 
       // Move to verification step
       setStep("verify");

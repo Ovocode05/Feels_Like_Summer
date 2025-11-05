@@ -37,6 +37,7 @@ import {
   getPreferences,
   ResearchPreferences,
 } from "@/api/api";
+import { isAuthenticated, clearAuthData } from "@/lib/auth";
 
 interface Application {
   ID: number;
@@ -52,6 +53,9 @@ interface Application {
   prior_projects?: string;
   cv_link?: string;
   publications_link?: string;
+  interviewDate?: string;
+  interviewTime?: string;
+  interviewDetails?: string;
   Project: {
     ID?: number;
     CreatedAt?: string;
@@ -143,10 +147,19 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token") || "";
+    
+    // Check if authenticated with valid token
+    if (!isAuthenticated()) {
+      clearAuthData();
+      router.push("/login?expired=true");
+      return;
+    }
+    
     if (!token) {
       router.push("/login");
       return;
     }
+    
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "stu") {
       router.push("/login");
@@ -355,7 +368,7 @@ export default function StudentDashboard() {
                       key={application.ID}
                       className="flex items-center justify-between space-x-4"
                     >
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-4 flex-1">
                         <Avatar>
                           <AvatarFallback>
                             {application.User?.name
@@ -365,7 +378,7 @@ export default function StudentDashboard() {
                               .toUpperCase() || "?"}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
+                        <div className="flex-1">
                           <p className="text-sm font-medium leading-none">
                             {application.Project?.project_name ||
                               "Unknown Project"}
@@ -373,7 +386,7 @@ export default function StudentDashboard() {
                           <p className="text-sm text-muted-foreground">
                             {application.User?.name || "Unknown Professor"}
                           </p>
-                          <div className="flex items-center gap-2 pt-1">
+                          <div className="flex items-center gap-2 pt-1 flex-wrap">
                             <Clock className="h-3 w-3 text-muted-foreground" />
                             <span className="text-xs text-muted-foreground">
                               Submitted {formatDate(application.time_created)}
@@ -385,6 +398,31 @@ export default function StudentDashboard() {
                               {getStatusDisplay(application.status)}
                             </Badge>
                           </div>
+                          {application.status === "interview" &&
+                            (application.interviewDate ||
+                              application.interviewTime) && (
+                              <div className="mt-2 p-2 rounded-md bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+                                <p className="text-xs font-medium text-blue-900 dark:text-blue-100 flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  Interview Scheduled
+                                </p>
+                                <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                  {application.interviewDate && (
+                                    <span>📅 {application.interviewDate}</span>
+                                  )}
+                                  {application.interviewTime && (
+                                    <span className="ml-2">
+                                      🕐 {application.interviewTime}
+                                    </span>
+                                  )}
+                                </p>
+                                {application.interviewDetails && (
+                                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                    {application.interviewDetails}
+                                  </p>
+                                )}
+                              </div>
+                            )}
                         </div>
                       </div>
                       <Link href={`/project/${application.pid}`}>

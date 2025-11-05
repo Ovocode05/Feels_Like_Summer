@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
       <header className="flex h-16 items-center border-b px-4 lg:px-6">
         <Link href="/" className="flex items-center gap-2">
           <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">ResearchConnect</span>
+          <span className="text-xl font-bold">FLS</span>
         </Link>
       </header>
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
@@ -80,11 +80,13 @@ export default function ForgotPasswordPage() {
                       Check Your Email
                     </p>
                     <p className="text-sm text-green-700 mt-1">
-                      We&apos;re sending password reset instructions to
+                      If an account exists for
                       <br />
                       <strong>{email}</strong>
                       <br />
-                      <span className="text-xs">You should receive it shortly.</span>
+                      <span className="text-xs">
+                        you will receive password reset instructions shortly.
+                      </span>
                     </p>
                   </div>
                 </div>

@@ -16,6 +16,7 @@ import {
   type ResearchPreferences,
 } from "@/api/api";
 import { toast } from "sonner";
+import { isAuthenticated, clearAuthData } from "@/lib/auth";
 
 // small helper to extract error messages without using `any`
 const extractErrorMessage = (err: unknown, fallback = "An error occurred") => {
@@ -92,10 +93,19 @@ export default function ResourcesPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    
+    // Check if authenticated with valid token
+    if (!isAuthenticated()) {
+      clearAuthData();
+      router.push("/login?expired=true");
+      return;
+    }
+    
     if (!token) {
       router.push("/login");
       return;
     }
+    
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "stu") {
       router.push("/login");

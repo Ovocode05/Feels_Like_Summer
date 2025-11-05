@@ -19,6 +19,7 @@ import {
 } from "@/api/api"; // added
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
+import { isAuthenticated, clearAuthData } from "@/lib/auth";
 
 interface DecodedToken {
   userId: string;
@@ -91,10 +92,19 @@ export default function ProfessorDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    
+    // Check if authenticated with valid token
+    if (!isAuthenticated()) {
+      clearAuthData();
+      router.push("/login?expired=true");
+      return;
+    }
+    
     if (!token) {
       router.push("/login");
       return;
     }
+    
     const decoded = jwtDecode(token) as { type: string };
     if (decoded.type !== "fac") {
       router.push("/login");

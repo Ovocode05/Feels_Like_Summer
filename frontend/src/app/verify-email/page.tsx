@@ -171,7 +171,7 @@ export default function VerifyEmailPage() {
             <div className="h-10 w-10 rounded bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold">RC</span>
             </div>
-            <span className="text-2xl font-bold">ResearchConnect</span>
+            <span className="text-2xl font-bold">FLS</span>
           </div>
           <h1 className="text-3xl font-bold">Verify Email</h1>
           <p className="text-muted-foreground mt-2">

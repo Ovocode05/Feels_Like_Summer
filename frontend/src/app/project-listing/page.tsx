@@ -54,7 +54,7 @@ export default function ProfessorProjectsPage() {
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
           <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">ResearchConnect</span>
+          <span className="text-xl font-bold">FLS</span>
         </Link>
         <nav className="hidden flex-1 items-center justify-center md:flex">
           <Link
@@ -661,10 +661,10 @@ export default function ProfessorProjectsPage() {
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            <span className="text-lg font-semibold">ResearchConnect</span>
+            <span className="text-lg font-semibold">FLS</span>
           </div>
           <p className="text-center text-sm text-muted-foreground md:text-left">
-            &copy; {new Date().getFullYear()} ResearchConnect. All rights
+            &copy; {new Date().getFullYear()} FLS. All rights
             reserved.
           </p>
         </div>

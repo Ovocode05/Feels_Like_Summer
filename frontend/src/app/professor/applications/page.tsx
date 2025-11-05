@@ -44,6 +44,8 @@ import { useRouter } from "next/navigation";
 import {
   getAllMyProjectApplications,
   updateApplicationStatus,
+  sendApplicationFeedback,
+  scheduleInterview,
 } from "@/api/api";
 import { useToast } from "@/hooks/use-toast";
 
@@ -60,6 +62,9 @@ type ApplicationType = {
   priorProjects: string;
   cvLink: string;
   publicationsLink: string;
+  interviewDate?: string;
+  interviewTime?: string;
+  interviewDetails?: string;
   institution?: string;
   degree?: string;
   location?: string;
@@ -107,7 +112,11 @@ export default function ProfessorApplicationsPage() {
   );
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [isInterviewDialogOpen, setIsInterviewDialogOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
+  const [interviewDate, setInterviewDate] = useState("");
+  const [interviewTime, setInterviewTime] = useState("");
+  const [interviewDetails, setInterviewDetails] = useState("");
   const [projectsWithApplications, setProjectsWithApplications] = useState<
     ProjectWithApplications[]
   >([]);
@@ -193,18 +202,97 @@ export default function ProfessorApplicationsPage() {
     }
   };
 
-  const sendFeedback = () => {
-    if (!selectedApplication) return;
-    // In a real application, you would send the feedback to the student
-    console.log(
-      `Sending feedback to ${selectedApplication.name}: ${feedbackText}`
-    );
-    toast({
-      title: "Feedback Sent",
-      description: `Feedback sent to ${selectedApplication.name}`,
-    });
-    setIsFeedbackDialogOpen(false);
-    setFeedbackText("");
+  const sendFeedback = async () => {
+    if (!selectedApplication || !selectedProject) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      await sendApplicationFeedback(
+        selectedProject.pid,
+        selectedApplication.id,
+        feedbackText,
+        token
+      );
+
+      toast({
+        title: "Feedback Sent",
+        description: `Feedback sent to ${selectedApplication.name}`,
+      });
+      setIsFeedbackDialogOpen(false);
+      setFeedbackText("");
+    } catch (error) {
+      console.error("Error sending feedback:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send feedback",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const scheduleInterviewHandler = async () => {
+    if (!selectedApplication || !selectedProject) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    if (!interviewDate || !interviewTime) {
+      toast({
+        title: "Error",
+        description: "Please provide both date and time for the interview",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await scheduleInterview(
+        selectedProject.pid,
+        selectedApplication.id,
+        {
+          interviewDate,
+          interviewTime,
+          interviewDetails,
+        },
+        token
+      );
+
+      // Update local state
+      setProjectsWithApplications((prev) =>
+        prev.map((project) => {
+          if (project.project.pid === selectedProject.pid) {
+            return {
+              ...project,
+              applications: project.applications.map((app) =>
+                app.id === selectedApplication.id
+                  ? { ...app, status: "interview" }
+                  : app
+              ),
+            };
+          }
+          return project;
+        })
+      );
+
+      toast({
+        title: "Interview Scheduled",
+        description: `Interview scheduled with ${selectedApplication.name}`,
+      });
+      setIsInterviewDialogOpen(false);
+      setIsViewDialogOpen(false);
+      setInterviewDate("");
+      setInterviewTime("");
+      setInterviewDetails("");
+    } catch (error) {
+      console.error("Error scheduling interview:", error);
+      toast({
+        title: "Error",
+        description: "Failed to schedule interview",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -636,6 +724,37 @@ export default function ProfessorApplicationsPage() {
                   )}
                 </div>
 
+                {selectedApplication.status === "interview" &&
+                  (selectedApplication.interviewDate ||
+                    selectedApplication.interviewTime) && (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                      <div className="font-medium mb-2 flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-blue-600" />
+                        Interview Scheduled
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        {selectedApplication.interviewDate && (
+                          <div>
+                            <span className="font-medium">Date:</span>{" "}
+                            {selectedApplication.interviewDate}
+                          </div>
+                        )}
+                        {selectedApplication.interviewTime && (
+                          <div>
+                            <span className="font-medium">Time:</span>{" "}
+                            {selectedApplication.interviewTime}
+                          </div>
+                        )}
+                        {selectedApplication.interviewDetails && (
+                          <div>
+                            <span className="font-medium">Details:</span>{" "}
+                            {selectedApplication.interviewDetails}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                 {selectedApplication.skills &&
                   selectedApplication.skills.length > 0 && (
                     <div className="space-y-2">
@@ -744,13 +863,9 @@ export default function ProfessorApplicationsPage() {
                       </Button>
                       <Button
                         variant="outline"
-                        onClick={() =>
-                          updateStatus(
-                            selectedProject.pid,
-                            selectedApplication.id,
-                            "interview"
-                          )
-                        }
+                        onClick={() => {
+                          setIsInterviewDialogOpen(true);
+                        }}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
                         Schedule Interview
@@ -897,6 +1012,106 @@ export default function ProfessorApplicationsPage() {
                   Cancel
                 </Button>
                 <Button onClick={sendFeedback}>Send Feedback</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Interview Dialog */}
+        {selectedApplication && selectedProject && (
+          <Dialog
+            open={isInterviewDialogOpen}
+            onOpenChange={setIsInterviewDialogOpen}
+          >
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Schedule Interview</DialogTitle>
+                <DialogDescription>
+                  Schedule an interview with {selectedApplication.name} for the{" "}
+                  {selectedProject.name} project.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src="/placeholder.svg"
+                      alt={selectedApplication.name}
+                    />
+                    <AvatarFallback>
+                      {selectedApplication.name
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium">
+                      {selectedApplication.name}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {selectedApplication.email}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="interviewDate" className="text-sm font-medium">
+                    Interview Date *
+                  </label>
+                  <Input
+                    id="interviewDate"
+                    type="date"
+                    value={interviewDate}
+                    onChange={(e) => setInterviewDate(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="interviewTime" className="text-sm font-medium">
+                    Interview Time *
+                  </label>
+                  <Input
+                    id="interviewTime"
+                    type="time"
+                    value={interviewTime}
+                    onChange={(e) => setInterviewTime(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="interviewDetails"
+                    className="text-sm font-medium"
+                  >
+                    Additional Details (Optional)
+                  </label>
+                  <Textarea
+                    id="interviewDetails"
+                    placeholder="Meeting link, location, agenda, etc..."
+                    value={interviewDetails}
+                    onChange={(e) => setInterviewDetails(e.target.value)}
+                    className="min-h-[100px]"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsInterviewDialogOpen(false);
+                    setInterviewDate("");
+                    setInterviewTime("");
+                    setInterviewDetails("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={scheduleInterviewHandler}>
+                  Schedule Interview
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

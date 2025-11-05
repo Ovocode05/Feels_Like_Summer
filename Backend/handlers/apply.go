@@ -155,6 +155,11 @@ func GetProjectApplications(c echo.Context) error {
 		Skills           []string `json:"skills"`
 		Activities       []string `json:"activities"`
 		Resume           string   `json:"resumeLink"`
+
+		// Interview fields
+		InterviewDate    string `json:"interviewDate"`
+		InterviewTime    string `json:"interviewTime"`
+		InterviewDetails string `json:"interviewDetails"`
 	}
 
 	var applications []models.ProjRequests
@@ -197,6 +202,11 @@ func GetProjectApplications(c echo.Context) error {
 			Skills:           student.Skills,
 			Activities:       student.Activities,
 			Resume:           student.Resume,
+
+			// Interview fields
+			InterviewDate:    app.InterviewDate,
+			InterviewTime:    app.InterviewTime,
+			InterviewDetails: app.InterviewDetails,
 		}
 		flattenedApplications = append(flattenedApplications, flattenedApp)
 	}
@@ -445,6 +455,9 @@ func GetMyApplications(c echo.Context) error {
 		PriorProjects    string    `json:"priorProjects"`
 		CVLink           string    `json:"cvLink"`
 		PublicationsLink string    `json:"publicationsLink"`
+		InterviewDate    string    `json:"interviewDate"`
+		InterviewTime    string    `json:"interviewTime"`
+		InterviewDetails string    `json:"interviewDetails"`
 		Project          struct {
 			ID           uint      `json:"ID"`
 			CreatedAt    time.Time `json:"CreatedAt"`
@@ -503,6 +516,9 @@ func GetMyApplications(c echo.Context) error {
 			PriorProjects:    app.PriorProjects,
 			CVLink:           app.CVLink,
 			PublicationsLink: app.PublicationsLink,
+			InterviewDate:    app.InterviewDate,
+			InterviewTime:    app.InterviewTime,
+			InterviewDetails: app.InterviewDetails,
 		}
 
 		appResponse.Project.ID = project.ID
@@ -563,6 +579,11 @@ func GetAllMyProjectApplications(c echo.Context) error {
 		PriorProjects    string    `json:"priorProjects"`
 		CVLink           string    `json:"cvLink"`
 		PublicationsLink string    `json:"publicationsLink"`
+
+		// Interview fields
+		InterviewDate    string `json:"interviewDate"`
+		InterviewTime    string `json:"interviewTime"`
+		InterviewDetails string `json:"interviewDetails"`
 
 		// Student/User fields
 		Name     string `json:"name"`
@@ -627,6 +648,11 @@ func GetAllMyProjectApplications(c echo.Context) error {
 				CVLink:           app.CVLink,
 				PublicationsLink: app.PublicationsLink,
 
+				// Interview fields
+				InterviewDate:    app.InterviewDate,
+				InterviewTime:    app.InterviewTime,
+				InterviewDetails: app.InterviewDetails,
+
 				// User fields
 				Name:     user.Name,
 				Email:    user.Email,
@@ -660,5 +686,233 @@ func GetAllMyProjectApplications(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{
 		"projects": result,
 		"total":    len(result),
+	})
+}
+
+// SendApplicationFeedback allows professors to send feedback to students
+func SendApplicationFeedback(c echo.Context) error {
+	projectID := c.Param("id")
+	applicationID := c.Param("appId")
+
+	if projectID == "" || applicationID == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Project ID and Application ID are required"})
+	}
+
+	// Get user data from context
+	userData := c.Get("userData").(models.UserData)
+
+	// Verify user is a faculty member
+	if userData.GetUserType() != models.UserTypeFaculty {
+		return c.JSON(http.StatusForbidden, echo.Map{"error": "Only faculty can send feedback"})
+	}
+
+	// Parse request body
+	var requestBody struct {
+		Feedback string `json:"feedback" binding:"required"`
+	}
+
+	if err := c.Bind(&requestBody); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid input"})
+	}
+
+	if requestBody.Feedback == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Feedback message is required"})
+	}
+
+	// Check if project belongs to the professor
+	var project models.Projects
+	if err := config.DB.Where("project_id = ? AND creator_id = ?", projectID, userData.GetUID()).First(&project).Error; err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found or you don't have permission"})
+	}
+
+	// Find the application
+	var application models.ProjRequests
+	if err := config.DB.Where("id = ? AND p_id = ?", applicationID, projectID).First(&application).Error; err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "Application not found"})
+	}
+
+	// Fetch student details
+	var student models.User
+	if err := config.DB.Where("uid = ?", application.UID).First(&student).Error; err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "Student not found"})
+	}
+
+	// Fetch professor details
+	var professor models.User
+	if err := config.DB.Where("uid = ?", userData.GetUID()).First(&professor).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Professor not found"})
+	}
+
+	// Send feedback email to the student
+	emailConfig := utils.LoadEmailConfig()
+	subject := fmt.Sprintf("Feedback on your application for %s", project.Name)
+	emailBody := fmt.Sprintf(`
+		<html>
+		<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+			<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+				<h2 style="color: #2196F3;">Application Feedback</h2>
+				<p>Hi %s,</p>
+				<p>You have received feedback from <strong>%s</strong> regarding your application for <strong>%s</strong>:</p>
+				<div style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #2196F3; margin: 20px 0;">
+					<p style="margin: 0; white-space: pre-wrap;">%s</p>
+				</div>
+				<p>Log in to your dashboard to view your application status and more details.</p>
+				<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+				<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+			</div>
+		</body>
+		</html>
+	`, student.Name, professor.Name, project.Name, requestBody.Feedback)
+
+	emailMessage := &utils.EmailMessage{
+		To:      []string{student.Email},
+		Subject: subject,
+		Body:    emailBody,
+		IsHTML:  true,
+	}
+
+	if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
+		log.Printf("Failed to send feedback email to student %s: %v", student.Email, err)
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to send feedback email"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "Feedback sent successfully",
+	})
+}
+
+// ScheduleInterview allows professors to schedule interviews with students
+func ScheduleInterview(c echo.Context) error {
+	projectID := c.Param("id")
+	applicationID := c.Param("appId")
+
+	if projectID == "" || applicationID == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Project ID and Application ID are required"})
+	}
+
+	// Get user data from context
+	userData := c.Get("userData").(models.UserData)
+
+	// Verify user is a faculty member
+	if userData.GetUserType() != models.UserTypeFaculty {
+		return c.JSON(http.StatusForbidden, echo.Map{"error": "Only faculty can schedule interviews"})
+	}
+
+	// Parse request body
+	var requestBody struct {
+		InterviewDate    string `json:"interviewDate" binding:"required"`
+		InterviewTime    string `json:"interviewTime" binding:"required"`
+		InterviewDetails string `json:"interviewDetails"`
+	}
+
+	if err := c.Bind(&requestBody); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid input"})
+	}
+
+	if requestBody.InterviewDate == "" || requestBody.InterviewTime == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Interview date and time are required"})
+	}
+
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Check if project belongs to the professor
+	var project models.Projects
+	if err := tx.Where("project_id = ? AND creator_id = ?", projectID, userData.GetUID()).First(&project).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found or you don't have permission"})
+	}
+
+	// Find and update the application
+	var application models.ProjRequests
+	if err := tx.Where("id = ? AND p_id = ?", applicationID, projectID).First(&application).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "Application not found"})
+	}
+
+	// Update the application with interview details and status
+	updates := map[string]interface{}{
+		"status":            "interview",
+		"interview_date":    requestBody.InterviewDate,
+		"interview_time":    requestBody.InterviewTime,
+		"interview_details": requestBody.InterviewDetails,
+	}
+
+	if err := tx.Model(&application).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to schedule interview"})
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save changes"})
+	}
+
+	// Send interview email to the student
+	go func() {
+		var student models.User
+		if err := config.DB.Where("uid = ?", application.UID).First(&student).Error; err != nil {
+			log.Printf("Failed to fetch student for interview email: %v", err)
+			return
+		}
+
+		var professor models.User
+		if err := config.DB.Where("uid = ?", userData.GetUID()).First(&professor).Error; err != nil {
+			log.Printf("Failed to fetch professor for interview email: %v", err)
+			return
+		}
+
+		emailConfig := utils.LoadEmailConfig()
+		subject := fmt.Sprintf("Interview Scheduled for %s", project.Name)
+		emailBody := fmt.Sprintf(`
+			<html>
+			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+				<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+					<h2 style="color: #4CAF50;">Interview Scheduled!</h2>
+					<p>Hi %s,</p>
+					<p><strong>%s</strong> has scheduled an interview with you for the project: <strong>%s</strong></p>
+					<div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+						<p style="margin: 5px 0;"><strong>📅 Date:</strong> %s</p>
+						<p style="margin: 5px 0;"><strong>🕐 Time:</strong> %s</p>
+						%s
+					</div>
+					<p>Please make sure to be available at the scheduled time. Good luck!</p>
+					<p>Log in to your dashboard to view more details.</p>
+					<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+					<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+				</div>
+			</body>
+			</html>
+		`, student.Name, professor.Name, project.Name, requestBody.InterviewDate, requestBody.InterviewTime,
+			func() string {
+				if requestBody.InterviewDetails != "" {
+					return fmt.Sprintf(`<p style="margin: 5px 0;"><strong>📝 Details:</strong> %s</p>`, requestBody.InterviewDetails)
+				}
+				return ""
+			}())
+
+		emailMessage := &utils.EmailMessage{
+			To:      []string{student.Email},
+			Subject: subject,
+			Body:    emailBody,
+			IsHTML:  true,
+		}
+
+		if err := utils.SendEmail(emailConfig, emailMessage); err != nil {
+			log.Printf("Failed to send interview email to student %s: %v", student.Email, err)
+		}
+	}()
+
+	// Fetch updated application
+	if err := config.DB.Where("id = ?", applicationID).First(&application).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch updated application"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"message":     "Interview scheduled successfully",
+		"application": application,
 	})
 }
