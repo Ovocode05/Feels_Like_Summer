@@ -476,3 +476,62 @@ func GetProjectWorkingUsers(c echo.Context) error {
 		"count":        len(workingUsersDetails),
 	})
 }
+
+// RemoveWorkingUser removes a user from the project's working users
+func RemoveWorkingUser(c echo.Context) error {
+	projectID := c.Param("id")
+	userID := c.Param("uid")
+
+	if projectID == "" || userID == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Project ID and User ID are required"})
+	}
+
+	// Get user data from context
+	userData := c.Get("userData").(models.UserData)
+
+	// Start a transaction
+	tx := config.DB.Begin()
+	if tx.Error != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to start transaction"})
+	}
+
+	// Fetch the project
+	var project models.Projects
+	if err := tx.Where("project_id = ?", projectID).First(&project).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "Project not found"})
+	}
+
+	// Verify the user is the creator of the project
+	if project.CreatorID != userData.GetUID() {
+		tx.Rollback()
+		return c.JSON(http.StatusForbidden, echo.Map{"error": "You don't have permission to remove users from this project"})
+	}
+
+	// Remove user from working_users array
+	if err := tx.Exec(
+		"UPDATE projects SET working_users = array_remove(working_users, ?), updated_at = NOW() WHERE project_id = ?",
+		userID, projectID,
+	).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to remove user from project"})
+	}
+
+	// Update the application status to rejected
+	if err := tx.Exec(
+		"UPDATE proj_requests SET status = 'rejected' WHERE p_id = ? AND uid = ?",
+		projectID, userID,
+	).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to update application status"})
+	}
+
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save changes"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "User removed from project successfully",
+	})
+}

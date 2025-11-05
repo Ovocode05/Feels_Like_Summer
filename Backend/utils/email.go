@@ -184,14 +184,32 @@ func SendPasswordResetEmail(config *EmailConfig, toEmail, resetToken string) err
 
 	body := fmt.Sprintf(`
 		<html>
-		<body>
-			<h2>Password Reset Request</h2>
-			<p>You requested to reset your password. Click the link below to reset it:</p>
-			<p><a href="%s">Reset Password</a></p>
-			<p>Or copy and paste this link in your browser:</p>
-			<p>%s</p>
-			<p>This link will expire in 1 hour.</p>
-			<p>If you didn't request a password reset, please ignore this email.</p>
+		<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+			<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+				<!-- Header -->
+				<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+					<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
+				</div>
+				
+				<!-- Content -->
+				<div style="padding: 40px 20px;">
+					<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Password Reset Request</h2>
+					<p style="margin: 0 0 16px 0; color: #000;">You requested to reset your password. Click the link below to reset it:</p>
+					<div style="margin: 32px 0; text-align: center;">
+						<a href="%s" style="display: inline-block; background-color: #000; color: #fff; padding: 14px 32px; text-decoration: none; font-weight: 500; border: 1px solid #000;">Reset Password</a>
+					</div>
+					<p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">Or copy and paste this link in your browser:</p>
+					<p style="margin: 0 0 16px 0; color: #666; font-size: 12px; word-break: break-all;">%s</p>
+					<p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">This link will expire in 1 hour.</p>
+					<p style="margin: 0; color: #666; font-size: 14px;">If you didn't request a password reset, please ignore this email.</p>
+				</div>
+				
+				<!-- Footer -->
+				<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+					<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+					<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+				</div>
+			</div>
 		</body>
 		</html>
 	`, resetURL, resetURL)
@@ -210,11 +228,30 @@ func SendPasswordResetEmail(config *EmailConfig, toEmail, resetToken string) err
 func SendProjectApplicationEmail(config *EmailConfig, toEmail, projectTitle, applicantName string) error {
 	body := fmt.Sprintf(`
 		<html>
-		<body>
-			<h2>New Project Application</h2>
-			<p>You have received a new application for your project: <strong>%s</strong></p>
-			<p>Applicant: %s</p>
-			<p>Please log in to your dashboard to review the application.</p>
+		<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+			<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+				<!-- Header -->
+				<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+					<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
+				</div>
+				
+				<!-- Content -->
+				<div style="padding: 40px 20px;">
+					<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">New Project Application</h2>
+					<p style="margin: 0 0 16px 0; color: #000;">You have received a new application for your project:</p>
+					<div style="background-color: #f5f5f5; padding: 20px; margin: 24px 0; border: 1px solid #000;">
+						<p style="margin: 0 0 8px 0; color: #000; font-weight: 600;">Project: %s</p>
+						<p style="margin: 0; color: #000;">Applicant: %s</p>
+					</div>
+					<p style="margin: 0; color: #000;">Please log in to your dashboard to review the application.</p>
+				</div>
+				
+				<!-- Footer -->
+				<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+					<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+					<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+				</div>
+			</div>
 		</body>
 		</html>
 	`, projectTitle, applicantName)
@@ -233,12 +270,28 @@ func SendProjectApplicationEmail(config *EmailConfig, toEmail, projectTitle, app
 func SendWelcomeEmail(config *EmailConfig, toEmail, name string) error {
 	body := fmt.Sprintf(`
 		<html>
-		<body>
-			<h2>Welcome to Feels Like Summer!</h2>
-			<p>Hi %s,</p>
-			<p>Thank you for joining our platform. We're excited to have you here!</p>
-			<p>Get started by exploring projects or creating your own.</p>
-			<p>If you have any questions, feel free to reach out to our support team.</p>
+		<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+			<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+				<!-- Header -->
+				<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+					<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
+				</div>
+				
+				<!-- Content -->
+				<div style="padding: 40px 20px;">
+					<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Welcome</h2>
+					<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+					<p style="margin: 0 0 16px 0; color: #000;">Thank you for joining our platform. We're excited to have you here.</p>
+					<p style="margin: 0 0 16px 0; color: #000;">Get started by exploring projects or creating your own.</p>
+					<p style="margin: 0; color: #000;">If you have any questions, feel free to reach out to our support team.</p>
+				</div>
+				
+				<!-- Footer -->
+				<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+					<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+					<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+				</div>
+			</div>
 		</body>
 		</html>
 	`, name)

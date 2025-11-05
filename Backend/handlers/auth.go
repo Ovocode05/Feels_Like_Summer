@@ -149,18 +149,30 @@ func Signup(c echo.Context) error {
 			Subject: "Verify Your Email Address",
 			Body: fmt.Sprintf(`
 				<html>
-				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-						<h2 style="color: #4CAF50;">Welcome to Feels Like Summer!</h2>
-						<p>Hi %s,</p>
-						<p>Thank you for signing up! Please verify your email address using the code below:</p>
-						<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-							%s
+				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+					<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+						<!-- Header -->
+						<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+							<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
 						</div>
-						<p>This code will expire in 10 minutes.</p>
-						<p>If you didn't create an account, please ignore this email.</p>
-						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+						
+						<!-- Content -->
+						<div style="padding: 40px 20px;">
+							<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Welcome</h2>
+							<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+							<p style="margin: 0 0 24px 0; color: #000;">Thank you for signing up. Please verify your email address using the code below:</p>
+							<div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: 600; letter-spacing: 8px; margin: 32px 0; border: 1px solid #000;">
+								%s
+							</div>
+							<p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
+							<p style="margin: 0; color: #666; font-size: 14px;">If you didn't create an account, please ignore this email.</p>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+							<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+							<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+						</div>
 					</div>
 				</body>
 				</html>
@@ -467,20 +479,32 @@ func ResetPassword(c echo.Context) error {
 			Subject: "Password Reset Successful",
 			Body: fmt.Sprintf(`
 				<html>
-				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-						<h2 style="color: #4CAF50;">Password Reset Successful</h2>
-						<p>Hi %s,</p>
-						<p>Your password has been successfully reset.</p>
-						<p>If you did not make this change, please contact our support team immediately.</p>
-						<p>For security, we recommend:</p>
-						<ul>
-							<li>Using a strong, unique password</li>
-							<li>Enabling two-factor authentication if available</li>
-							<li>Not sharing your password with anyone</li>
-						</ul>
-						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+					<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+						<!-- Header -->
+						<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+							<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
+						</div>
+						
+						<!-- Content -->
+						<div style="padding: 40px 20px;">
+							<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Password Reset Successful</h2>
+							<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+							<p style="margin: 0 0 24px 0; color: #000;">Your password has been successfully reset.</p>
+							<p style="margin: 0 0 16px 0; color: #000;">If you did not make this change, please contact our support team immediately.</p>
+							<p style="margin: 0 0 8px 0; color: #000; font-weight: 500;">For security, we recommend:</p>
+							<ul style="margin: 0 0 24px 0; padding-left: 20px; color: #000;">
+								<li style="margin-bottom: 8px;">Using a strong, unique password</li>
+								<li style="margin-bottom: 8px;">Enabling two-factor authentication if available</li>
+								<li style="margin-bottom: 0;">Not sharing your password with anyone</li>
+							</ul>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+							<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+							<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+						</div>
 					</div>
 				</body>
 				</html>
@@ -570,18 +594,30 @@ func SendVerificationCode(c echo.Context) error {
 			Subject: "Your Verification Code",
 			Body: fmt.Sprintf(`
 				<html>
-				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-						<h2 style="color: #4CAF50;">Email Verification</h2>
-						<p>Hi %s,</p>
-						<p>Your verification code is:</p>
-						<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-							%s
+				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+					<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+						<!-- Header -->
+						<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+							<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
 						</div>
-						<p>This code will expire in 10 minutes.</p>
-						<p>If you didn't request this code, please ignore this email.</p>
-						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+						
+						<!-- Content -->
+						<div style="padding: 40px 20px;">
+							<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Email Verification</h2>
+							<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+							<p style="margin: 0 0 24px 0; color: #000;">Your verification code is:</p>
+							<div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: 600; letter-spacing: 8px; margin: 32px 0; border: 1px solid #000;">
+								%s
+							</div>
+							<p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
+							<p style="margin: 0; color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+							<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+							<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+						</div>
 					</div>
 				</body>
 				</html>
@@ -837,18 +873,30 @@ func ResendVerification(c echo.Context) error {
 			Subject: "Your Verification Code",
 			Body: fmt.Sprintf(`
 				<html>
-				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-						<h2 style="color: #4CAF50;">Email Verification</h2>
-						<p>Hi %s,</p>
-						<p>Your verification code is:</p>
-						<div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-							%s
+				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+					<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+						<!-- Header -->
+						<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+							<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
 						</div>
-						<p>This code will expire in 10 minutes.</p>
-						<p>If you didn't request this code, please ignore this email.</p>
-						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+						
+						<!-- Content -->
+						<div style="padding: 40px 20px;">
+							<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Email Verification</h2>
+							<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+							<p style="margin: 0 0 24px 0; color: #000;">Your verification code is:</p>
+							<div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: 600; letter-spacing: 8px; margin: 32px 0; border: 1px solid #000;">
+								%s
+							</div>
+							<p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
+							<p style="margin: 0; color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+							<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+							<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+						</div>
 					</div>
 				</body>
 				</html>

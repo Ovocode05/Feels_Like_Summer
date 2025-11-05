@@ -14,17 +14,19 @@ func RegisterProjectRoutes(api *echo.Group) {
 	projects.Use(middleware.JWTMiddleware())
 
 	// Project CRUD routes
-	projects.POST("", handlers.CreateProject, middleware.RequireUserType("fac"))                 // Create a new project (Faculty only)
-	projects.GET("", handlers.ListProject)                                                       // Get all projects with user info (for faculty/admin)
-	projects.GET("/student", handlers.ListProjectsForStudent, middleware.RequireUserType("stu")) // Get projects visible to student (active + applied)
-	projects.GET("/my", handlers.GetMyProjects)                                                  // Get projects belonging to authenticated user
-	projects.GET("/:id", handlers.GetProject)                                                    // Get a specific project by ID
-	projects.GET("/:id/working-users", handlers.GetProjectWorkingUsers)                          // Get working users details for a project (Faculty only)
-	projects.PUT("/:id", handlers.EditProject)                                                   // Update a project by ID
-	projects.DELETE("/:id", handlers.DeleteProject)                                              // Delete a project by ID
+	projects.POST("", handlers.CreateProject, middleware.RequireUserType("fac"))                              // Create a new project (Faculty only)
+	projects.GET("", handlers.ListProject)                                                                    // Get all projects with user info (for faculty/admin)
+	projects.GET("/student", handlers.ListProjectsForStudent, middleware.RequireUserType("stu"))              // Get projects visible to student (active + applied)
+	projects.GET("/my", handlers.GetMyProjects)                                                               // Get projects belonging to authenticated user
+	projects.GET("/:id", handlers.GetProject)                                                                 // Get a specific project by ID
+	projects.GET("/:id/working-users", handlers.GetProjectWorkingUsers)                                       // Get working users details for a project (Faculty only)
+	projects.DELETE("/:id/working-users/:uid", handlers.RemoveWorkingUser, middleware.RequireUserType("fac")) // Remove a working user from project (Faculty only)
+	projects.PUT("/:id", handlers.EditProject)                                                                // Update a project by ID
+	projects.DELETE("/:id", handlers.DeleteProject)                                                           // Delete a project by ID
 
 	// Application routes
 	projects.POST("/:id/apply", handlers.ApplyToProject, middleware.RequireUserType("stu"))                                     // Apply to a project (Students only)
+	projects.DELETE("/:id/retract", handlers.RetractApplication, middleware.RequireUserType("stu"))                             // Retract application (Students only)
 	projects.GET("/:id/application-status", handlers.GetMyApplicationForProject, middleware.RequireUserType("stu"))             // Get student's application status for a specific project (Students only)
 	projects.GET("/:id/applications", handlers.GetProjectApplications, middleware.RequireUserType("fac"))                       // Get all applications for a project (Faculty only)
 	projects.GET("/:id/past-applicants", handlers.GetPastApplicantsForProject, middleware.RequireUserType("fac"))               // Get past applicants (accepted/rejected) for a project (Faculty only)

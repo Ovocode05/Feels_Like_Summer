@@ -340,15 +340,27 @@ func UpdateApplicationStatus(c echo.Context) error {
 			subject = fmt.Sprintf("Congratulations! Application Accepted for %s", project.Name)
 			emailBody = fmt.Sprintf(`
 				<html>
-				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-						<h2 style="color: #4CAF50;">Application Accepted!</h2>
-						<p>Hi %s,</p>
-						<p>Great news! Your application for <strong>%s</strong> has been accepted.</p>
-						<p>The project lead will contact you shortly with next steps.</p>
-						<p>Log in to your dashboard to view more details.</p>
-						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+					<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+						<!-- Header -->
+						<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+							<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
+						</div>
+						
+						<!-- Content -->
+						<div style="padding: 40px 20px;">
+							<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Application Accepted!</h2>
+							<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+							<p style="margin: 0 0 16px 0; color: #000;">Great news! Your application for <strong>%s</strong> has been accepted.</p>
+							<p style="margin: 0 0 16px 0; color: #000;">The project lead will contact you shortly with next steps.</p>
+							<p style="margin: 0; color: #000;">Log in to your dashboard to view more details.</p>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+							<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+							<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+						</div>
 					</div>
 				</body>
 				</html>
@@ -357,15 +369,27 @@ func UpdateApplicationStatus(c echo.Context) error {
 			subject = fmt.Sprintf("Application Update for %s", project.Name)
 			emailBody = fmt.Sprintf(`
 				<html>
-				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-						<h2 style="color: #333;">Application Update</h2>
-						<p>Hi %s,</p>
-						<p>Thank you for your interest in <strong>%s</strong>.</p>
-						<p>Unfortunately, we are unable to move forward with your application at this time.</p>
-						<p>We encourage you to explore other exciting projects on our platform.</p>
-						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+					<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+						<!-- Header -->
+						<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+							<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
+						</div>
+						
+						<!-- Content -->
+						<div style="padding: 40px 20px;">
+							<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Application Update</h2>
+							<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+							<p style="margin: 0 0 16px 0; color: #000;">Thank you for your interest in <strong>%s</strong>.</p>
+							<p style="margin: 0 0 16px 0; color: #000;">Unfortunately, we are unable to move forward with your application at this time.</p>
+							<p style="margin: 0; color: #000;">We encourage you to explore other exciting projects on our platform.</p>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+							<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+							<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+						</div>
 					</div>
 				</body>
 				</html>
@@ -374,14 +398,26 @@ func UpdateApplicationStatus(c echo.Context) error {
 			subject = fmt.Sprintf("Interview Request for %s", project.Name)
 			emailBody = fmt.Sprintf(`
 				<html>
-				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-						<h2 style="color: #2196F3;">Interview Request</h2>
-						<p>Hi %s,</p>
-						<p>Your application for <strong>%s</strong> has been reviewed and the project lead would like to interview you.</p>
-						<p>Please check your dashboard for more details and contact information.</p>
-						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+					<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+						<!-- Header -->
+						<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+							<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
+						</div>
+						
+						<!-- Content -->
+						<div style="padding: 40px 20px;">
+							<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Interview Request</h2>
+							<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+							<p style="margin: 0 0 16px 0; color: #000;">Your application for <strong>%s</strong> has been reviewed and the project lead would like to interview you.</p>
+							<p style="margin: 0; color: #000;">Please check your dashboard for more details and contact information.</p>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+							<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+							<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+						</div>
 					</div>
 				</body>
 				</html>
@@ -390,15 +426,27 @@ func UpdateApplicationStatus(c echo.Context) error {
 			subject = fmt.Sprintf("Application Waitlisted for %s", project.Name)
 			emailBody = fmt.Sprintf(`
 				<html>
-				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-						<h2 style="color: #FF9800;">Application Waitlisted</h2>
-						<p>Hi %s,</p>
-						<p>Your application for <strong>%s</strong> has been placed on the waitlist.</p>
-						<p>We'll notify you if a position becomes available.</p>
-						<p>Thank you for your patience!</p>
-						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+					<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+						<!-- Header -->
+						<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+							<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
+						</div>
+						
+						<!-- Content -->
+						<div style="padding: 40px 20px;">
+							<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Application Waitlisted</h2>
+							<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+							<p style="margin: 0 0 16px 0; color: #000;">Your application for <strong>%s</strong> has been placed on the waitlist.</p>
+							<p style="margin: 0 0 16px 0; color: #000;">We'll notify you if a position becomes available.</p>
+							<p style="margin: 0; color: #000;">Thank you for your patience!</p>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+							<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+							<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+						</div>
 					</div>
 				</body>
 				</html>
@@ -408,14 +456,26 @@ func UpdateApplicationStatus(c echo.Context) error {
 			subject = fmt.Sprintf("Application Status Update for %s", project.Name)
 			emailBody = fmt.Sprintf(`
 				<html>
-				<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-					<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-						<h2 style="color: #333;">Application Status Update</h2>
-						<p>Hi %s,</p>
-						<p>Your application status for <strong>%s</strong> has been updated to: <strong>%s</strong></p>
-						<p>Log in to your dashboard to view more details.</p>
-						<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-						<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+				<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+					<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+						<!-- Header -->
+						<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+							<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
+						</div>
+						
+						<!-- Content -->
+						<div style="padding: 40px 20px;">
+							<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Application Status Update</h2>
+							<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+							<p style="margin: 0 0 16px 0; color: #000;">Your application status for <strong>%s</strong> has been updated to: <strong>%s</strong></p>
+							<p style="margin: 0; color: #000;">Log in to your dashboard to view more details.</p>
+						</div>
+						
+						<!-- Footer -->
+						<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+							<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+							<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+						</div>
 					</div>
 				</body>
 				</html>
@@ -761,17 +821,29 @@ func SendApplicationFeedback(c echo.Context) error {
 	subject := fmt.Sprintf("Feedback on your application for %s", project.Name)
 	emailBody := fmt.Sprintf(`
 		<html>
-		<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-			<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-				<h2 style="color: #2196F3;">Application Feedback</h2>
-				<p>Hi %s,</p>
-				<p>You have received feedback from <strong>%s</strong> regarding your application for <strong>%s</strong>:</p>
-				<div style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #2196F3; margin: 20px 0;">
-					<p style="margin: 0; white-space: pre-wrap;">%s</p>
+		<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+			<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+				<!-- Header -->
+				<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+					<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
 				</div>
-				<p>Log in to your dashboard to view your application status and more details.</p>
-				<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-				<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+				
+				<!-- Content -->
+				<div style="padding: 40px 20px;">
+					<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Application Feedback</h2>
+					<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+					<p style="margin: 0 0 24px 0; color: #000;">You have received feedback from <strong>%s</strong> regarding your application for <strong>%s</strong>:</p>
+					<div style="background-color: #f5f5f5; padding: 20px; border-left: 4px solid #000; margin: 24px 0;">
+						<p style="margin: 0; white-space: pre-wrap; color: #000;">%s</p>
+					</div>
+					<p style="margin: 0; color: #000;">Log in to your dashboard to view your application status and more details.</p>
+				</div>
+				
+				<!-- Footer -->
+				<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+					<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+					<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+				</div>
 			</div>
 		</body>
 		</html>
@@ -882,27 +954,39 @@ func ScheduleInterview(c echo.Context) error {
 		subject := fmt.Sprintf("Interview Scheduled for %s", project.Name)
 		emailBody := fmt.Sprintf(`
 			<html>
-			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-				<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-					<h2 style="color: #4CAF50;">Interview Scheduled!</h2>
-					<p>Hi %s,</p>
-					<p><strong>%s</strong> has scheduled an interview with you for the project: <strong>%s</strong></p>
-					<div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-						<p style="margin: 5px 0;"><strong>📅 Date:</strong> %s</p>
-						<p style="margin: 5px 0;"><strong>🕐 Time:</strong> %s</p>
-						%s
+			<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #000; margin: 0; padding: 0; background-color: #ffffff;">
+				<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+					<!-- Header -->
+					<div style="background-color: #000; padding: 32px 20px; text-align: center; border-bottom: 1px solid #000;">
+						<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #fff; letter-spacing: -0.5px;">Feels Like Summer</h1>
 					</div>
-					<p>Please make sure to be available at the scheduled time. Good luck!</p>
-					<p>Log in to your dashboard to view more details.</p>
-					<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-					<p style="font-size: 12px; color: #666;">Feels Like Summer Team</p>
+					
+					<!-- Content -->
+					<div style="padding: 40px 20px;">
+						<h2 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 600; color: #000;">Interview Scheduled!</h2>
+						<p style="margin: 0 0 16px 0; color: #000;">Hi %s,</p>
+						<p style="margin: 0 0 24px 0; color: #000;"><strong>%s</strong> has scheduled an interview with you for the project: <strong>%s</strong></p>
+						<div style="background-color: #f5f5f5; padding: 20px; border: 1px solid #000; margin: 24px 0;">
+							<p style="margin: 0 0 12px 0; color: #000;"><strong>📅 Date:</strong> %s</p>
+							<p style="margin: 0 0 12px 0; color: #000;"><strong>🕐 Time:</strong> %s</p>
+							%s
+						</div>
+						<p style="margin: 0 0 16px 0; color: #000;">Please make sure to be available at the scheduled time. Good luck!</p>
+						<p style="margin: 0; color: #000;">Log in to your dashboard to view more details.</p>
+					</div>
+					
+					<!-- Footer -->
+					<div style="background-color: #000; padding: 24px 20px; text-align: center; border-top: 1px solid #000;">
+						<p style="margin: 0; font-size: 12px; color: #fff; letter-spacing: 0.5px;">FEELS LIKE SUMMER</p>
+						<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Research opportunities that matter</p>
+					</div>
 				</div>
 			</body>
 			</html>
 		`, student.Name, professor.Name, project.Name, requestBody.InterviewDate, requestBody.InterviewTime,
 			func() string {
 				if requestBody.InterviewDetails != "" {
-					return fmt.Sprintf(`<p style="margin: 5px 0;"><strong>📝 Details:</strong> %s</p>`, requestBody.InterviewDetails)
+					return fmt.Sprintf(`<p style="margin: 0; color: #000;"><strong>📝 Details:</strong> %s</p>`, requestBody.InterviewDetails)
 				}
 				return ""
 			}())
@@ -1058,5 +1142,67 @@ func GetPastApplicantsForProject(c echo.Context) error {
 		"project":      project,
 		"applications": detailedApplications,
 		"count":        len(detailedApplications),
+	})
+}
+
+// RetractApplication allows a student to retract their application
+func RetractApplication(c echo.Context) error {
+	projectID := c.Param("id")
+	if projectID == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Project ID is required"})
+	}
+
+	// Get user data from context
+	userData := c.Get("userData").(models.UserData)
+
+	// Verify user is a student
+	if userData.GetUserType() != models.UserTypeStudent {
+		return c.JSON(http.StatusForbidden, echo.Map{"error": "Only students can retract applications"})
+	}
+
+	tx := config.DB.Begin()
+	if tx.Error != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to start transaction"})
+	}
+
+	// Find the application
+	var application models.ProjRequests
+	if err := tx.Where("p_id = ? AND uid = ?", projectID, userData.GetUID()).First(&application).Error; err != nil {
+		tx.Rollback()
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(http.StatusNotFound, echo.Map{"error": "Application not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to find application"})
+	}
+
+	// Check if application can be retracted (not if already accepted/approved)
+	if application.Status == "accepted" || application.Status == "approved" {
+		tx.Rollback()
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "Cannot retract an accepted or approved application. Please contact the professor.",
+		})
+	}
+
+	// Delete the application
+	if err := tx.Delete(&application).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to retract application"})
+	}
+
+	// If student was in working_users (shouldn't happen for retractable applications, but just in case)
+	if err := tx.Exec(
+		"UPDATE projects SET working_users = array_remove(working_users, ?) WHERE project_id = ?",
+		userData.GetUID(), projectID,
+	).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to update project"})
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to save changes"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "Application retracted successfully",
 	})
 }
