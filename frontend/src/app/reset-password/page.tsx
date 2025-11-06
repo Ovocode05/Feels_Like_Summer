@@ -54,9 +54,9 @@ export default function ResetPasswordPage() {
         } else {
           setError(response.error || "Invalid or expired reset link");
         }
-      } catch (err) {
-        const errorMsg =
-          err instanceof Error ? err.message : "Invalid or expired reset link";
+      } catch (err: any) {
+        console.error("Token verification error:", err);
+        const errorMsg = err?.response?.data?.error || err?.message || "Invalid or expired reset link. Please request a new password reset.";
         setError(errorMsg);
       } finally {
         setIsVerifying(false);
@@ -72,8 +72,28 @@ export default function ResetPasswordPage() {
       return false;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return false;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must contain at least one uppercase letter");
+      return false;
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setError("Password must contain at least one lowercase letter");
+      return false;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number");
+      return false;
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setError("Password must contain at least one special character");
       return false;
     }
 
@@ -108,9 +128,9 @@ export default function ResetPasswordPage() {
       setTimeout(() => {
         router.push("/login");
       }, 3000);
-    } catch (err) {
-      const errorMsg =
-        err instanceof Error ? err.message : "Failed to reset password";
+    } catch (err: any) {
+      console.error("Password reset error:", err);
+      const errorMsg = err?.response?.data?.error || err?.message || "Failed to reset password. Please try again.";
       setError(errorMsg);
     } finally {
       setIsLoading(false);
@@ -257,7 +277,7 @@ export default function ResetPasswordPage() {
                     </button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Must be at least 6 characters
+                    Must be at least 8 characters with uppercase, lowercase, number, and special character
                   </p>
                 </div>
 
