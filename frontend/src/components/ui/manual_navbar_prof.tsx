@@ -105,13 +105,13 @@ function Header() {
               >
                 My Projects
               </Link>
-              <Link
+              {/* <Link
                 href="/professor/explore"
                 className="block rounded px-2 py-2 text-sm font-medium hover:bg-muted/40"
                 onClick={() => setMenuOpen(false)}
               >
                 Explore
-              </Link>
+              </Link> */}
               <Link
                 href="/professor/applications"
                 className="block rounded px-2 py-2 text-sm font-medium hover:bg-muted/40"

@@ -244,14 +244,14 @@ export default function QuestionnaireModal({
         onClose();
       }
     }}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="space-y-3 pb-4">
+          <DialogTitle className="text-xl sm:text-2xl">
             {isEditing
               ? "Update Your Research Preferences"
               : "Let's Personalize Your Research Journey"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm sm:text-base">
             {isEditing
               ? "Modify your preferences to generate a new roadmap"
               : "Answer a few questions to get a customized research roadmap"}

@@ -128,8 +128,7 @@ export default function ProfessorDashboard() {
                 Dashboard
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-1">
-                Welcome back, Professor {decode.name}. Here is an overview of
-                your research activity.
+                Welcome back, Professor {decode.name}!
               </p>
             </div>
             <div className="flex gap-2">

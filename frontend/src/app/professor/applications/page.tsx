@@ -426,9 +426,9 @@ export default function ProfessorApplicationsPage() {
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="under_review">Under Review</TabsTrigger>
               <TabsTrigger value="interview">Interview</TabsTrigger>
-              <TabsTrigger value="accepted">Accepted</TabsTrigger>
+              {/* <TabsTrigger value="accepted">Accepted</TabsTrigger> */}
               <TabsTrigger value="waitlisted">Waitlisted</TabsTrigger>
-              <TabsTrigger value="rejected">Rejected</TabsTrigger>
+              {/* <TabsTrigger value="rejected">Rejected</TabsTrigger> */}
             </TabsList>
           </Tabs>
         </div>

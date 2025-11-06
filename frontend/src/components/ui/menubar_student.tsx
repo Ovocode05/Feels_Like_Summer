@@ -113,11 +113,11 @@ function MenubarStudent() {
                 Projects
               </Link>
               <Link
-                href="/student/explore"
+                href="/student/profile"
                 className="block rounded px-2 py-2 text-sm font-medium hover:bg-muted/40"
                 onClick={() => setMenuOpen(false)}
               >
-                Explore
+                Profile
               </Link>
               <Link
                 href="/student/resources"

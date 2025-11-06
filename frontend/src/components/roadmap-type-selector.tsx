@@ -27,12 +27,12 @@ export default function RoadmapTypeSelector({
         onClose();
       }
     }}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-center">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="space-y-3 pb-4">
+          <DialogTitle className="text-xl sm:text-2xl text-center">
             Choose Your Preparation Path
           </DialogTitle>
-          <DialogDescription className="text-center text-base">
+          <DialogDescription className="text-center text-sm sm:text-base">
             Select the type of roadmap you want to build
           </DialogDescription>
         </DialogHeader>

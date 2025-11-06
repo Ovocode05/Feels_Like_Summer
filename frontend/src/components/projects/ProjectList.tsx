@@ -193,13 +193,13 @@ export default function ProjectList({
   return (
     <div className="space-y-4">
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full">
-          <TabsTrigger value="all">All Projects</TabsTrigger>
-          <TabsTrigger value="unapplied">Unapplied</TabsTrigger>
-          <TabsTrigger value="applied">Under Review</TabsTrigger>
-          <TabsTrigger value="interview">Interview</TabsTrigger>
-          <TabsTrigger value="accepted">Accepted</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 w-full gap-1 h-auto p-1">
+          <TabsTrigger value="all" className="text-xs sm:text-sm">All Projects</TabsTrigger>
+          <TabsTrigger value="unapplied" className="text-xs sm:text-sm">Unapplied</TabsTrigger>
+          <TabsTrigger value="applied" className="text-xs sm:text-sm">Under Review</TabsTrigger>
+          <TabsTrigger value="interview" className="text-xs sm:text-sm">Interview</TabsTrigger>
+          <TabsTrigger value="accepted" className="text-xs sm:text-sm">Accepted</TabsTrigger>
+          <TabsTrigger value="rejected" className="text-xs sm:text-sm">Rejected</TabsTrigger>
         </TabsList>
         
         <TabsContent value="all" className="space-y-4 mt-4">

@@ -276,13 +276,13 @@ export default function PlacementQuestionnaireModal({
       }}
     >
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
+        <DialogHeader className="space-y-3 pb-4">
+          <DialogTitle className="text-xl sm:text-2xl">
             {isEditing
               ? "Update Your Placement Prep Plan"
               : "Build Your Placement Roadmap"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm sm:text-base">
             {isEditing
               ? "Modify your prep strategy to generate a new personalized roadmap"
               : "Answer these questions to get your customized placement preparation plan"}

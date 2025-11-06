@@ -443,16 +443,16 @@ export default function ResourcesPage() {
       />
 
       <main className="flex-1 space-y-4 p-4 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
               {hasPreferences
                 ? roadmapType === "research"
                   ? "Your Research Roadmap"
                   : "Your Placement Roadmap"
                 : "Your Roadmap"}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm md:text-base text-muted-foreground">
               {hasPreferences
                 ? roadmapType === "research"
                   ? "Your personalized learning path based on your research interests"
@@ -461,12 +461,20 @@ export default function ResourcesPage() {
             </p>
           </div>
           {hasPreferences && (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleSwitchRoadmapType}>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleSwitchRoadmapType}
+                className="w-full sm:w-auto"
+              >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Switch Roadmap Type
               </Button>
-              <Button variant="outline" onClick={handleEditPreferences}>
+              <Button 
+                variant="outline" 
+                onClick={handleEditPreferences}
+                className="w-full sm:w-auto"
+              >
                 <Settings className="mr-2 h-4 w-4" />
                 Edit Preferences
               </Button>
