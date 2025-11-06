@@ -330,7 +330,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="w-full border-t bg-background">
+      {/* <footer className="w-full border-t bg-background">
         <div className="container mx-auto px-4 md:px-6 flex flex-col gap-6 py-8 md:py-12">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-2">
@@ -418,7 +418,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }
