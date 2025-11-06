@@ -54,9 +54,12 @@ export default function ResetPasswordPage() {
         } else {
           setError(response.error || "Invalid or expired reset link");
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Token verification error:", err);
-        const errorMsg = err?.response?.data?.error || err?.message || "Invalid or expired reset link. Please request a new password reset.";
+        const errorMsg = 
+          (err as { response?: { data?: { error?: string } }; message?: string })?.response?.data?.error || 
+          (err as Error)?.message || 
+          "Invalid or expired reset link. Please request a new password reset.";
         setError(errorMsg);
       } finally {
         setIsVerifying(false);
@@ -128,9 +131,12 @@ export default function ResetPasswordPage() {
       setTimeout(() => {
         router.push("/login");
       }, 3000);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Password reset error:", err);
-      const errorMsg = err?.response?.data?.error || err?.message || "Failed to reset password. Please try again.";
+      const errorMsg = 
+        (err as { response?: { data?: { error?: string } }; message?: string })?.response?.data?.error || 
+        (err as Error)?.message || 
+        "Failed to reset password. Please try again.";
       setError(errorMsg);
     } finally {
       setIsLoading(false);
