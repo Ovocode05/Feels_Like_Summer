@@ -70,11 +70,25 @@ export default function ResourcesPage() {
     roadmapType: "research" | "placement" | null;
     hasPreferences: boolean;
   } | null>(null);
+  
+  // Rate limiting state - prevent spam clicking
+  const [lastRequestTime, setLastRequestTime] = useState<number>(0);
+  const REQUEST_COOLDOWN_MS = 10000; // 10 seconds cooldown
 
   const loadResearchRoadmap = useCallback(
     async (token: string) => {
+      // Check rate limiting
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      if (timeSinceLastRequest < REQUEST_COOLDOWN_MS) {
+        const secondsLeft = Math.ceil((REQUEST_COOLDOWN_MS - timeSinceLastRequest) / 1000);
+        toast.error(`Please wait ${secondsLeft} seconds before generating another roadmap`);
+        return;
+      }
+      
       try {
         setIsLoadingRoadmap(true);
+        setLastRequestTime(now);
         const response = await generateRoadmap(token);
         setRoadmap(response.roadmap);
         if (response.cached) {
@@ -84,18 +98,34 @@ export default function ResourcesPage() {
         }
       } catch (err: unknown) {
         const msg = extractErrorMessage(err, "Failed to generate research roadmap");
-        toast.error(msg);
+        
+        // Check if it's a rate limit error from backend
+        if (msg.includes("wait") && msg.includes("seconds")) {
+          toast.error(msg);
+        } else {
+          toast.error(msg);
+        }
       } finally {
         setIsLoadingRoadmap(false);
       }
     },
-    []
+    [lastRequestTime]
   );
 
   const loadPlacementRoadmap = useCallback(
     async (token: string) => {
+      // Check rate limiting
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      if (timeSinceLastRequest < REQUEST_COOLDOWN_MS) {
+        const secondsLeft = Math.ceil((REQUEST_COOLDOWN_MS - timeSinceLastRequest) / 1000);
+        toast.error(`Please wait ${secondsLeft} seconds before generating another roadmap`);
+        return;
+      }
+      
       try {
         setIsLoadingRoadmap(true);
+        setLastRequestTime(now);
         const response = await generatePlacementRoadmap(token);
         setRoadmap(response.roadmap);
         if (response.cached) {
@@ -105,12 +135,18 @@ export default function ResourcesPage() {
         }
       } catch (err: unknown) {
         const msg = extractErrorMessage(err, "Failed to generate placement roadmap");
-        toast.error(msg);
+        
+        // Check if it's a rate limit error from backend
+        if (msg.includes("wait") && msg.includes("seconds")) {
+          toast.error(msg);
+        } else {
+          toast.error(msg);
+        }
       } finally {
         setIsLoadingRoadmap(false);
       }
     },
-    []
+    [lastRequestTime]
   );
 
   const checkPreferences = useCallback(
