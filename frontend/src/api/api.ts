@@ -67,8 +67,13 @@ axiosInstance.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // If error is 401 and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't retry auth endpoints (login, register, etc.) - let them fail naturally
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
+                          originalRequest.url?.includes('/auth/register') ||
+                          originalRequest.url?.includes('/auth/refresh');
+    
+    // If error is 401 and we haven't retried yet and it's not an auth endpoint
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         // If already refreshing, queue this request
         return new Promise((resolve, reject) => {

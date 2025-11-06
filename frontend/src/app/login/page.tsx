@@ -27,6 +27,8 @@ import { loginUser, resendVerification } from "@/api/api";
 import { jwtDecode } from "jwt-decode";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { clearAuthData } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -42,25 +44,40 @@ type JWT = {
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showError, setShowError] = useState(false);
-  const [showVerifiedMessage, setShowVerifiedMessage] = useState(false);
-  const [showExpiredMessage, setShowExpiredMessage] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (searchParams.get("verified") === "true") {
-      setShowVerifiedMessage(true);
-      setTimeout(() => setShowVerifiedMessage(false), 5000);
+    const hasVerified = searchParams.get("verified") === "true";
+    const hasExpired = searchParams.get("expired") === "true";
+
+    if (hasVerified) {
+      toast({
+        title: "Email verified",
+        description: "Your email has been verified successfully. You can now log in.",
+        variant: "default",
+        duration: 3000,
+      });
+      router.replace("/login", { scroll: false });
     }
-    if (searchParams.get("expired") === "true") {
-      setShowExpiredMessage(true);
-      setTimeout(() => setShowExpiredMessage(false), 5000);
+    
+    if (hasExpired) {
+      // Clear any expired tokens from localStorage to prevent interceptor redirects
+      clearAuthData();
+      toast({
+        title: "Session expired",
+        description: "Your session has expired. Please log in again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      router.replace("/login", { scroll: false });
     }
-  }, [searchParams]);
+  }, [searchParams, router, toast]);
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
     defaultValues: {
       email: "",
       password: "",
@@ -68,25 +85,27 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
+    setIsLoading(true);
+    
     try {
       const res = await loginUser(values);
       localStorage.setItem("token", res);
       const decoded: JWT = jwtDecode(res);
 
-      setShowSuccess(true);
+      toast({
+        title: "Login successful",
+        description: "Redirecting to your dashboard...",
+        duration: 1500,
+      });
+
       setTimeout(() => {
-        setShowSuccess(false);
         if (decoded.type === "stu") {
           router.push("/student/");
         } else if (decoded.type === "fac") {
           router.push("/professor/");
         }
-      }, 2000);
+      }, 1000);
     } catch (error) {
-      // Clear any existing messages
-      setShowExpiredMessage(false);
-      setShowVerifiedMessage(false);
-      
       if (
         error.response?.status === 403 &&
         error.response?.data?.email_verified === false
@@ -94,28 +113,48 @@ export default function LoginPage() {
         // Email not verified - resend verification and redirect
         try {
           await resendVerification(values.email);
-          router.push(
-            `/verify-email?email=${encodeURIComponent(values.email)}`
-          );
-        } catch {
-          setErrorMessage(
-            "Please verify your email. Redirecting to verification page..."
-          );
-          setShowError(true);
+          toast({
+            title: "Email not verified",
+            description: "A new verification link has been sent to your email.",
+            variant: "destructive",
+            duration: 2000,
+          });
           setTimeout(() => {
             router.push(
               `/verify-email?email=${encodeURIComponent(values.email)}`
             );
-          }, 2000);
+          }, 1500);
+        } catch {
+          toast({
+            title: "Email not verified",
+            description: "Please verify your email before logging in.",
+            variant: "destructive",
+            duration: 2000,
+          });
+          setTimeout(() => {
+            router.push(
+              `/verify-email?email=${encodeURIComponent(values.email)}`
+            );
+          }, 1500);
         }
       } else {
-        setErrorMessage(
-          error.response?.data?.error ||
-            "Login failed. Please check your credentials."
-        );
-        setShowError(true);
-        setTimeout(() => setShowError(false), 5000);
+        // Show error as form error and toast
+        const errorMsg = error.response?.data?.error || "Invalid email or password.";
+        
+        form.setError("root", {
+          type: "manual",
+          message: errorMsg,
+        });
+
+        toast({
+          title: "Login failed",
+          description: errorMsg,
+          variant: "destructive",
+          duration: 2000,
+        });
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -139,6 +178,12 @@ export default function LoginPage() {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >
+                {form.formState.errors.root && (
+                  <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                    {form.formState.errors.root.message}
+                  </div>
+                )}
+                
                 <FormField
                   control={form.control}
                   name="email"
@@ -149,6 +194,7 @@ export default function LoginPage() {
                         <Input
                           placeholder="Enter your email"
                           type="email"
+                          disabled={isLoading}
                           {...field}
                         />
                       </FormControl>
@@ -166,6 +212,7 @@ export default function LoginPage() {
                         <Input
                           placeholder="Enter your password"
                           type="password"
+                          disabled={isLoading}
                           {...field}
                         />
                       </FormControl>
@@ -182,63 +229,11 @@ export default function LoginPage() {
                     Forgot password?
                   </Link>
                 </div>
-                <Button type="submit" className="w-full">
-                  Log in
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Log in"}
                 </Button>
               </form>
             </Form>
-            {showSuccess && (
-              <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-green-300 bg-green-50 px-6 py-3 text-green-800 shadow-xl animate-fade-in">
-                <span className="font-semibold">Login successful!</span>
-                <button
-                  className="ml-2 text-green-800 hover:text-green-600"
-                  onClick={() => setShowSuccess(false)}
-                  aria-label="Close"
-                >
-                  &times;
-                </button>
-              </div>
-            )}
-            {showError && (
-              <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-red-300 bg-red-50 px-6 py-3 text-red-800 shadow-xl animate-fade-in max-w-md">
-                <span className="text-sm">{errorMessage}</span>
-                <button
-                  className="ml-2 text-red-800 hover:text-red-600"
-                  onClick={() => setShowError(false)}
-                  aria-label="Close"
-                >
-                  &times;
-                </button>
-              </div>
-            )}
-            {showVerifiedMessage && (
-              <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-green-300 bg-green-50 px-6 py-3 text-green-800 shadow-xl animate-fade-in max-w-md">
-                <span className="font-semibold">
-                  ✓ Email verified successfully! You can now log in.
-                </span>
-                <button
-                  className="ml-2 text-green-800 hover:text-green-600"
-                  onClick={() => setShowVerifiedMessage(false)}
-                  aria-label="Close"
-                >
-                  &times;
-                </button>
-              </div>
-            )}
-            {showExpiredMessage && (
-              <div className="fixed top-6 left-1/2 z-50 flex items-center gap-3 -translate-x-1/2 rounded-lg border border-yellow-300 bg-yellow-50 px-6 py-3 text-yellow-800 shadow-xl animate-fade-in max-w-md">
-                <span className="font-semibold">
-                  ⚠ Your session has expired. Please log in again.
-                </span>
-                <button
-                  className="ml-2 text-yellow-800 hover:text-yellow-600"
-                  onClick={() => setShowExpiredMessage(false)}
-                  aria-label="Close"
-                >
-                  &times;
-                </button>
-              </div>
-            )}
           </CardContent>
           <CardFooter className="flex flex-col items-center space-y-2">
             <div className="text-sm text-muted-foreground">
