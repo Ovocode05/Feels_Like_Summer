@@ -11,11 +11,16 @@ func SetupRoadmapRoutes(e *echo.Group) {
 	roadmap := e.Group("/roadmap")
 	roadmap.Use(middleware.JWTMiddleware())
 
-	// Preference routes
+	// Research roadmap routes
 	roadmap.POST("/preferences", handlers.SavePreferences)
 	roadmap.GET("/preferences", handlers.GetPreferences)
-
-	// Roadmap generation routes
 	roadmap.POST("/generate", handlers.GenerateRoadmap)
+
+	// Placement roadmap routes
+	roadmap.POST("/placement/preferences", handlers.SavePlacementPreferences)
+	roadmap.GET("/placement/preferences", handlers.GetPlacementPreferences)
+	roadmap.POST("/placement/generate", handlers.GeneratePlacementRoadmap)
+
+	// Common routes
 	roadmap.GET("/history", handlers.GetUserRoadmaps)
 }

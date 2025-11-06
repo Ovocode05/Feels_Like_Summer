@@ -1,19 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
-import {
-  ReactFlow,
-  Node,
-  Edge,
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  MarkerType,
-  Position,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Clock, Target, Copy, Check } from "lucide-react";
@@ -37,82 +24,10 @@ type RoadmapNodeData = {
   resources?: string[];
   skills?: string[];
   next_nodes?: string[];
-  // optional handler we attach when building nodes
-  onNodeClick?: (data: RoadmapNodeData) => void;
 };
 
 type RoadmapVisualizationProps = {
   roadmap: RoadmapStructure;
-};
-
-// Custom node component for roadmap items
-const RoadmapNode = ({ data }: { data: RoadmapNodeData }) => {
-  const categoryColors: Record<string, string> = {
-    foundation: "bg-blue-50 border-blue-400 hover:border-blue-500",
-    core: "bg-green-50 border-green-400 hover:border-green-500",
-    advanced: "bg-orange-50 border-orange-400 hover:border-orange-500",
-    specialization: "bg-purple-50 border-purple-400 hover:border-purple-500",
-  };
-
-  const categoryBadgeColors: Record<string, string> = {
-    foundation: "bg-blue-500 text-white",
-    core: "bg-green-500 text-white",
-    advanced: "bg-orange-500 text-white",
-    specialization: "bg-purple-500 text-white",
-  };
-
-  const categoryColor =
-    categoryColors[data.category?.toLowerCase()] ||
-    "bg-gray-50 border-gray-400";
-
-  const badgeColor =
-    categoryBadgeColors[data.category?.toLowerCase()] ||
-    "bg-gray-500 text-white";
-
-  return (
-    <Card
-      className={`min-w-[280px] max-w-[320px] shadow-lg border-2 transition-all hover:shadow-2xl cursor-pointer ${categoryColor}`}
-      onClick={() => data.onNodeClick?.(data)}
-    >
-      <CardHeader className="p-3 pb-2 space-y-1.5">
-        <Badge className={`w-fit text-xs font-semibold ${badgeColor}`}>
-          {data.category}
-        </Badge>
-        <CardTitle className="text-sm font-bold leading-tight">
-          {data.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 pt-0 space-y-2">
-        <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
-          {data.description}
-        </p>
-
-        <div className="flex items-center gap-2 text-xs font-medium text-primary">
-          <Clock className="h-3 w-3" />
-          <span>{data.duration}</span>
-        </div>
-
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Target className="h-3 w-3" />
-            <span>{data.skills?.length || 0} skills</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <BookOpen className="h-3 w-3" />
-            <span>{data.resources?.length || 0} resources</span>
-          </div>
-        </div>
-
-        <div className="text-xs text-center text-primary font-medium pt-1 border-t">
-          Click to view details →
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-const nodeTypes = {
-  roadmapNode: RoadmapNode,
 };
 
 // Resource detail modal component
@@ -135,23 +50,11 @@ function ResourceDetailModal({
 
   if (!node) return null;
 
-  const categoryColors: Record<string, string> = {
-    foundation: "bg-blue-500",
-    core: "bg-green-500",
-    advanced: "bg-orange-500",
-    specialization: "bg-purple-500",
-  };
-
-  const bgColor = categoryColors[node.category?.toLowerCase()] || "bg-gray-500";
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[85vh]">
         <DialogHeader>
           <div className="flex items-start gap-3">
-            <Badge className={`${bgColor} text-white text-xs`}>
-              {node.category}
-            </Badge>
             <div className="flex-1">
               <DialogTitle className="text-2xl font-bold leading-tight">
                 {node.title}
@@ -174,7 +77,6 @@ function ResourceDetailModal({
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Target className="h-5 w-5 text-primary" />
-                  {/* escaped apostrophe to satisfy react/no-unescaped-entities */}
                   <h3 className="text-lg font-semibold">
                     Skills You&apos;ll Learn
                   </h3>
@@ -248,125 +150,30 @@ function ResourceDetailModal({
 }
 
 export function RoadmapVisualization({ roadmap }: RoadmapVisualizationProps) {
-  const [selectedNode, setSelectedNode] = useState<RoadmapNodeData | null>(
-    null
-  );
+  const [selectedNode, setSelectedNode] = useState<RoadmapNodeData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleNodeClick = useCallback((nodeData: RoadmapNodeData) => {
+  const handleNodeClick = (nodeData: RoadmapNodeData) => {
     setSelectedNode(nodeData);
     setIsModalOpen(true);
-  }, []);
+  };
 
-  // Generate nodes and edges from roadmap data
-  const { initialNodes, initialEdges } = useMemo(() => {
-    const nodes: Node<RoadmapNodeData>[] = [];
-    const edges: Edge[] = [];
-    const nodeMap = new Map<string, { x: number; y: number; level: number }>();
-
-    // Categorize nodes by their category
-    const categories = ["foundation", "core", "advanced", "specialization"];
-    const nodesByCategory = new Map<string, RoadmapNodeData[]>();
-
-    roadmap.nodes.forEach((node) => {
-      const category =
-        (node.category as string | undefined)?.toLowerCase() || "foundation";
-      if (!nodesByCategory.has(category)) {
-        nodesByCategory.set(category, []);
-      }
-      // cast each roadmap node into RoadmapNodeData shape
-      nodesByCategory.get(category)?.push({
-        id: String(node.id),
-        title: node.title,
-        description: node.description,
-        category: node.category,
-        duration: node.duration,
-        resources: node.resources || [],
-        skills: node.skills || [],
-        next_nodes: node.next_nodes || [],
-      });
-    });
-
-    // Calculate positions based on category (level-based layout)
-    let yOffset = 0;
-    const levelSpacing = 280; // Tighter spacing
-    const nodeSpacing = 400;
-
-    categories.forEach((category, levelIndex) => {
-      const nodesInCategory = nodesByCategory.get(category) || [];
-      if (nodesInCategory.length === 0) return; // Skip empty categories
-
-      const xStart = -(nodesInCategory.length - 1) * (nodeSpacing / 2);
-
-      nodesInCategory.forEach((node, index) => {
-        const x = xStart + index * nodeSpacing;
-        const y = yOffset;
-
-        nodeMap.set(node.id, { x, y, level: levelIndex });
-
-        nodes.push({
-          id: node.id,
-          type: "roadmapNode",
-          position: { x, y },
-          data: {
-            ...node,
-            onNodeClick: handleNodeClick,
-          },
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top,
-        });
-      });
-
-      yOffset += levelSpacing;
-    });
-
-    // Create edges based on next_nodes
-    roadmap.nodes.forEach((node) => {
-      if (node.next_nodes && node.next_nodes.length > 0) {
-        node.next_nodes.forEach((targetId) => {
-          if (nodeMap.has(String(targetId))) {
-            const sourceCategory =
-              (node.category as string | undefined)?.toLowerCase() ||
-              "foundation";
-            const edgeColors: Record<string, string> = {
-              foundation: "#3b82f6",
-              core: "#10b981",
-              advanced: "#f97316",
-              specialization: "#a855f7",
-            };
-
-            const edgeColor = edgeColors[sourceCategory] || "#94a3b8";
-
-            edges.push({
-              id: `${node.id}-${targetId}`,
-              source: String(node.id),
-              target: String(targetId),
-              type: "smoothstep",
-              animated: true,
-              markerEnd: {
-                type: MarkerType.ArrowClosed,
-                width: 25,
-                height: 25,
-                color: edgeColor,
-              },
-              style: {
-                strokeWidth: 3,
-                stroke: edgeColor,
-              },
-              label: "→",
-              labelStyle: { fill: edgeColor, fontWeight: 700 },
-            });
-          }
-        });
-      }
-    });
-
-    return { initialNodes: nodes, initialEdges: edges };
-  }, [roadmap, handleNodeClick]);
-
-  // ignore the unused setters by skipping them in destructuring
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+  // Sort nodes by ID to ensure sequential order
+  const sortedNodes = [...roadmap.nodes].sort((a, b) => {
+    const aId = String(a.id);
+    const bId = String(b.id);
+    
+    // Extract week numbers if present (e.g., "week_1" -> 1)
+    const aMatch = aId.match(/week_(\d+)/);
+    const bMatch = bId.match(/week_(\d+)/);
+    
+    if (aMatch && bMatch) {
+      return parseInt(aMatch[1]) - parseInt(bMatch[1]);
+    }
+    
+    // Fallback to string comparison
+    return aId.localeCompare(bId);
+  });
 
   return (
     <>
@@ -375,8 +182,10 @@ export function RoadmapVisualization({ roadmap }: RoadmapVisualizationProps) {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-      <div className="w-full h-[900px] border rounded-lg bg-background shadow-lg">
-        <div className="p-6 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+      
+      <div className="w-full space-y-6">
+        {/* Header */}
+        <div className="p-6 border rounded-lg bg-gradient-to-r from-primary/5 to-primary/10">
           <h2 className="text-3xl font-bold">{roadmap.title}</h2>
           <p className="text-sm text-muted-foreground mt-2">
             {roadmap.description}
@@ -387,43 +196,108 @@ export function RoadmapVisualization({ roadmap }: RoadmapVisualizationProps) {
               <span className="font-semibold">{roadmap.total_time}</span>
             </div>
             <div className="text-sm text-muted-foreground">
-              Follow the connected path below ↓
+              {sortedNodes.length} steps in your journey
             </div>
           </div>
-          <div className="flex gap-2 mt-3">
-            <Badge className="bg-blue-500 text-white border-0">
-              Foundation
-            </Badge>
-            <Badge className="bg-green-500 text-white border-0">Core</Badge>
-            <Badge className="bg-orange-500 text-white border-0">
-              Advanced
-            </Badge>
-            <Badge className="bg-purple-500 text-white border-0">
-              Specialization
-            </Badge>
+        </div>
+
+        {/* Roadmap Timeline */}
+        <div className="relative max-w-4xl mx-auto">
+          {/* Vertical connecting line */}
+          <div className="absolute left-8 top-4 bottom-4 w-0.5 bg-gradient-to-b from-primary via-primary/50 to-primary/20" />
+          
+          <div className="space-y-6">
+            {sortedNodes.map((node, index) => {
+              const nodeData: RoadmapNodeData = {
+                id: String(node.id),
+                title: node.title,
+                description: node.description,
+                category: node.category,
+                duration: node.duration,
+                resources: node.resources || [],
+                skills: node.skills || [],
+                next_nodes: node.next_nodes || [],
+              };
+
+              return (
+                <div key={node.id} className="relative pl-20">
+                  {/* Circle connector on the line */}
+                  <div className="absolute left-6 top-6 w-5 h-5 rounded-full bg-primary border-4 border-background shadow-lg z-10" />
+
+                  {/* Card */}
+                  <Card
+                    className="cursor-pointer transition-all hover:shadow-xl hover:scale-[1.02] border-l-4 border-l-primary"
+                    onClick={() => handleNodeClick(nodeData)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <CardTitle className="text-xl font-bold leading-tight">
+                            {node.title}
+                          </CardTitle>
+                          {node.description && (
+                            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                              {node.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                        <Clock className="h-4 w-4" />
+                        <span>{node.duration}</span>
+                      </div>
+
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Target className="h-4 w-4" />
+                          <span>{node.skills?.length || 0} skills</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <BookOpen className="h-4 w-4" />
+                          <span>{node.resources?.length || 0} resources</span>
+                        </div>
+                      </div>
+
+                      {/* Skills preview */}
+                      {node.skills && node.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {node.skills.slice(0, 3).map((skill: string, idx: number) => (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                          {node.skills.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{node.skills.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="text-xs text-center text-primary font-medium pt-2 border-t">
+                        Click to view all resources and details →
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* End marker */}
+          <div className="relative pl-20 mt-8">
+            <div className="absolute left-6 top-0 w-5 h-5 rounded-full bg-green-500 border-4 border-background shadow-lg z-10" />
+            <div className="text-sm font-semibold text-green-600">
+              🎉 Roadmap Complete!
+            </div>
           </div>
         </div>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={nodeTypes}
-          fitView
-          minZoom={0.2}
-          maxZoom={1.2}
-          defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background color="#e2e8f0" gap={20} />
-          <Controls />
-          <MiniMap
-            nodeStrokeWidth={3}
-            zoomable
-            pannable
-            className="bg-background border shadow-lg"
-          />
-        </ReactFlow>
       </div>
     </>
   );

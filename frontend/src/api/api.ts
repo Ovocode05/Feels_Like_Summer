@@ -920,6 +920,73 @@ export const getRoadmapHistory = async (token: string) => {
   }
 };
 
+// Placement Roadmap APIs
+export type PlacementPreferences = {
+  timeline_weeks: number;
+  time_commitment: number;
+  intensity_type: string; // regular, intense, weekend
+  prep_areas: string; // JSON array
+  current_levels: string; // JSON object
+  resources_started?: string; // JSON array
+  target_companies?: string; // JSON array
+  special_needs?: string;
+  goals: string;
+};
+
+export const savePlacementPreferences = async (
+  preferences: PlacementPreferences,
+  token: string
+) => {
+  try {
+    const response = await axiosInstance.post("/roadmap/placement/preferences", preferences, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error saving placement preferences:", error);
+    throw error;
+  }
+};
+
+export const getPlacementPreferences = async (token: string) => {
+  try {
+    const response = await axiosInstance.get("/roadmap/placement/preferences", {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching placement preferences:", error);
+    throw error;
+  }
+};
+
+export const generatePlacementRoadmap = async (token: string) => {
+  try {
+    const response = await axiosInstance.post(
+      "/roadmap/placement/generate",
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error generating placement roadmap:", error);
+    throw error;
+  }
+};
+
 // Get recommended projects for student
 export type RecommendedProject = {
   ID: number;

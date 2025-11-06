@@ -9,7 +9,8 @@ import (
 type Roadmap struct {
 	ID             uint           `gorm:"primaryKey" json:"id"`
 	UserID         string         `gorm:"index;not null" json:"user_id"`
-	PreferenceHash string         `gorm:"type:varchar(64);index" json:"preference_hash"` // SHA-256 hash for caching
+	RoadmapType    string         `gorm:"type:varchar(20);not null;default:'research';index" json:"roadmap_type"` // 'research' or 'placement'
+	PreferenceHash string         `gorm:"type:varchar(64);index" json:"preference_hash"`                          // SHA-256 hash for caching
 	Title          string         `gorm:"type:varchar(200);not null" json:"title"`
 	RoadmapData    string         `gorm:"type:text;not null" json:"roadmap_data"` // JSON structure for the roadmap
 	GeneratedBy    string         `gorm:"type:varchar(50);default:'gemini'" json:"generated_by"`
@@ -21,11 +22,12 @@ type Roadmap struct {
 // RoadmapCache stores generated roadmaps by preference hash to avoid duplicate API calls
 type RoadmapCache struct {
 	ID              uint           `gorm:"primaryKey" json:"id"`
-	PreferenceHash  string         `gorm:"type:varchar(64);uniqueIndex;not null" json:"preference_hash"`
-	FieldOfStudy    string         `gorm:"type:varchar(100);index" json:"field_of_study"`
-	ExperienceLevel string         `gorm:"type:varchar(50);index" json:"experience_level"`
-	RoadmapData     string         `gorm:"type:text;not null" json:"roadmap_data"` // JSON structure for the roadmap
-	UsageCount      int            `gorm:"default:1" json:"usage_count"`           // Track how many times this was reused
+	RoadmapType     string         `gorm:"type:varchar(20);not null;index" json:"roadmap_type"` // 'research' or 'placement'
+	PreferenceHash  string         `gorm:"type:varchar(64);index;not null" json:"preference_hash"`
+	FieldOfStudy    string         `gorm:"type:varchar(100);index" json:"field_of_study"`  // Used for research or prep area for placement
+	ExperienceLevel string         `gorm:"type:varchar(50);index" json:"experience_level"` // Used for research or intensity for placement
+	RoadmapData     string         `gorm:"type:text;not null" json:"roadmap_data"`         // JSON structure for the roadmap
+	UsageCount      int            `gorm:"default:1" json:"usage_count"`                   // Track how many times this was reused
 	CreatedAt       time.Time      `json:"created_at"`
 	UpdatedAt       time.Time      `json:"updated_at"`
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`

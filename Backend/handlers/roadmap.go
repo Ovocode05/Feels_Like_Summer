@@ -133,18 +133,37 @@ func GenerateRoadmap(c echo.Context) error {
 
 	// Generate hash from preferences
 	preferenceHash := generatePreferenceHash(preferences)
+	println("Generated hash:", preferenceHash)
+
+	// First, check if user already has a roadmap with this hash
+	var existingUserRoadmap models.Roadmap
+	userRoadmapResult := config.DB.Where("user_id = ? AND preference_hash = ? AND roadmap_type = ?", userID, preferenceHash, "research").
+		Order("created_at desc").
+		First(&existingUserRoadmap)
+
+	if userRoadmapResult.Error == nil {
+		println("✅ Found existing user roadmap, returning it")
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message":   "Roadmap retrieved from your history",
+			"roadmap":   json.RawMessage(existingUserRoadmap.RoadmapData),
+			"cached":    true,
+			"roadmapId": existingUserRoadmap.ID,
+		})
+	}
 
 	// Check if roadmap exists in cache
 	var cachedRoadmap models.RoadmapCache
-	cacheResult := config.DB.Where("preference_hash = ?", preferenceHash).First(&cachedRoadmap)
+	cacheResult := config.DB.Where("preference_hash = ? AND roadmap_type = ?", preferenceHash, "research").First(&cachedRoadmap)
 
 	if cacheResult.Error == nil {
+		println("✅ Found cached roadmap, creating user copy")
 		// Found cached roadmap, increment usage count
 		config.DB.Model(&cachedRoadmap).Update("usage_count", cachedRoadmap.UsageCount+1)
 
 		// Create a user-specific roadmap entry
 		roadmap := models.Roadmap{
 			UserID:         userID,
+			RoadmapType:    "research",
 			PreferenceHash: preferenceHash,
 			Title:          extractTitleFromRoadmap(cachedRoadmap.RoadmapData),
 			RoadmapData:    cachedRoadmap.RoadmapData,
@@ -161,7 +180,7 @@ func GenerateRoadmap(c echo.Context) error {
 	}
 
 	// Generate new roadmap using Gemini
-	println("Calling Gemini API to generate roadmap...")
+	println("⚡ Calling Gemini API to generate NEW roadmap...")
 	roadmapJSON, err := utils.GenerateRoadmap(
 		preferences.FieldOfStudy,
 		preferences.ExperienceLevel,
@@ -193,6 +212,7 @@ func GenerateRoadmap(c echo.Context) error {
 
 	// Cache the roadmap
 	cache := models.RoadmapCache{
+		RoadmapType:     "research",
 		PreferenceHash:  preferenceHash,
 		FieldOfStudy:    preferences.FieldOfStudy,
 		ExperienceLevel: preferences.ExperienceLevel,
@@ -204,6 +224,7 @@ func GenerateRoadmap(c echo.Context) error {
 	// Create user-specific roadmap entry
 	roadmap := models.Roadmap{
 		UserID:         userID,
+		RoadmapType:    "research",
 		PreferenceHash: preferenceHash,
 		Title:          extractTitleFromRoadmap(roadmapJSON),
 		RoadmapData:    roadmapJSON,

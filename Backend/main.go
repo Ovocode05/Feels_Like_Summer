@@ -29,6 +29,7 @@ func main() {
 		&models.EmailVerification{},
 		&models.Students{},
 		&models.ResearchPreference{},
+		&models.PlacementPreference{},
 		&models.Roadmap{},
 		&models.RoadmapCache{},
 	)
