@@ -492,10 +492,10 @@ export function ApplyModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] sm:w-full p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle>Apply to {projectName}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg sm:text-xl">Apply to {projectName}</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Select information from your profile and provide application details.
           </DialogDescription>
         </DialogHeader>
@@ -513,48 +513,55 @@ export function ApplyModal({
           </div>
         ) : (
           <Tabs value={currentTab} onValueChange={setCurrentTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="selection">Profile Selection</TabsTrigger>
-              <TabsTrigger value="projects">Projects</TabsTrigger>
-              <TabsTrigger value="application">Application</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger value="selection" className="text-xs sm:text-sm px-2 py-2">
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="projects" className="text-xs sm:text-sm px-2 py-2">
+                Projects
+              </TabsTrigger>
+              <TabsTrigger value="application" className="text-xs sm:text-sm px-2 py-2">
+                Application
+              </TabsTrigger>
             </TabsList>
 
-            <ScrollArea className="h-[60vh] pr-4">
-              <TabsContent value="selection" className="space-y-4 mt-4">
+            <ScrollArea className="h-[55vh] sm:h-[60vh] pr-2 sm:pr-4">
+              <TabsContent value="selection" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Select Education</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Select Education</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Choose which education entries to include
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2 sm:space-y-3 p-4 sm:p-6 pt-0">
                     {profile?.educationDetails && profile.educationDetails.length > 0 ? (
                       profile.educationDetails.map((edu, index) => (
                         <div
                           key={index}
-                          className="flex items-start space-x-3 border rounded-lg p-3"
+                          className="flex items-start space-x-2 sm:space-x-3 border rounded-lg p-2 sm:p-3"
                         >
                           <Checkbox
                             id={`edu-${index}`}
                             checked={formData.selectedEducation.includes(index)}
                             onCheckedChange={() => toggleEducation(index)}
+                            className="mt-1"
                           />
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <label
                               htmlFor={`edu-${index}`}
-                              className="text-sm font-medium cursor-pointer"
+                              className="text-xs sm:text-sm font-medium cursor-pointer block"
                             >
                               {edu.degree} {edu.field ? `in ${edu.field}` : ""}
                             </label>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                               {edu.institution}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">
                               {edu.startDate} - {edu.current ? "Present" : edu.endDate}
                             </p>
                             {edu.description && (
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {edu.description}
                               </p>
                             )}
@@ -562,7 +569,7 @@ export function ApplyModal({
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         No education entries in your profile.
                       </p>
                     )}
@@ -573,90 +580,98 @@ export function ApplyModal({
                         variant="outline"
                         size="sm"
                         onClick={addCustomEducation}
-                        className="w-full"
+                        className="w-full text-xs sm:text-sm h-8 sm:h-9"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Custom Education (will be saved to profile)
+                        <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">Add Custom Education (will be saved to profile)</span>
+                        <span className="sm:hidden">Add Custom Education</span>
                       </Button>
                     </div>
 
                     {formData.customEducation.map((edu, index) => (
-                      <div key={`custom-edu-${index}`} className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                      <div key={`custom-edu-${index}`} className="border rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3 bg-muted/30">
                         <div className="flex items-center justify-between">
-                          <Label className="text-sm font-semibold">Custom Education #{index + 1}</Label>
+                          <Label className="text-xs sm:text-sm font-semibold">Custom Education #{index + 1}</Label>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => removeCustomEducation(index)}
+                            className="h-7 w-7 p-0"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                           <div>
-                            <Label htmlFor={`custom-edu-institution-${index}`}>Institution *</Label>
+                            <Label htmlFor={`custom-edu-institution-${index}`} className="text-xs sm:text-sm">Institution *</Label>
                             <Input
                               id={`custom-edu-institution-${index}`}
                               value={edu.institution}
                               onChange={(e) => updateCustomEducation(index, "institution", e.target.value)}
                               placeholder="University name"
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`custom-edu-degree-${index}`}>Degree *</Label>
+                            <Label htmlFor={`custom-edu-degree-${index}`} className="text-xs sm:text-sm">Degree *</Label>
                             <Input
                               id={`custom-edu-degree-${index}`}
                               value={edu.degree}
                               onChange={(e) => updateCustomEducation(index, "degree", e.target.value)}
                               placeholder="Bachelor's, Master's, etc."
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`custom-edu-field-${index}`}>Field of Study</Label>
+                            <Label htmlFor={`custom-edu-field-${index}`} className="text-xs sm:text-sm">Field of Study</Label>
                             <Input
                               id={`custom-edu-field-${index}`}
                               value={edu.field}
                               onChange={(e) => updateCustomEducation(index, "field", e.target.value)}
                               placeholder="Computer Science, etc."
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`custom-edu-start-${index}`}>Start Date</Label>
+                            <Label htmlFor={`custom-edu-start-${index}`} className="text-xs sm:text-sm">Start Date</Label>
                             <Input
                               id={`custom-edu-start-${index}`}
                               value={edu.startDate}
                               onChange={(e) => updateCustomEducation(index, "startDate", e.target.value)}
                               placeholder="Jan 2020"
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`custom-edu-end-${index}`}>End Date</Label>
+                            <Label htmlFor={`custom-edu-end-${index}`} className="text-xs sm:text-sm">End Date</Label>
                             <Input
                               id={`custom-edu-end-${index}`}
                               value={edu.endDate || ""}
                               onChange={(e) => updateCustomEducation(index, "endDate", e.target.value)}
                               placeholder="May 2024"
                               disabled={edu.current}
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
-                          <div className="flex items-center space-x-2 pt-6">
+                          <div className="flex items-center space-x-2 pt-4 sm:pt-6">
                             <Checkbox
                               id={`custom-edu-current-${index}`}
                               checked={edu.current || false}
                               onCheckedChange={(checked) => updateCustomEducation(index, "current", checked as boolean)}
                             />
-                            <Label htmlFor={`custom-edu-current-${index}`}>Currently studying</Label>
+                            <Label htmlFor={`custom-edu-current-${index}`} className="text-xs sm:text-sm">Currently studying</Label>
                           </div>
                         </div>
                         <div>
-                          <Label htmlFor={`custom-edu-desc-${index}`}>Description</Label>
+                          <Label htmlFor={`custom-edu-desc-${index}`} className="text-xs sm:text-sm">Description</Label>
                           <Textarea
                             id={`custom-edu-desc-${index}`}
                             value={edu.description || ""}
                             onChange={(e) => updateCustomEducation(index, "description", e.target.value)}
                             placeholder="Additional details about your education..."
                             rows={2}
+                            className="text-xs sm:text-sm"
                           />
                         </div>
                       </div>
@@ -665,40 +680,41 @@ export function ApplyModal({
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Select Work Experience</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Select Work Experience</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Choose which work experience entries to include
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2 sm:space-y-3 p-4 sm:p-6 pt-0">
                     {profile?.experienceDetails && profile.experienceDetails.length > 0 ? (
                       profile.experienceDetails.map((exp, index) => (
                         <div
                           key={index}
-                          className="flex items-start space-x-3 border rounded-lg p-3"
+                          className="flex items-start space-x-2 sm:space-x-3 border rounded-lg p-2 sm:p-3"
                         >
                           <Checkbox
                             id={`exp-${index}`}
                             checked={formData.selectedExperience.includes(index)}
                             onCheckedChange={() => toggleExperience(index)}
+                            className="mt-1"
                           />
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <label
                               htmlFor={`exp-${index}`}
-                              className="text-sm font-medium cursor-pointer"
+                              className="text-xs sm:text-sm font-medium cursor-pointer block"
                             >
                               {exp.title}
                             </label>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                               {exp.company}
                               {exp.location ? ` • ${exp.location}` : ""}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">
                               {exp.startDate} - {exp.current ? "Present" : exp.endDate}
                             </p>
                             {exp.description && (
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">
                                 {exp.description}
                               </p>
                             )}
@@ -706,7 +722,7 @@ export function ApplyModal({
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         No work experience entries in your profile.
                       </p>
                     )}
@@ -717,90 +733,98 @@ export function ApplyModal({
                         variant="outline"
                         size="sm"
                         onClick={addCustomExperience}
-                        className="w-full"
+                        className="w-full text-xs sm:text-sm h-8 sm:h-9"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Custom Work Experience (will be saved to profile)
+                        <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">Add Custom Work Experience (will be saved to profile)</span>
+                        <span className="sm:hidden">Add Work Experience</span>
                       </Button>
                     </div>
 
                     {formData.customExperience.map((exp, index) => (
-                      <div key={`custom-exp-${index}`} className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                      <div key={`custom-exp-${index}`} className="border rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3 bg-muted/30">
                         <div className="flex items-center justify-between">
-                          <Label className="text-sm font-semibold">Custom Experience #{index + 1}</Label>
+                          <Label className="text-xs sm:text-sm font-semibold">Custom Experience #{index + 1}</Label>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => removeCustomExperience(index)}
+                            className="h-7 w-7 p-0"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                           <div>
-                            <Label htmlFor={`custom-exp-title-${index}`}>Job Title *</Label>
+                            <Label htmlFor={`custom-exp-title-${index}`} className="text-xs sm:text-sm">Job Title *</Label>
                             <Input
                               id={`custom-exp-title-${index}`}
                               value={exp.title}
                               onChange={(e) => updateCustomExperience(index, "title", e.target.value)}
                               placeholder="Software Engineer"
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`custom-exp-company-${index}`}>Company *</Label>
+                            <Label htmlFor={`custom-exp-company-${index}`} className="text-xs sm:text-sm">Company *</Label>
                             <Input
                               id={`custom-exp-company-${index}`}
                               value={exp.company}
                               onChange={(e) => updateCustomExperience(index, "company", e.target.value)}
                               placeholder="Company Name"
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`custom-exp-location-${index}`}>Location</Label>
+                            <Label htmlFor={`custom-exp-location-${index}`} className="text-xs sm:text-sm">Location</Label>
                             <Input
                               id={`custom-exp-location-${index}`}
                               value={exp.location || ""}
                               onChange={(e) => updateCustomExperience(index, "location", e.target.value)}
                               placeholder="City, Country"
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`custom-exp-start-${index}`}>Start Date</Label>
+                            <Label htmlFor={`custom-exp-start-${index}`} className="text-xs sm:text-sm">Start Date</Label>
                             <Input
                               id={`custom-exp-start-${index}`}
                               value={exp.startDate}
                               onChange={(e) => updateCustomExperience(index, "startDate", e.target.value)}
                               placeholder="Jan 2020"
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`custom-exp-end-${index}`}>End Date</Label>
+                            <Label htmlFor={`custom-exp-end-${index}`} className="text-xs sm:text-sm">End Date</Label>
                             <Input
                               id={`custom-exp-end-${index}`}
                               value={exp.endDate || ""}
                               onChange={(e) => updateCustomExperience(index, "endDate", e.target.value)}
                               placeholder="May 2024"
                               disabled={exp.current}
+                              className="h-8 sm:h-9 text-xs sm:text-sm"
                             />
                           </div>
-                          <div className="flex items-center space-x-2 pt-6">
+                          <div className="flex items-center space-x-2 pt-4 sm:pt-6">
                             <Checkbox
                               id={`custom-exp-current-${index}`}
                               checked={exp.current || false}
                               onCheckedChange={(checked) => updateCustomExperience(index, "current", checked as boolean)}
                             />
-                            <Label htmlFor={`custom-exp-current-${index}`}>Currently working here</Label>
+                            <Label htmlFor={`custom-exp-current-${index}`} className="text-xs sm:text-sm">Currently working here</Label>
                           </div>
                         </div>
                         <div>
-                          <Label htmlFor={`custom-exp-desc-${index}`}>Description</Label>
+                          <Label htmlFor={`custom-exp-desc-${index}`} className="text-xs sm:text-sm">Description</Label>
                           <Textarea
                             id={`custom-exp-desc-${index}`}
                             value={exp.description || ""}
                             onChange={(e) => updateCustomExperience(index, "description", e.target.value)}
                             placeholder="Describe your responsibilities and achievements..."
                             rows={2}
+                            className="text-xs sm:text-sm"
                           />
                         </div>
                       </div>
@@ -809,38 +833,39 @@ export function ApplyModal({
                 </Card>
               </TabsContent>
 
-              <TabsContent value="projects" className="space-y-4 mt-4">
+              <TabsContent value="projects" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Select Past Projects</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Select Past Projects</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Choose which projects from your profile to include
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2 sm:space-y-3 p-4 sm:p-6 pt-0">
                     {profile?.projectsDetails && profile.projectsDetails.length > 0 ? (
                       profile.projectsDetails.map((proj, index) => (
                         <div
                           key={index}
-                          className="flex items-start space-x-3 border rounded-lg p-3"
+                          className="flex items-start space-x-2 sm:space-x-3 border rounded-lg p-2 sm:p-3"
                         >
                           <Checkbox
                             id={`proj-${index}`}
                             checked={formData.selectedProjects.includes(index)}
                             onCheckedChange={() => toggleProject(index)}
+                            className="mt-1"
                           />
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <label
                               htmlFor={`proj-${index}`}
-                              className="text-sm font-medium cursor-pointer"
+                              className="text-xs sm:text-sm font-medium cursor-pointer block"
                             >
                               {proj.title}
                             </label>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">
                               {proj.description}
                             </p>
                             {proj.technologies && proj.technologies.length > 0 && (
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 truncate">
                                 Tech: {proj.technologies.join(", ")}
                               </p>
                             )}
@@ -849,7 +874,7 @@ export function ApplyModal({
                                 href={proj.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-primary hover:underline"
+                                className="text-[10px] sm:text-xs text-primary hover:underline block truncate mt-1"
                               >
                                 {proj.link}
                               </a>
@@ -858,7 +883,7 @@ export function ApplyModal({
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         No projects in your profile. You can add them in your profile page or add custom projects below.
                       </p>
                     )}
@@ -866,28 +891,29 @@ export function ApplyModal({
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Additional Projects</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Additional Projects</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Add other projects not in your profile that are relevant to this application
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
                     {formData.customProjects.map((proj, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-3">
+                      <div key={index} className="border rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-semibold">Project {index + 1}</h4>
+                          <h4 className="text-xs sm:text-sm font-semibold">Project {index + 1}</h4>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => removeCustomProject(index)}
+                            className="h-7 w-7 p-0"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                         <div>
-                          <Label htmlFor={`custom-proj-title-${index}`}>
+                          <Label htmlFor={`custom-proj-title-${index}`} className="text-xs sm:text-sm">
                             Project Title <span className="text-red-500">*</span>
                           </Label>
                           <Input
@@ -897,10 +923,11 @@ export function ApplyModal({
                               updateCustomProject(index, "title", e.target.value)
                             }
                             placeholder="Project name"
+                            className="h-8 sm:h-9 text-xs sm:text-sm"
                           />
                         </div>
                         <div>
-                          <Label htmlFor={`custom-proj-desc-${index}`}>
+                          <Label htmlFor={`custom-proj-desc-${index}`} className="text-xs sm:text-sm">
                             Description <span className="text-red-500">*</span>
                           </Label>
                           <Textarea
@@ -911,10 +938,11 @@ export function ApplyModal({
                             }
                             placeholder="Describe the project and your contributions"
                             rows={3}
+                            className="text-xs sm:text-sm"
                           />
                         </div>
                         <div>
-                          <Label htmlFor={`custom-proj-tech-${index}`}>
+                          <Label htmlFor={`custom-proj-tech-${index}`} className="text-xs sm:text-sm">
                             Technologies (Optional)
                           </Label>
                           <Input
@@ -928,10 +956,11 @@ export function ApplyModal({
                               )
                             }
                             placeholder="React, Python, TensorFlow (comma-separated)"
+                            className="h-8 sm:h-9 text-xs sm:text-sm"
                           />
                         </div>
                         <div>
-                          <Label htmlFor={`custom-proj-link-${index}`}>
+                          <Label htmlFor={`custom-proj-link-${index}`} className="text-xs sm:text-sm">
                             Link (Optional)
                           </Label>
                           <Input
@@ -942,6 +971,7 @@ export function ApplyModal({
                               updateCustomProject(index, "link", e.target.value)
                             }
                             placeholder="https://github.com/..."
+                            className="h-8 sm:h-9 text-xs sm:text-sm"
                           />
                         </div>
                       </div>
@@ -950,22 +980,23 @@ export function ApplyModal({
                       type="button"
                       variant="outline"
                       onClick={addCustomProject}
-                      className="w-full"
+                      className="w-full text-xs sm:text-sm h-8 sm:h-9"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Another Project (will be saved to profile)
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">Add Another Project (will be saved to profile)</span>
+                      <span className="sm:hidden">Add Project</span>
                     </Button>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Additional Information</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Additional Information</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Any other relevant information about your projects or experience
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6 pt-0">
                     <Textarea
                       value={formData.additionalInfo}
                       onChange={(e) =>
@@ -973,22 +1004,23 @@ export function ApplyModal({
                       }
                       placeholder="Add any additional context, achievements, or information that would strengthen your application..."
                       rows={4}
+                      className="text-xs sm:text-sm"
                     />
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="application" className="space-y-4 mt-4">
+              <TabsContent value="application" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Application Details</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Application Details</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Complete the required fields for your application
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
                     <div>
-                      <Label htmlFor="availability">
+                      <Label htmlFor="availability" className="text-xs sm:text-sm">
                         Availability <span className="text-red-500">*</span>
                       </Label>
                       <Textarea
@@ -1000,11 +1032,12 @@ export function ApplyModal({
                         placeholder="When are you available? (e.g., 10-15 hours/week, weekends only, full-time during summer)"
                         rows={3}
                         required
+                        className="text-xs sm:text-sm mt-1"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="motivation">
+                      <Label htmlFor="motivation" className="text-xs sm:text-sm">
                         Motivation / Why This Project? <span className="text-red-500">*</span>
                       </Label>
                       <Textarea
@@ -1016,21 +1049,22 @@ export function ApplyModal({
                         placeholder="Why are you interested in this project? What makes you a good fit? What do you hope to gain?"
                         rows={6}
                         required
+                        className="text-xs sm:text-sm mt-1"
                       />
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Documents</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Documents</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Your CV and publications (auto-filled from profile, but you can customize for this application)
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
                     <div>
-                      <Label htmlFor="cvLink">
+                      <Label htmlFor="cvLink" className="text-xs sm:text-sm">
                         CV/Resume Link <span className="text-red-500">*</span>
                       </Label>
                       <Input
@@ -1042,14 +1076,15 @@ export function ApplyModal({
                         }
                         placeholder="https://drive.google.com/..."
                         required
+                        className="h-8 sm:h-9 text-xs sm:text-sm mt-1"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                         You can provide a different CV specific to this application
                       </p>
                     </div>
 
                     <div>
-                      <Label htmlFor="publicationsLink">
+                      <Label htmlFor="publicationsLink" className="text-xs sm:text-sm">
                         Publications Link (Optional)
                       </Label>
                       <Input
@@ -1060,8 +1095,9 @@ export function ApplyModal({
                           setFormData({ ...formData, publicationsLink: e.target.value })
                         }
                         placeholder="https://scholar.google.com/..."
+                        className="h-8 sm:h-9 text-xs sm:text-sm mt-1"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                         Link to your publications, research papers, or academic profile
                       </p>
                     </div>
@@ -1069,10 +1105,10 @@ export function ApplyModal({
                 </Card>
 
                 <Card className="bg-muted/30">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Application Summary</CardTitle>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Application Summary</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
+                  <CardContent className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm p-4 sm:p-6 pt-0">
                     <div>
                       <span className="font-medium">Education entries:</span>{" "}
                       {formData.selectedEducation.length + formData.customEducation.filter(edu => edu.institution && edu.degree).length}
@@ -1102,12 +1138,12 @@ export function ApplyModal({
               </TabsContent>
             </ScrollArea>
 
-            <DialogFooter className="pt-4 border-t">
-              <Button variant="outline" onClick={handleClose} disabled={loading}>
+            <DialogFooter className="pt-3 sm:pt-4 border-t flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={handleClose} disabled={loading} className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9">
                 Cancel
               </Button>
               {currentTab === "selection" && (
-                <Button onClick={() => setCurrentTab("projects")}>
+                <Button onClick={() => setCurrentTab("projects")} className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9">
                   Next: Projects
                 </Button>
               )}
@@ -1116,10 +1152,11 @@ export function ApplyModal({
                   <Button
                     variant="outline"
                     onClick={() => setCurrentTab("selection")}
+                    className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9"
                   >
                     Back
                   </Button>
-                  <Button onClick={() => setCurrentTab("application")}>
+                  <Button onClick={() => setCurrentTab("application")} className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9">
                     Next: Application
                   </Button>
                 </>
@@ -1130,13 +1167,14 @@ export function ApplyModal({
                     variant="outline"
                     onClick={() => setCurrentTab("projects")}
                     disabled={loading}
+                    className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9"
                   >
                     Back
                   </Button>
-                  <Button onClick={handleSubmitApplication} disabled={loading}>
+                  <Button onClick={handleSubmitApplication} disabled={loading} className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9">
                     {loading ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                         Submitting...
                       </>
                     ) : (
