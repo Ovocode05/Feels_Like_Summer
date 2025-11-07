@@ -242,12 +242,24 @@ export default function CVBuilderPage() {
       router.push("/login");
       return;
     }
-    const decoded = jwtDecode(token) as { type: string };
+    const decoded = jwtDecode(token) as { type: string; name?: string; email?: string };
     if (decoded.type !== "stu") {
       router.push("/login");
       return;
     }
     setIsAuth(true);
+
+    // Preload name and email from JWT token
+    const jwtName = decoded.name || "";
+    const jwtEmail = decoded.email || "";
+    const nameParts = jwtName.trim().split(/\s+/);
+    const jwtFirstName = nameParts[0] || "";
+    const jwtLastName = nameParts.slice(1).join(" ") || "";
+
+    // Set initial form values from JWT
+    form.setValue("personalInfo.firstName", jwtFirstName);
+    form.setValue("personalInfo.lastName", jwtLastName);
+    form.setValue("personalInfo.email", jwtEmail);
 
     const fetchProfileData = async () => {
       setProfileLoading(true);
@@ -292,6 +304,17 @@ export default function CVBuilderPage() {
           }
           if (!personalInfoData.email && student.email) {
             personalInfoData.email = student.email;
+          }
+          
+          // Fall back to JWT values if still not available
+          if (!personalInfoData.firstName) {
+            personalInfoData.firstName = jwtFirstName;
+          }
+          if (!personalInfoData.lastName) {
+            personalInfoData.lastName = jwtLastName;
+          }
+          if (!personalInfoData.email) {
+            personalInfoData.email = jwtEmail;
           }
 
           // Map backend data to form structure
