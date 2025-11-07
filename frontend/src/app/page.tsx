@@ -315,7 +315,7 @@ export default function Home() {
                     </Button>
                   </Link>
                 )}
-                <Link href="/login">
+                <Link href="/student/projects">
                   <Button
                     size="lg"
                     variant="outline"
