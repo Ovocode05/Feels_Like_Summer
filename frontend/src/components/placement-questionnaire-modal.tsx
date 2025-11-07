@@ -34,18 +34,46 @@ interface PlacementQuestionnaireModalProps {
 }
 
 const INTENSITY_TYPES = [
-  { value: "regular", label: "Regular & Moderate", desc: "8-10 hrs/week - Balanced pace with steady progress" },
-  { value: "intense", label: "Intense & Focused", desc: "15-20 hrs/week - Fast-paced, maximum efficiency" },
-  { value: "weekend", label: "Weekend-Only", desc: "5-6 hrs/week - Condensed weekend schedule" },
+  {
+    value: "regular",
+    label: "Regular & Moderate",
+    desc: "8-10 hrs/week - Balanced pace with steady progress",
+  },
+  {
+    value: "intense",
+    label: "Intense & Focused",
+    desc: "15-20 hrs/week - Fast-paced, maximum efficiency",
+  },
+  {
+    value: "weekend",
+    label: "Weekend-Only",
+    desc: "5-6 hrs/week - Condensed weekend schedule",
+  },
 ];
 
 const PREP_AREAS = [
   { value: "aptitude", label: "Aptitude", desc: "Quant + Logical + Verbal" },
   { value: "dsa", label: "DSA / Coding", desc: "Data Structures & Algorithms" },
-  { value: "core_cs", label: "Core CS Subjects", desc: "DBMS, OS, CN, OOP, etc." },
-  { value: "resume", label: "Resume & Projects", desc: "Build portfolio and resume" },
-  { value: "interview", label: "Interview Skills", desc: "Tech + HR interviews" },
-  { value: "company_specific", label: "Company-Specific", desc: "Target company preparation" },
+  {
+    value: "core_cs",
+    label: "Core CS Subjects",
+    desc: "DBMS, OS, CN, OOP, etc.",
+  },
+  {
+    value: "resume",
+    label: "Resume & Projects",
+    desc: "Build portfolio and resume",
+  },
+  {
+    value: "interview",
+    label: "Interview Skills",
+    desc: "Tech + HR interviews",
+  },
+  {
+    value: "company_specific",
+    label: "Company-Specific",
+    desc: "Target company preparation",
+  },
 ];
 
 const EXPERIENCE_LEVELS = [
@@ -55,7 +83,13 @@ const EXPERIENCE_LEVELS = [
 ];
 
 const COMMON_RESOURCES = {
-  dsa: ["Striver's A2Z Sheet", "Love Babbar 450", "LeetCode", "NeetCode", "GeeksForGeeks DSA"],
+  dsa: [
+    "Striver's A2Z Sheet",
+    "Love Babbar 450",
+    "LeetCode",
+    "NeetCode",
+    "GeeksForGeeks DSA",
+  ],
   aptitude: ["PrepInsta", "IndiaBix", "RS Aggarwal", "Arun Sharma Book"],
   core_cs: ["GeeksForGeeks", "Gate Smashers YouTube", "Neso Academy"],
   interview: ["InterviewBit", "Pramp", "CareerCup", "Pramp Mock Interviews"],
@@ -70,7 +104,7 @@ export default function PlacementQuestionnaireModal({
 }: PlacementQuestionnaireModalProps) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [timelineWeeks, setTimelineWeeks] = useState<number>(
     initialData?.timeline_weeks || 12
   );
@@ -90,16 +124,18 @@ export default function PlacementQuestionnaireModal({
     }
     return [];
   });
-  const [currentLevels, setCurrentLevels] = useState<Record<string, string>>(() => {
-    if (initialData?.current_levels) {
-      try {
-        return JSON.parse(initialData.current_levels);
-      } catch {
-        return {};
+  const [currentLevels, setCurrentLevels] = useState<Record<string, string>>(
+    () => {
+      if (initialData?.current_levels) {
+        try {
+          return JSON.parse(initialData.current_levels);
+        } catch {
+          return {};
+        }
       }
+      return {};
     }
-    return {};
-  });
+  );
   const [resourcesStarted, setResourcesStarted] = useState<string[]>(() => {
     if (initialData?.resources_started) {
       try {
@@ -124,7 +160,7 @@ export default function PlacementQuestionnaireModal({
   const [specialNeeds, setSpecialNeeds] = useState<string>(
     initialData?.special_needs || ""
   );
-  
+
   const [customResource, setCustomResource] = useState("");
   const [customCompany, setCustomCompany] = useState("");
 
@@ -142,13 +178,19 @@ export default function PlacementQuestionnaireModal({
           initialData.prep_areas ? JSON.parse(initialData.prep_areas) : []
         );
         setCurrentLevels(
-          initialData.current_levels ? JSON.parse(initialData.current_levels) : {}
+          initialData.current_levels
+            ? JSON.parse(initialData.current_levels)
+            : {}
         );
         setResourcesStarted(
-          initialData.resources_started ? JSON.parse(initialData.resources_started) : []
+          initialData.resources_started
+            ? JSON.parse(initialData.resources_started)
+            : []
         );
         setTargetCompanies(
-          initialData.target_companies ? JSON.parse(initialData.target_companies) : []
+          initialData.target_companies
+            ? JSON.parse(initialData.target_companies)
+            : []
         );
         setGoals(initialData.goals || "");
         setSpecialNeeds(initialData.special_needs || "");
@@ -197,7 +239,10 @@ export default function PlacementQuestionnaireModal({
   };
 
   const handleAddResource = () => {
-    if (customResource.trim() && !resourcesStarted.includes(customResource.trim())) {
+    if (
+      customResource.trim() &&
+      !resourcesStarted.includes(customResource.trim())
+    ) {
       setResourcesStarted((prev) => [...prev, customResource.trim()]);
       setCustomResource("");
     }
@@ -208,7 +253,10 @@ export default function PlacementQuestionnaireModal({
   };
 
   const handleAddCompany = () => {
-    if (customCompany.trim() && !targetCompanies.includes(customCompany.trim())) {
+    if (
+      customCompany.trim() &&
+      !targetCompanies.includes(customCompany.trim())
+    ) {
       setTargetCompanies((prev) => [...prev, customCompany.trim()]);
       setCustomCompany("");
     }
@@ -301,9 +349,12 @@ export default function PlacementQuestionnaireModal({
           {step === 1 && (
             <div className="space-y-4">
               <div className="border-l-4 border-primary rounded-lg p-4 bg-muted/30">
-                <h3 className="font-semibold text-sm mb-2">📅 Time & Commitment</h3>
+                <h3 className="font-semibold text-sm mb-2">
+                  📅 Time & Commitment
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Let&apos;s understand your timeline and availability to create a realistic plan
+                  Let&apos;s understand your timeline and availability to create
+                  a realistic plan
                 </p>
               </div>
 
@@ -317,7 +368,7 @@ export default function PlacementQuestionnaireModal({
                   min="1"
                   max="52"
                   value={timelineWeeks}
-                  onChange={(e) => setTimelineWeeks(parseInt(e.target.value) || 12)}
+                  onChange={(e) => setTimelineWeeks(parseInt(e.target?.value))}
                   placeholder="e.g., 12"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
@@ -335,11 +386,12 @@ export default function PlacementQuestionnaireModal({
                   min="1"
                   max="40"
                   value={timeCommitment}
-                  onChange={(e) => setTimeCommitment(parseInt(e.target.value) || 10)}
+                  onChange={(e) => setTimeCommitment(parseInt(e.target?.value))}
                   placeholder="e.g., 10"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  How many hours per week can you realistically dedicate? (1-40 hours)
+                  How many hours per week can you realistically dedicate? (1-40
+                  hours)
                 </p>
               </div>
 
@@ -347,7 +399,9 @@ export default function PlacementQuestionnaireModal({
                 <Label>Choose Your Intensity Type</Label>
                 <p className="text-sm text-muted-foreground mb-3">
                   Based on your timeline of {timelineWeeks} weeks, we suggest:{" "}
-                  <span className="font-semibold">{getIntensitySuggestion()}</span>
+                  <span className="font-semibold">
+                    {getIntensitySuggestion()}
+                  </span>
                 </p>
                 <div className="space-y-2">
                   {INTENSITY_TYPES.map((type) => (
@@ -367,7 +421,9 @@ export default function PlacementQuestionnaireModal({
                         />
                         <div className="flex-1">
                           <div className="font-medium">{type.label}</div>
-                          <div className="text-sm text-muted-foreground">{type.desc}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {type.desc}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -383,14 +439,16 @@ export default function PlacementQuestionnaireModal({
               <div className="border-l-4 border-primary rounded-lg p-4 bg-muted/30">
                 <h3 className="font-semibold text-sm mb-2">🎯 Prep Areas</h3>
                 <p className="text-sm text-muted-foreground">
-                  Select one or more areas you want to prepare. We&apos;ll balance them across your weekly hours.
+                  Select one or more areas you want to prepare. We&apos;ll
+                  balance them across your weekly hours.
                 </p>
               </div>
 
               <div>
                 <Label>Choose Your Preparation Areas</Label>
                 <p className="text-sm text-muted-foreground mb-3">
-                  You can select multiple areas - we&apos;ll help you balance them
+                  You can select multiple areas - we&apos;ll help you balance
+                  them
                 </p>
 
                 <div className="space-y-2">
@@ -407,7 +465,9 @@ export default function PlacementQuestionnaireModal({
                       <div className="flex items-center gap-3">
                         <Checkbox
                           checked={selectedPrepAreas.includes(area.value)}
-                          onCheckedChange={() => handlePrepAreaToggle(area.value)}
+                          onCheckedChange={() =>
+                            handlePrepAreaToggle(area.value)
+                          }
                         />
                         <div>
                           <div className="font-medium">{area.label}</div>
@@ -423,10 +483,12 @@ export default function PlacementQuestionnaireModal({
                 {selectedPrepAreas.length > 0 && (
                   <div className="mt-4 p-3 border-l-4 border-primary rounded-md bg-muted/30">
                     <p className="text-sm font-medium">
-                      ✓ Selected {selectedPrepAreas.length} area{selectedPrepAreas.length > 1 ? 's' : ''}
+                      ✓ Selected {selectedPrepAreas.length} area
+                      {selectedPrepAreas.length > 1 ? "s" : ""}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Your roadmap will balance these areas across {timeCommitment} hours/week
+                      Your roadmap will balance these areas across{" "}
+                      {timeCommitment} hours/week
                     </p>
                   </div>
                 )}
@@ -438,9 +500,12 @@ export default function PlacementQuestionnaireModal({
           {step === 3 && (
             <div className="space-y-4">
               <div className="border-l-4 border-primary rounded-lg p-4 bg-muted/30">
-                <h3 className="font-semibold text-sm mb-2">📊 Your Current Level</h3>
+                <h3 className="font-semibold text-sm mb-2">
+                  📊 Your Current Level
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Be honest! This helps us start from the right difficulty level for you.
+                  Be honest! This helps us start from the right difficulty level
+                  for you.
                 </p>
               </div>
 
@@ -453,12 +518,21 @@ export default function PlacementQuestionnaireModal({
                 {selectedPrepAreas.map((area) => {
                   const areaInfo = PREP_AREAS.find((a) => a.value === area);
                   return (
-                    <div key={area} className="mb-4 p-4 border rounded-lg bg-card">
-                      <Label className="mb-2 block font-semibold">{areaInfo?.label}</Label>
-                      <p className="text-xs text-muted-foreground mb-2">{areaInfo?.desc}</p>
+                    <div
+                      key={area}
+                      className="mb-4 p-4 border rounded-lg bg-card"
+                    >
+                      <Label className="mb-2 block font-semibold">
+                        {areaInfo?.label}
+                      </Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {areaInfo?.desc}
+                      </p>
                       <Select
                         value={currentLevels[area] || ""}
-                        onValueChange={(value) => handleLevelChange(area, value)}
+                        onValueChange={(value) =>
+                          handleLevelChange(area, value)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select your current level" />
@@ -482,16 +556,20 @@ export default function PlacementQuestionnaireModal({
           {step === 4 && (
             <div className="space-y-4">
               <div className="border-l-4 border-primary rounded-lg p-4 bg-muted/30">
-                <h3 className="font-semibold text-sm mb-2">📚 Resources & Target Companies</h3>
+                <h3 className="font-semibold text-sm mb-2">
+                  📚 Resources & Target Companies
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Optional but helpful! Tell us what you&apos;ve started and where you want to work.
+                  Optional but helpful! Tell us what you&apos;ve started and
+                  where you want to work.
                 </p>
               </div>
 
               <div>
                 <Label>Resources Already Started (Optional)</Label>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Have you started any sheets/courses? We&apos;ll build upon them rather than starting fresh.
+                  Have you started any sheets/courses? We&apos;ll build upon
+                  them rather than starting fresh.
                 </p>
 
                 {resourcesStarted.length > 0 && (
@@ -512,7 +590,9 @@ export default function PlacementQuestionnaireModal({
 
                 {/* Quick add common resources */}
                 <div className="mb-3">
-                  <p className="text-xs text-muted-foreground mb-2">Quick add common resources:</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Quick add common resources:
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedPrepAreas.includes("dsa") &&
                       COMMON_RESOURCES.dsa.map((res) => (
@@ -574,7 +654,8 @@ export default function PlacementQuestionnaireModal({
               <div>
                 <Label>Target Companies (Optional)</Label>
                 <p className="text-sm text-muted-foreground mb-2">
-                  We&apos;ll include company-specific preparation if you name them
+                  We&apos;ll include company-specific preparation if you name
+                  them
                 </p>
 
                 {targetCompanies.length > 0 && (
@@ -623,9 +704,12 @@ export default function PlacementQuestionnaireModal({
           {step === 5 && (
             <div className="space-y-4">
               <div className="border-l-4 border-primary rounded-lg p-4 bg-muted/30">
-                <h3 className="font-semibold text-sm mb-2">🎯 Your Goals & Final Review</h3>
+                <h3 className="font-semibold text-sm mb-2">
+                  🎯 Your Goals & Final Review
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Almost there! Tell us about your goals to complete your personalized plan.
+                  Almost there! Tell us about your goals to complete your
+                  personalized plan.
                 </p>
               </div>
 
@@ -659,7 +743,9 @@ export default function PlacementQuestionnaireModal({
               </div>
 
               <div className="border rounded-lg p-4 bg-muted/50">
-                <h4 className="font-semibold mb-3">📋 Review Your Preparation Plan</h4>
+                <h4 className="font-semibold mb-3">
+                  📋 Review Your Preparation Plan
+                </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Timeline:</span>
@@ -667,25 +753,32 @@ export default function PlacementQuestionnaireModal({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Weekly Hours:</span>
-                    <span className="font-medium">{timeCommitment} hours/week</span>
+                    <span className="font-medium">
+                      {timeCommitment} hours/week
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Intensity:</span>
-                    <span className="font-medium capitalize">{intensityType.replace('_', ' ')}</span>
+                    <span className="font-medium capitalize">
+                      {intensityType.replace("_", " ")}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Prep Areas:</span>
                     <span className="font-medium text-right">
                       {selectedPrepAreas
                         .map(
-                          (a) => PREP_AREAS.find((area) => area.value === a)?.label
+                          (a) =>
+                            PREP_AREAS.find((area) => area.value === a)?.label
                         )
                         .join(", ")}
                     </span>
                   </div>
                   {targetCompanies.length > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Target Companies:</span>
+                      <span className="text-muted-foreground">
+                        Target Companies:
+                      </span>
                       <span className="font-medium text-right">
                         {targetCompanies.join(", ")}
                       </span>
@@ -693,9 +786,12 @@ export default function PlacementQuestionnaireModal({
                   )}
                   {resourcesStarted.length > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Resources Started:</span>
+                      <span className="text-muted-foreground">
+                        Resources Started:
+                      </span>
                       <span className="font-medium text-right">
-                        {resourcesStarted.length} resource{resourcesStarted.length > 1 ? 's' : ''}
+                        {resourcesStarted.length} resource
+                        {resourcesStarted.length > 1 ? "s" : ""}
                       </span>
                     </div>
                   )}
@@ -707,11 +803,22 @@ export default function PlacementQuestionnaireModal({
                   💡 Your personalized roadmap will:
                 </p>
                 <ul className="text-xs text-muted-foreground mt-2 space-y-1 list-disc list-inside">
-                  <li>Provide week-by-week breakdown for all {timelineWeeks} weeks</li>
-                  <li>Balance {selectedPrepAreas.length} prep area{selectedPrepAreas.length > 1 ? 's' : ''} across {timeCommitment} hours/week</li>
-                  <li>Include only free, trusted resources (LeetCode, GeeksForGeeks, YouTube, etc.)</li>
+                  <li>
+                    Provide week-by-week breakdown for all {timelineWeeks} weeks
+                  </li>
+                  <li>
+                    Balance {selectedPrepAreas.length} prep area
+                    {selectedPrepAreas.length > 1 ? "s" : ""} across{" "}
+                    {timeCommitment} hours/week
+                  </li>
+                  <li>
+                    Include only free, trusted resources (LeetCode,
+                    GeeksForGeeks, YouTube, etc.)
+                  </li>
                   <li>Adapt difficulty based on your current levels</li>
-                  {targetCompanies.length > 0 && <li>Include company-specific preparation in later weeks</li>}
+                  {targetCompanies.length > 0 && (
+                    <li>Include company-specific preparation in later weeks</li>
+                  )}
                   <li>Provide clear weekly milestones and goals</li>
                 </ul>
               </div>
@@ -720,7 +827,11 @@ export default function PlacementQuestionnaireModal({
         </div>
 
         <div className="flex justify-between mt-6 pt-4 border-t">
-          <Button variant="outline" onClick={handleBack} disabled={step === 1 || isSubmitting}>
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            disabled={step === 1 || isSubmitting}
+          >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -742,7 +853,11 @@ export default function PlacementQuestionnaireModal({
                   Generating Your Roadmap...
                 </>
               ) : (
-                <>{isEditing ? "Update & Regenerate Roadmap" : "Generate My Personalized Roadmap"}</>
+                <>
+                  {isEditing
+                    ? "Update & Regenerate Roadmap"
+                    : "Generate My Personalized Roadmap"}
+                </>
               )}
             </Button>
           )}

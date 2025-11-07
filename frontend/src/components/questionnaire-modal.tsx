@@ -174,7 +174,10 @@ export default function QuestionnaireModal({
   };
 
   const handleAddCustomInterest = () => {
-    if (customInterest.trim() && !selectedInterests.includes(customInterest.trim())) {
+    if (
+      customInterest.trim() &&
+      !selectedInterests.includes(customInterest.trim())
+    ) {
       setSelectedInterests((prev) => [...prev, customInterest.trim()]);
       setCustomInterest("");
     }
@@ -188,8 +191,11 @@ export default function QuestionnaireModal({
     setFormData({ ...formData, field_of_study: value });
     // Clear selected interests when field of study changes
     // Only keep interests that exist in the new field's interest areas
-    const newFieldInterests = INTEREST_AREAS_BY_FIELD[value] || INTEREST_AREAS_BY_FIELD["Other"];
-    setSelectedInterests((prev) => prev.filter((interest) => newFieldInterests.includes(interest)));
+    const newFieldInterests =
+      INTEREST_AREAS_BY_FIELD[value] || INTEREST_AREAS_BY_FIELD["Other"];
+    setSelectedInterests((prev) =>
+      prev.filter((interest) => newFieldInterests.includes(interest))
+    );
   };
 
   const handleSubmit = async () => {
@@ -239,11 +245,14 @@ export default function QuestionnaireModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen && onClose) {
-        onClose();
-      }
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen && onClose) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-3 pb-4">
           <DialogTitle className="text-xl sm:text-2xl">
@@ -323,7 +332,7 @@ export default function QuestionnaireModal({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      current_year: parseInt(e.target.value) || 1,
+                      current_year: parseInt(e.target?.value),
                     })
                   }
                   placeholder="e.g., 3"
@@ -346,7 +355,7 @@ export default function QuestionnaireModal({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      time_commitment: parseInt(e.target.value) || 10,
+                      time_commitment: parseInt(e.target?.value),
                     })
                   }
                   placeholder="e.g., 10"
@@ -365,11 +374,13 @@ export default function QuestionnaireModal({
                 <p className="text-sm text-muted-foreground mb-3">
                   Select all areas that interest you (choose at least one)
                 </p>
-                
+
                 {/* Selected interests with remove option */}
                 {selectedInterests.length > 0 && (
                   <div className="mb-3 p-3 bg-muted/50 rounded-md">
-                    <p className="text-xs font-medium mb-2">Selected Interests:</p>
+                    <p className="text-xs font-medium mb-2">
+                      Selected Interests:
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {selectedInterests.map((interest) => (
                         <Badge
@@ -388,7 +399,7 @@ export default function QuestionnaireModal({
                     </p>
                   </div>
                 )}
-                
+
                 {/* Predefined interest options */}
                 <div className="flex flex-wrap gap-2 mb-3">
                   {(
@@ -409,7 +420,7 @@ export default function QuestionnaireModal({
                     </Badge>
                   ))}
                 </div>
-                
+
                 {/* Add custom interest */}
                 <div>
                   <Label htmlFor="custom-interest" className="text-xs">
