@@ -2,14 +2,18 @@ package routers
 
 import (
 	"backend/handlers"
+	"backend/middleware"
 
 	"github.com/labstack/echo/v4"
 )
 
 func SetupRoutes(e *echo.Echo) {
 	// Group routes for modularity
+	// Health route without CORS validation (should work without CORS headers)
 	e.GET("/health", handlers.Health)
-	api := e.Group("/v1")
+
+	// Apply CORS validation middleware to all /v1 routes
+	api := e.Group("/v1", middleware.CORSValidator())
 
 	// Auth routes
 	RegisterAuthRoutes(api)
