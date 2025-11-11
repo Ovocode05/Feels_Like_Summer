@@ -114,9 +114,6 @@ export default function ProjectList({
       );
     }
     
-    // Use condensed view if there are 5 or more projects
-    const useCondensedView = projectList.length >= 5;
-    
     return projectList.map((project: ProjectType) => {
       const hasApplied = appliedProjectIds.has(project.pid);
       const application = applicationsMap.get(project.pid);
@@ -127,7 +124,6 @@ export default function ProjectList({
           project={project}
           hasApplied={hasApplied}
           application={application}
-          isCondensed={useCondensedView}
         />
       );
     });

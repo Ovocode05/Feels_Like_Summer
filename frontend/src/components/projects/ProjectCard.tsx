@@ -54,7 +54,6 @@ type ProjectCardProps = {
   project: ProjectType;
   hasApplied: boolean;
   application?: ApplicationType;
-  isCondensed?: boolean;
 };
 
 const getStatusInfo = (status: string) => {
@@ -77,64 +76,8 @@ const getStatusInfo = (status: string) => {
   }
 };
 
-export default function ProjectCard({ project, hasApplied, application, isCondensed = false }: ProjectCardProps) {
-  // Condensed view for pages with 5+ projects
-  if (isCondensed) {
-    return (
-      <Card className="overflow-hidden hover:shadow-md transition-shadow">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg">{project.name}</CardTitle>
-              <CardDescription className="mt-1">
-                {project.user?.name || "Unknown Professor"}
-              </CardDescription>
-            </div>
-            {hasApplied && application && (
-              <Badge 
-                variant={getStatusInfo(application.status).variant}
-                className={`shrink-0 ${getStatusInfo(application.status).color}`}
-              >
-                {getStatusInfo(application.status).text}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="pb-4 space-y-3">
-          {project.sdesc && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {project.sdesc}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-1">
-            {(project.tags || []).slice(0, 5).map((tag: string, idx: number) => (
-              <Badge
-                key={tag + idx}
-                variant="outline"
-                className="text-xs"
-              >
-                {tag}
-              </Badge>
-            ))}
-            {project.tags && project.tags.length > 5 && (
-              <Badge variant="outline" className="text-xs">
-                +{project.tags.length - 5} more
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-        <div className="bg-muted/50 px-6 py-3 flex items-center justify-end">
-          <Link href={`/project/${project.pid}`}>
-            <Button size="sm">
-              {hasApplied ? "View Application" : "View Details"}
-            </Button>
-          </Link>
-        </div>
-      </Card>
-    );
-  }
-
-  // Full detailed view for pages with less than 5 projects
+export default function ProjectCard({ project, hasApplied, application }: ProjectCardProps) {
+  // Full detailed view
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
