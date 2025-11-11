@@ -34,10 +34,14 @@ func main() {
 		&models.RoadmapCache{},
 	)
 
+	// Start cache cleanup goroutine for recommendations
+	// handlers.StartCacheCleanup()
+	// log.Println("✅ Recommendation cache cleanup started")
+
 	// Initialize Echo
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:3000", "https://feels-like-summer.vercel.app"},
+		AllowOrigins: []string{"http://localhost:3000", "https://feels-like-summer.vercel.app", "https://fls.revolve.ltd"},
 		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
