@@ -152,6 +152,9 @@ func UpdateStudentProfile(c echo.Context) error {
 		})
 	}
 
+	// Clear recommendation cache since profile has changed
+	ClearUserCache(userData.UID)
+
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Student profile updated successfully",
 		"student": student,
@@ -236,6 +239,9 @@ func UpdateStudentSkills(c echo.Context) error {
 			"error": "Student profile not found",
 		})
 	}
+
+	// Clear recommendation cache since skills have changed
+	ClearUserCache(userData.UID)
 
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Skills updated successfully",

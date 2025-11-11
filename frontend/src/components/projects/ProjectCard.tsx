@@ -100,7 +100,12 @@ export default function ProjectCard({ project, hasApplied, application, isConden
             )}
           </div>
         </CardHeader>
-        <CardContent className="pb-4">
+        <CardContent className="pb-4 space-y-3">
+          {project.sdesc && (
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {project.sdesc}
+            </p>
+          )}
           <div className="flex flex-wrap gap-1">
             {(project.tags || []).slice(0, 5).map((tag: string, idx: number) => (
               <Badge

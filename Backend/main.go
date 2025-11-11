@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"backend/config"
+	"backend/handlers"
 	"backend/models"
 	"backend/routers"
 )
@@ -35,8 +36,8 @@ func main() {
 	)
 
 	// Start cache cleanup goroutine for recommendations
-	// handlers.StartCacheCleanup()
-	// log.Println("✅ Recommendation cache cleanup started")
+	handlers.StartCacheCleanup()
+	log.Println("✅ Recommendation cache cleanup started")
 
 	// Initialize Echo
 	e := echo.New()

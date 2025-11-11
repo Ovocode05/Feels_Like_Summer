@@ -6,10 +6,96 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
 )
+
+// Cache for recommendations with TTL
+type RecommendationCache struct {
+	sync.RWMutex
+	data map[string]CachedRecommendations
+	ttl  time.Duration
+}
+
+type CachedRecommendations struct {
+	recommendations []RecommendedProject
+	timestamp       time.Time
+}
+
+var (
+	recommendationCache = &RecommendationCache{
+		data: make(map[string]CachedRecommendations),
+		ttl:  5 * time.Minute, // 5-minute TTL
+	}
+	// Semaphore to limit concurrent goroutines
+	scoringSemaphore = make(chan struct{}, 15) // Limit to 15 concurrent scoring operations
+)
+
+// Get retrieves cached recommendations if not expired
+func (rc *RecommendationCache) Get(userID string) ([]RecommendedProject, bool) {
+	rc.RLock()
+	defer rc.RUnlock()
+
+	cached, exists := rc.data[userID]
+	if !exists {
+		return nil, false
+	}
+
+	// Check if cache is expired
+	if time.Since(cached.timestamp) > rc.ttl {
+		return nil, false
+	}
+
+	return cached.recommendations, true
+}
+
+// Set stores recommendations in cache
+func (rc *RecommendationCache) Set(userID string, recommendations []RecommendedProject) {
+	rc.Lock()
+	defer rc.Unlock()
+
+	rc.data[userID] = CachedRecommendations{
+		recommendations: recommendations,
+		timestamp:       time.Now(),
+	}
+}
+
+// Clear removes cached recommendations for a user
+func (rc *RecommendationCache) Clear(userID string) {
+	rc.Lock()
+	defer rc.Unlock()
+	delete(rc.data, userID)
+}
+
+// CleanupExpired removes expired cache entries (should be called periodically)
+func (rc *RecommendationCache) CleanupExpired() {
+	rc.Lock()
+	defer rc.Unlock()
+
+	now := time.Now()
+	for userID, cached := range rc.data {
+		if now.Sub(cached.timestamp) > rc.ttl {
+			delete(rc.data, userID)
+		}
+	}
+}
+
+// StartCacheCleanup starts a goroutine that periodically cleans up expired cache entries
+func StartCacheCleanup() {
+	ticker := time.NewTicker(10 * time.Minute) // Cleanup every 10 minutes
+	go func() {
+		for range ticker.C {
+			recommendationCache.CleanupExpired()
+		}
+	}()
+}
+
+// ClearUserCache clears the cache for a specific user (call when profile is updated)
+func ClearUserCache(userID string) {
+	recommendationCache.Clear(userID)
+}
 
 // RecommendedProject represents a project with its match score
 type RecommendedProject struct {
@@ -38,6 +124,15 @@ func GetRecommendedProjects(c echo.Context) error {
 		})
 	}
 
+	// Check cache first
+	if cachedRecommendations, found := recommendationCache.Get(userData.UID); found {
+		return c.JSON(http.StatusOK, echo.Map{
+			"recommendations": cachedRecommendations,
+			"count":           len(cachedRecommendations),
+			"cached":          true,
+		})
+	}
+
 	// Get student profile
 	var student models.Students
 	if err := config.DB.Where("uid = ?", userData.UID).First(&student).Error; err != nil {
@@ -50,7 +145,7 @@ func GetRecommendedProjects(c echo.Context) error {
 	var preferences models.ResearchPreference
 	hasPreferences := config.DB.Where("user_id = ?", userData.UID).First(&preferences).Error == nil
 
-	// Get all active projects that are NOT created by the student
+	// Batch query: Get all active projects that are NOT created by the student
 	var projects []models.Projects
 	if err := config.DB.Where("is_active = ? AND creator_id != ?", true, userData.UID).Find(&projects).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
@@ -58,7 +153,7 @@ func GetRecommendedProjects(c echo.Context) error {
 		})
 	}
 
-	// Get ALL of student's applications (all statuses) to filter out
+	// Batch query: Get ALL of student's applications (all statuses) to filter out
 	var applications []models.ProjRequests
 	config.DB.Select("p_id").Where("uid = ?", userData.UID).Find(&applications)
 	appliedProjects := make(map[string]bool, len(applications))
@@ -66,13 +161,12 @@ func GetRecommendedProjects(c echo.Context) error {
 		appliedProjects[app.PID] = true
 	}
 
-	// Get recent applications (past 3 months) for similarity matching
-	// Only fetch applications that haven't been rejected/accepted for pattern analysis
+	// Batch query: Get recent applications (past 3 months) for similarity matching
 	threeMonthsAgo := time.Now().AddDate(0, -3, 0)
 	var recentApplications []models.ProjRequests
 	config.DB.Where("uid = ? AND time_created >= ?", userData.UID, threeMonthsAgo).Find(&recentApplications)
 
-	// Fetch the actual projects the student applied to recently
+	// Batch query: Fetch the actual projects the student applied to recently
 	var recentAppliedProjects []models.Projects
 	recentPIDs := make([]string, 0, len(recentApplications))
 	for _, app := range recentApplications {
@@ -82,56 +176,82 @@ func GetRecommendedProjects(c echo.Context) error {
 		config.DB.Where("project_id IN ?", recentPIDs).Find(&recentAppliedProjects)
 	}
 
-	// Calculate match scores for each project
-	var recommendations []RecommendedProject
+	// Pre-filter projects and collect creator IDs
 	currentTime := time.Now()
+	var eligibleProjects []models.Projects
+	creatorIDs := make(map[string]bool)
 
 	for _, project := range projects {
-		// Skip if already applied (regardless of status - accepted, rejected, interview, etc.)
+		// Skip if already applied
 		if appliedProjects[project.ProjectID] {
 			continue
 		}
 
 		// Skip projects with past deadlines
 		if project.Deadline != nil && *project.Deadline != "" {
-			// Try to parse the deadline - assuming format like "2024-12-31" or similar
-			deadline, err := time.Parse("2006-01-02", *project.Deadline)
-			if err == nil && deadline.Before(currentTime) {
-				continue // Skip projects with expired deadlines
-			}
-			// If we can't parse it, try other common formats
-			if err != nil {
-				deadline, err = time.Parse("02/01/2006", *project.Deadline)
-				if err == nil && deadline.Before(currentTime) {
-					continue
-				}
-			}
-			if err != nil {
-				deadline, err = time.Parse("01-02-2006", *project.Deadline)
-				if err == nil && deadline.Before(currentTime) {
-					continue
-				}
+			if isDeadlinePassed(*project.Deadline, currentTime) {
+				continue
 			}
 		}
 
-		matchScore, reasons := calculateMatchScore(student, project, hasPreferences, preferences, recentAppliedProjects)
-
-		// Only include projects with a minimum match score (lowered threshold for better recall)
-		if matchScore >= 20.0 {
-			// Get professor info
-			var user models.User
-			if err := config.DB.Where("uid = ?", project.CreatorID).First(&user).Error; err != nil {
-				continue // Skip if user not found
-			}
-
-			recommendations = append(recommendations, RecommendedProject{
-				Projects:     project,
-				User:         user,
-				MatchScore:   matchScore,
-				MatchReasons: reasons,
-			})
-		}
+		eligibleProjects = append(eligibleProjects, project)
+		creatorIDs[project.CreatorID] = true
 	}
+
+	// Batch query: Get all professor info in one query
+	var creators []models.User
+	creatorIDList := make([]string, 0, len(creatorIDs))
+	for id := range creatorIDs {
+		creatorIDList = append(creatorIDList, id)
+	}
+	if len(creatorIDList) > 0 {
+		config.DB.Where("uid IN ?", creatorIDList).Find(&creators)
+	}
+
+	// Create a map for quick lookup
+	creatorMap := make(map[string]models.User, len(creators))
+	for _, creator := range creators {
+		creatorMap[creator.Uid] = creator
+	}
+
+	// Calculate match scores concurrently using goroutines
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	recommendations := make([]RecommendedProject, 0, len(eligibleProjects))
+
+	for _, project := range eligibleProjects {
+		wg.Add(1)
+		go func(proj models.Projects) {
+			defer wg.Done()
+
+			// Acquire semaphore
+			scoringSemaphore <- struct{}{}
+			defer func() { <-scoringSemaphore }()
+
+			matchScore, reasons := calculateMatchScore(student, proj, hasPreferences, preferences, recentAppliedProjects)
+
+			// Only include projects with a minimum match score
+			if matchScore >= 20.0 {
+				// Get professor info from map
+				user, exists := creatorMap[proj.CreatorID]
+				if !exists {
+					return // Skip if user not found
+				}
+
+				mu.Lock()
+				recommendations = append(recommendations, RecommendedProject{
+					Projects:     proj,
+					User:         user,
+					MatchScore:   matchScore,
+					MatchReasons: reasons,
+				})
+				mu.Unlock()
+			}
+		}(project)
+	}
+
+	// Wait for all goroutines to complete
+	wg.Wait()
 
 	// Sort recommendations by match score (highest first) - using built-in sort
 	for i := 0; i < len(recommendations); i++ {
@@ -147,10 +267,28 @@ func GetRecommendedProjects(c echo.Context) error {
 		recommendations = recommendations[:20]
 	}
 
+	// Cache the results
+	recommendationCache.Set(userData.UID, recommendations)
+
 	return c.JSON(http.StatusOK, echo.Map{
 		"recommendations": recommendations,
 		"count":           len(recommendations),
+		"cached":          false,
 	})
+}
+
+// isDeadlinePassed checks if a deadline string has passed
+func isDeadlinePassed(deadline string, currentTime time.Time) bool {
+	// Try different date formats
+	formats := []string{"2006-01-02", "02/01/2006", "01-02-2006"}
+
+	for _, format := range formats {
+		if parsedDeadline, err := time.Parse(format, deadline); err == nil {
+			return parsedDeadline.Before(currentTime)
+		}
+	}
+
+	return false // If we can't parse it, don't filter it out
 }
 
 // normalizeString normalizes a string for better matching

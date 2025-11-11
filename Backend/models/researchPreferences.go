@@ -8,7 +8,7 @@ import (
 
 type ResearchPreference struct {
 	ID              uint           `gorm:"primaryKey" json:"id"`
-	UserID          string         `gorm:"uniqueIndex;not null" json:"user_id"`
+	UserID          string         `gorm:"uniqueIndex;index;not null" json:"user_id"` // Added regular index for recommendations
 	FieldOfStudy    string         `gorm:"type:varchar(100);not null" json:"field_of_study"`
 	ExperienceLevel string         `gorm:"type:varchar(50);not null" json:"experience_level"` // beginner, intermediate, advanced
 	CurrentYear     int            `gorm:"not null" json:"current_year"`

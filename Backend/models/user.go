@@ -67,7 +67,7 @@ func (u *User) GetName() string {
 
 type User struct {
 	gorm.Model
-	Uid           string   `json:"uid" gorm:"uniqueIndex;not null"`
+	Uid           string   `json:"uid" gorm:"uniqueIndex;index;not null"` // Added regular index for recommendations
 	Name          string   `json:"name"`
 	Email         string   `json:"email" gorm:"uniqueIndex;not null"`
 	Password      string   `json:"password"`
