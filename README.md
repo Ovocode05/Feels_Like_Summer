@@ -31,7 +31,7 @@ Feels Like Summer is a research and project matching platform built to connect s
 - Go backend with Echo framework
 - PostgreSQL database with GORM
 - JWT based authentication
-- Batch reads instead of N plus 1 queries
+- Batch reads instead of N+1 queries
 - Cache invalidation on profile updates
 - Parallel scoring with semaphore controlled concurrency
 
